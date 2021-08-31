@@ -6,15 +6,31 @@ import string
 CHARACTOR_ENCODING = 'utf-8'
 
 
+def bytes_to_string(input: bytes):
+    return input.decode(CHARACTOR_ENCODING)
+
+
+def string_to_bytes(input: str):
+    return input.encode(CHARACTOR_ENCODING)
+
+
 # Function that convert a string with hexidecimal digits to bytes
 # Challanges often give the input in this format, so this is used to convert that input
-def decode_hexidecimal(input: str) -> bytes:
+def hexadecimal_to_bytes(input: str) -> bytes:
     return bytes.fromhex(input)
 
 
+def bytes_to_hexadecimal():
+    pass  # TODO: implement
+
+
 # Function that convert bytes to a base64 encoded string
-def encode_base64(input: bytes) -> str:
-    return b64encode(input).decode(CHARACTOR_ENCODING)
+def bytes_to_base64(input: bytes) -> str:
+    return bytes_to_string(b64encode(input))
+
+
+def base64_to_bytes():
+    pass  # TODO: implement
 
 
 # Function that takes two equal-length bytes and produces their XOR combination
@@ -31,6 +47,11 @@ def single_byte_xor(chiper: bytes, key: int) -> bytes:
         raise Exception('Invalid operation')
 
     return bytes(byte ^ key for byte in chiper)
+
+
+def repeating_key_xor(chiper: bytes, key: bytes) -> bytes:
+    key_length = len(key)
+    return bytes(byte ^ key[i % key_length] for (i, byte) in enumerate(chiper))
 
 
 # Function to score a character with the likelyhood of it being part of a plain text string
@@ -60,7 +81,7 @@ def best_candidate(candidates: Iterable[bytes]) -> bytes:
 
 
 # Function that tries all one-byte keys against every chiper to find the most likely plain text
-def single_byte_xor_chipers(ciphers: Iterable[bytes]) -> str:
+def single_byte_xor_chipers(ciphers: Iterable[bytes]) -> bytes:
     # Iterate over all one-byte values and try to XOR it with the chiper
     candidates = (
         single_byte_xor(cipher, byte)
@@ -69,4 +90,4 @@ def single_byte_xor_chipers(ciphers: Iterable[bytes]) -> str:
     )
 
     # Encode bytes as string
-    return best_candidate(candidates).decode(CHARACTOR_ENCODING)
+    return best_candidate(candidates)
