@@ -5,5 +5,17 @@ It's a bit late, but this is my attempt at solving the [cryptopals crypto challe
 To run all the challenges, use the following command:
 
 ```sh
-pytest -v
+py.test -v
+```
+
+To verify code styling, use this command:
+
+```sh
+pycodestyle
+```
+
+To verify the static typing:
+
+```sh
+mypy -p cryptopals -p tests
 ```

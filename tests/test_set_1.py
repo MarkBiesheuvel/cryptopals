@@ -1,6 +1,6 @@
 import pytest
 from typing import Iterable
-from src.set_1 import (
+from cryptopals import (
     bytes_to_string,
     string_to_bytes,
     hexadecimal_to_bytes,
