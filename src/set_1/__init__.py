@@ -1,19 +1,27 @@
 from base64 import b64encode
-from string import ascii_letters, printable
+from math import inf
+import string
+
+CHARACTOR_ENCODING = 'utf-8'
 
 
+# Function that convert a string with hexidecimal digits to bytes
+# Challanges often give the input in this format, so this is used to convert that input
 def decode_hexidecimal(input: str) -> bytes:
     return bytes.fromhex(input)
 
 
+# Function that convert bytes to a base64 encoded string
 def encode_base64(input: bytes) -> str:
-    return b64encode(input).decode('utf-8')
+    return b64encode(input).decode(CHARACTOR_ENCODING)
 
 
+# Function that takes two equal-length bytes and produces their XOR combination
 def fixed_xor(input_a: bytes, input_b: bytes) -> bytes:
     if len(input_a) != len(input_b):
         raise Exception('Invalid operation')
 
+    # Python does not support bitwise operations on bytes, so we need to XOR byte-by-byte
     return bytes([
         a ^ b
         for a, b in zip(
@@ -23,27 +31,40 @@ def fixed_xor(input_a: bytes, input_b: bytes) -> bytes:
     ])
 
 
-def score(character: str) -> int:
-    if character in ascii_letters:
-        return 1
-    elif character in printable:
-        return 0
+# Function to score a character with the likelyhood of it being part of a plain text string
+def score(byte: int) -> float:
+    character = chr(byte)
+
+    # Lower case characters are common
+    if character in string.ascii_lowercase:
+        return 1.0
+    # Upper case are common too, but too many might indicate an invalid string
+    elif character in string.ascii_uppercase:
+        return 0.8
+    # Printable character such as whitespace and punctuation are acceptable, but should be uncommon
+    elif character in string.printable:
+        return 0.2
+    # Unprintable characters disqualify the word
     else:
-        return -1
+        return -inf
 
 
+# Function that tries all one-byte keys against a chiper to find the most likely plain text
 def single_byte_xor_chiper(chiper: bytes) -> str:
+    # Determine length of chiper
     chiper_length = len(chiper)
-    best_score = 0
-    best_plain_text = None
 
-    for character in ascii_letters:
-        candidate_key = character.encode('utf-8') * chiper_length
-        candidate_plain_text = fixed_xor(chiper, candidate_key).decode('utf-8')
-        candidate_score = sum(score(character) for character in candidate_plain_text)
+    # Iterate over all one-byte values and try to XOR it with the chiper
+    candidates = (
+        fixed_xor(bytes([byte] * chiper_length), chiper)
+        for byte in range(256)
+    )
 
-        if candidate_score > best_score:
-            best_score = candidate_score
-            best_plain_text = candidate_plain_text
+    # Find the candidate with the highest score
+    plain_text = max(
+        candidates,
+        key=lambda candidate: sum(score(character) for character in candidate)
+    )
 
-    return best_plain_text
+    # Encode bytes as string
+    return plain_text.decode(CHARACTOR_ENCODING)
