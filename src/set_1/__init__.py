@@ -1,4 +1,5 @@
 from base64 import b64encode
+from typing import Iterable
 from math import inf
 import string
 
@@ -22,13 +23,14 @@ def fixed_xor(input_a: bytes, input_b: bytes) -> bytes:
         raise Exception('Invalid operation')
 
     # Python does not support bitwise operations on bytes, so we need to XOR byte-by-byte
-    return bytes([
-        a ^ b
-        for a, b in zip(
-            input_a,
-            input_b
-        )
-    ])
+    return bytes(a ^ b for a, b in zip(input_a, input_b))
+
+
+def single_byte_xor(chiper: bytes, key: int) -> bytes:
+    if key < 0 or 255 < key:
+        raise Exception('Invalid operation')
+
+    return bytes(byte ^ key for byte in chiper)
 
 
 # Function to score a character with the likelyhood of it being part of a plain text string
@@ -49,22 +51,22 @@ def score(byte: int) -> float:
         return -inf
 
 
-# Function that tries all one-byte keys against a chiper to find the most likely plain text
-def single_byte_xor_chiper(chiper: bytes) -> str:
-    # Determine length of chiper
-    chiper_length = len(chiper)
-
-    # Iterate over all one-byte values and try to XOR it with the chiper
-    candidates = (
-        fixed_xor(bytes([byte] * chiper_length), chiper)
-        for byte in range(256)
-    )
-
-    # Find the candidate with the highest score
-    plain_text = max(
+# Function to find the most likely plain text out of a iterator of candidates
+def best_candidate(candidates: Iterable[bytes]) -> bytes:
+    return max(
         candidates,
         key=lambda candidate: sum(score(character) for character in candidate)
     )
 
+
+# Function that tries all one-byte keys against every chiper to find the most likely plain text
+def single_byte_xor_chipers(ciphers: Iterable[bytes]) -> str:
+    # Iterate over all one-byte values and try to XOR it with the chiper
+    candidates = (
+        single_byte_xor(cipher, byte)
+        for cipher in ciphers
+        for byte in range(256)
+    )
+
     # Encode bytes as string
-    return plain_text.decode(CHARACTOR_ENCODING)
+    return best_candidate(candidates).decode(CHARACTOR_ENCODING)
