@@ -63,3 +63,12 @@ def test_challenge_6() -> None:
     assert 'Play that funky music' in plain_text
     assert 'I\'m back and I\'m ringin\' the bell' in plain_text
     assert 'Well that\'s my DJ Deshay cuttin\' all them Z\'s' in plain_text
+
+
+def test_challenge_7() -> None:
+    cipher: bytes = base64_to_bytes(''.join(file_iterator('tests/data/7.txt')))
+    key: bytes = string_to_bytes('YELLOW SUBMARINE')
+    plain_text: str = bytes_to_string(aes_128_ecb_decrypt(cipher, key))
+    assert 'Play that funky music' in plain_text
+    assert 'I\'m back and I\'m ringin\' the bell' in plain_text
+    assert 'Well that\'s my DJ Deshay cuttin\' all them Z\'s' in plain_text

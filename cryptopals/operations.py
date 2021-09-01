@@ -1,3 +1,5 @@
+from Crypto.Cipher import AES
+
 
 # Function that takes two equal-length bytes and produces their XOR combination
 def fixed_xor(input_a: bytes, input_b: bytes) -> bytes:
@@ -18,3 +20,8 @@ def single_byte_xor(cipher: bytes, key: int) -> bytes:
 def repeating_key_xor(cipher: bytes, key: bytes) -> bytes:
     key_length = len(key)
     return bytes(byte ^ key[i % key_length] for (i, byte) in enumerate(cipher))
+
+
+def aes_128_ecb_decrypt(cipher: bytes, key: bytes) -> bytes:
+    stream = AES.new(key, AES.MODE_ECB)
+    return stream.decrypt(cipher)
