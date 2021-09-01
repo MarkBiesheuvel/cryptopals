@@ -85,20 +85,20 @@ def single_byte_xor_ciphers(ciphers: Iterable[bytes]) -> bytes:
 
 
 def repeating_key_xor_cipher(cipher: bytes, max_key_length: int) -> bytes:
-    cipher_length = len(cipher)
+    cipher_length: int = len(cipher)
 
     # This analysis does not work if there are no repeats
     if max_key_length > cipher_length / NUMBER_OF_CHUNKS:
         raise Exception('Invalid operation')
 
     # Find the key length with the lowest normalized hamming distance between the first and second block
-    key_length = min(
+    key_length: int = min(
         range(2, max_key_length),
         key=lambda length: average_hamming_distance(cipher, length)
     )
 
     # Split cipher up into blocks where each block $i contains bytes from cipher at position $(i % key_length)
-    cipher_blocks = (
+    cipher_blocks: Iterable[bytes] = (
         bytes(
             cipher[j]
             for j in range(i, cipher_length, key_length)
@@ -107,15 +107,25 @@ def repeating_key_xor_cipher(cipher: bytes, max_key_length: int) -> bytes:
     )
 
     # Analyse each block as a single byte XOR cipher
-    plain_text_blocks = [
+    plain_text_blocks: List[bytes] = [
         single_byte_xor_ciphers([block])
         for block in cipher_blocks
     ]
 
     # Reconstruct the plain text by placing all bytes back into the original order
-    plain_text = bytes(
+    plain_text: bytes = bytes(
         plain_text_blocks[i % key_length][i // key_length]
         for i in range(cipher_length)
     )
 
     return plain_text
+
+
+def detect_aes_ecb_mode(ciphers: Iterable[bytes]) -> bytes:
+    # 128 bit key, so 16 bytes
+    key_length = 16
+
+    return min(
+        ciphers,
+        key=lambda cipher: average_hamming_distance(cipher, key_length)
+    )

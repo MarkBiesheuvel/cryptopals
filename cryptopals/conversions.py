@@ -17,8 +17,8 @@ def hexadecimal_to_bytes(input: str) -> bytes:
     return bytes.fromhex(input)
 
 
-def bytes_to_hexadecimal():
-    pass  # TODO: implement
+def bytes_to_hexadecimal(input: bytes) -> str:
+    return input.hex()
 
 
 # Function that convert bytes to a base64 encoded string
