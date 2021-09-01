@@ -1,4 +1,4 @@
-from base64 import b64encode
+from base64 import b64encode, b64decode
 
 CHARACTOR_ENCODING = 'utf-8'
 
@@ -26,5 +26,5 @@ def bytes_to_base64(input: bytes) -> str:
     return bytes_to_string(b64encode(input))
 
 
-def base64_to_bytes():
-    pass  # TODO: implement
+def base64_to_bytes(input: str) -> bytes:
+    return b64decode(string_to_bytes(input))

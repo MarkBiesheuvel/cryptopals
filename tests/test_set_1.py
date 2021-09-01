@@ -1,20 +1,12 @@
 import pytest
 from typing import Iterable
-from cryptopals import (
-    bytes_to_string,
-    string_to_bytes,
-    hexadecimal_to_bytes,
-    bytes_to_base64,
-    fixed_xor,
-    repeating_key_xor,
-    single_byte_xor_chipers
-)
+from cryptopals import *
 
 
 def file_iterator(filename: str) -> Iterable[str]:
     with open(filename, 'r') as file:
         while True:
-            line = file.readline()
+            line: str = file.readline()
             if line == '':
                 break
             else:
@@ -38,8 +30,8 @@ def test_challenge_2() -> None:
 
 def test_challenge_3() -> None:
     cipher: bytes = hexadecimal_to_bytes('1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736')
-    output: str = 'Cooking MC\'s like a pound of bacon'
-    assert bytes_to_string(single_byte_xor_chipers([cipher])) == output
+    plain_text: str = 'Cooking MC\'s like a pound of bacon'
+    assert bytes_to_string(single_byte_xor_ciphers([cipher])) == plain_text
 
 
 def test_challenge_4() -> None:
@@ -47,16 +39,27 @@ def test_challenge_4() -> None:
         hexadecimal_to_bytes(line)
         for line in file_iterator('tests/data/4.txt')
     )
-    output = 'Now that the party is jumping\n'
-    assert bytes_to_string(single_byte_xor_chipers(ciphers)) == output
+    plain_text: str = 'Now that the party is jumping\n'
+    assert bytes_to_string(single_byte_xor_ciphers(ciphers)) == plain_text
 
 
 def test_challenge_5() -> None:
-    plain_text = string_to_bytes('Burning \'em, if you ain\'t quick and nimble\nI go crazy when I hear a cymbal')
-    key = string_to_bytes('ICE')
-    output = hexadecimal_to_bytes(
+    plain_text: bytes = string_to_bytes('Burning \'em, if you ain\'t quick and nimble\nI go crazy when I hear a cymbal')
+    key: bytes = string_to_bytes('ICE')
+    cipher: bytes = hexadecimal_to_bytes(
         '0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272'
         'a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f'
     )
+    assert repeating_key_xor(plain_text, key) == cipher
 
-    assert repeating_key_xor(plain_text, key) == output
+
+def test_challenge_6() -> None:
+    input_a: bytes = string_to_bytes('this is a test')
+    input_b: bytes = string_to_bytes('wokka wokka!!!')
+    assert hamming_distance(input_a, input_b) == 37
+
+    cipher: bytes = base64_to_bytes(''.join(file_iterator('tests/data/6.txt')))
+    plain_text: str = bytes_to_string(repeating_key_xor_cipher(cipher, 40))
+    assert 'Play that funky music' in plain_text
+    assert 'I\'m back and I\'m ringin\' the bell' in plain_text
+    assert 'Well that\'s my DJ Deshay cuttin\' all them Z\'s' in plain_text
