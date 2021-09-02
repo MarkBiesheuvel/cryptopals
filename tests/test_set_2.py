@@ -22,3 +22,19 @@ def test_challenge_10() -> None:
     assert 'Play that funky music' in plain_text
     assert 'I\'m back and I\'m ringin\' the bell' in plain_text
     assert 'Well that\'s my DJ Deshay cuttin\' all them Z\'s' in plain_text
+
+
+def test_challenge_11() -> None:
+    # Already specify the types of the variables in the for-loop
+    cipher: bytes
+    actual_mode: BlockCipherMode
+    detected_mode: BlockCipherMode
+
+    # Test 256 iterations since it is a random function
+    for _ in range(256):
+        # Let the encryption oracle encrypt our $plain_text
+        cipher, actual_mode = encryption_oracle(AES_BLOCK_MODE_DETECTION_STRING)
+
+        # Use analyzer to detect the mode
+        detected_mode = detect_aes_block_mode(cipher)
+        assert detected_mode == actual_mode

@@ -1,21 +1,27 @@
-from typing import Iterable, List
+from typing import Iterable, List, Dict
 from math import ceil
 from string import ascii_lowercase, ascii_uppercase, printable
 from itertools import combinations
 from .operations import single_byte_xor, fixed_xor
+from .aes import BlockCipherMode, BLOCK_SIZE
 
 # Number of chunks to compare to eachother using Hamming distance in order to guess the key length of a repeating key
-NUMBER_OF_CHUNKS = 6
+NUMBER_OF_CHUNKS: int = 6
 
 # Source: http://norvig.com/mayzner.html
 # Since the dataset contained roughly 743 B words, I added 743 B spaces to the set and recalculated all frequencies
 # For example, the frequency of the space itself becomes 743.8 B / (3,563 B + 743 B) = 17.27%
 # And the frequency of the letter A becomes 286.5 B / (3,563 B + 743 B) = 6.65%
-LETTER_FREQUENCY = {
+LETTER_FREQUENCY: Dict[str, float] = {
     ' ': 0.1727, 'e': 0.1034, 't': 0.0768, 'a': 0.0665, 'o': 0.0632, 'i': 0.0626, 'n': 0.0599, 's': 0.0539, 'r': 0.0520,
     'h': 0.0418, 'l': 0.0337, 'd': 0.0316, 'c': 0.0277, 'u': 0.0226, 'm': 0.0208, 'f': 0.0199, 'p': 0.0177, 'g': 0.0155,
     'w': 0.0139, 'y': 0.0138, 'b': 0.0123, 'v': 0.0087, 'k': 0.0045, 'x': 0.0020, 'j': 0.0013, 'q': 0.0010, 'z': 0.0007,
 }
+
+# "Carefully" chosen input string for detecting AES ECB block mode
+# The string contains an arbitrary character 64 times in a row; in this case it's 64 times "0x55"
+# After encrypting this plain text with AES ECB mode, the cipher should have at least two repeated blocks of 16 bytes
+AES_BLOCK_MODE_DETECTION_STRING: bytes = b'UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU'
 
 
 # Function to score a character with the likelyhood of it being part of a plain text string
@@ -121,11 +127,25 @@ def repeating_key_xor_cipher(cipher: bytes, max_key_length: int) -> bytes:
     return plain_text
 
 
-def detect_aes_ecb_mode(ciphers: Iterable[bytes]) -> bytes:
-    # 128 bit key, so 16 bytes
-    key_length = 16
-
+def detect_aes_ecb_cipher(ciphers: Iterable[bytes]) -> bytes:
     return min(
         ciphers,
-        key=lambda cipher: average_hamming_distance(cipher, key_length)
+        key=lambda cipher: average_hamming_distance(cipher, BLOCK_SIZE)
     )
+
+
+# Assuming the cipher comes from the plain text $AES_BLOCK_MODE_DETECTION_STRING, detect whether it was encrypted with
+# ECB or CBC block mode
+def detect_aes_block_mode(cipher: bytes) -> BlockCipherMode:
+    # Try to find any two concecutive bytes which are completly idencital
+    any_duplicate_bytes: bool = any(
+        all(
+            # Compare the $j'th byte of the current block with the $j'th byte of the previous block
+            cipher[j - BLOCK_SIZE] == cipher[j]
+            for j in range(i, i + BLOCK_SIZE)
+        )
+        # Iterate over all blocks except the first one (since we look back to the previous block)
+        for i in range(BLOCK_SIZE, len(cipher), BLOCK_SIZE)
+    )
+
+    return BlockCipherMode.ECB if any_duplicate_bytes else BlockCipherMode.CBC

@@ -17,5 +17,5 @@ pycodestyle
 To verify the static typing:
 
 ```sh
-mypy -p cryptopals -p tests
+mypy -p cryptopals -p tests --pretty
 ```
