@@ -22,6 +22,21 @@ def repeating_key_xor(cipher: bytes, key: bytes) -> bytes:
     return bytes(byte ^ key[i % key_length] for (i, byte) in enumerate(cipher))
 
 
+def pkcs7_padding(input: bytes, desired_length: int) -> bytes:
+    input_length = len(input)
+    difference = desired_length - input_length
+
+    # If the input is already longer than the desired length, we cannot pad it
+    # If the difference in length is larger than 255, the padding charachter is not well-defined
+    if difference < 0 or 255 < difference:
+        raise Exception('Invalid operation')
+
+    return bytes([
+        input[i] if i < input_length else difference
+        for i in range(desired_length)
+    ])
+
+
 def aes_128_ecb_decrypt(cipher: bytes, key: bytes) -> bytes:
     stream = AES.new(key, AES.MODE_ECB)
     return stream.decrypt(cipher)

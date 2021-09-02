@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, List
 from math import ceil
 from string import ascii_lowercase, ascii_uppercase, printable
 from itertools import combinations
