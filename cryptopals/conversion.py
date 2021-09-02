@@ -1,6 +1,7 @@
 from base64 import b64encode, b64decode
 
-CHARACTOR_ENCODING = 'utf-8'
+# Use ASCII encoding, since other encodings could introduce multi-byte / variable length characters
+CHARACTOR_ENCODING = 'ascii'
 
 
 def bytes_to_string(input: bytes):

@@ -2,7 +2,7 @@ from typing import Iterable, List, Dict
 from math import ceil
 from string import ascii_lowercase, ascii_uppercase, printable
 from itertools import combinations
-from .operations import single_byte_xor, fixed_xor
+from .operation import single_byte_xor, fixed_xor
 from .aes import BlockCipherMode, BLOCK_SIZE
 
 # Number of chunks to compare to eachother using Hamming distance in order to guess the key length of a repeating key
@@ -20,11 +20,11 @@ LETTER_FREQUENCY: Dict[str, float] = {
 
 # "Carefully" chosen input string for detecting AES ECB block mode
 # The string contains an arbitrary character 64 times in a row; in this case it's 64 times "0x55"
-# After encrypting this plain text with AES ECB mode, the cipher should have at least two repeated blocks of 16 bytes
+# After encrypting this plaintext with AES ECB mode, the cipher should have at least two repeated blocks of 16 bytes
 AES_BLOCK_MODE_DETECTION_STRING: bytes = b'UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU'
 
 
-# Function to score a character with the likelyhood of it being part of a plain text string
+# Function to score a character with the likelyhood of it being part of the plaintext
 def score(byte: int) -> float:
     character: str = chr(byte)
 
@@ -61,7 +61,7 @@ def average_hamming_distance(cipher: bytes, length: int) -> float:
     ) / len(combos)
 
 
-# Function to find the most likely plain text out of a iterator of candidates
+# Function to find the most likely plaintext out of a iterator of candidates
 def best_candidate(candidates: Iterable[bytes]) -> bytes:
     # Filter out any candidates with non-printable characters
     candidates = filter(
@@ -70,15 +70,14 @@ def best_candidate(candidates: Iterable[bytes]) -> bytes:
     )
 
     # TODO: handle error if no candidate is left over (i.e. probably the key was incorrect)
-
     return max(
         candidates,
         key=lambda candidate: sum(score(character) for character in candidate),
     )
 
 
-# Function that tries all one-byte keys against every cipher to find the most likely plain text
-def single_byte_xor_ciphers(ciphers: Iterable[bytes]) -> bytes:
+# Function that brute forces a one-byte keys against every cipher to find the most likely plaintext
+def brute_force_single_byte_xor(ciphers: Iterable[bytes]) -> bytes:
     # Iterate over all one-byte values and try to XOR it with the cipher
     candidates: Iterable[bytes] = (
         single_byte_xor(cipher, byte)
@@ -90,10 +89,11 @@ def single_byte_xor_ciphers(ciphers: Iterable[bytes]) -> bytes:
     return best_candidate(candidates)
 
 
-def repeating_key_xor_cipher(cipher: bytes, max_key_length: int) -> bytes:
+# Function that determines the most likely key length and brute forces each byte of the key
+def brute_force_repeating_key_xor(cipher: bytes, max_key_length: int) -> bytes:
     cipher_length: int = len(cipher)
 
-    # This analysis does not work if there are no repeats
+    # This analysis does not work if there are not enough chunks
     if max_key_length > cipher_length / NUMBER_OF_CHUNKS:
         raise Exception('Invalid operation')
 
@@ -113,20 +113,21 @@ def repeating_key_xor_cipher(cipher: bytes, max_key_length: int) -> bytes:
     )
 
     # Analyse each block as a single byte XOR cipher
-    plain_text_blocks: List[bytes] = [
-        single_byte_xor_ciphers([block])
+    plaintext_blocks: List[bytes] = [
+        brute_force_single_byte_xor([block])
         for block in cipher_blocks
     ]
 
-    # Reconstruct the plain text by placing all bytes back into the original order
-    plain_text: bytes = bytes(
-        plain_text_blocks[i % key_length][i // key_length]
+    # Reconstruct the plaintext by placing all bytes back into the original order
+    plaintext: bytes = bytes(
+        plaintext_blocks[i % key_length][i // key_length]
         for i in range(cipher_length)
     )
 
-    return plain_text
+    return plaintext
 
 
+# Function that detects the cipher which is most likely encrypted using ECB mode
 def detect_aes_ecb_cipher(ciphers: Iterable[bytes]) -> bytes:
     return min(
         ciphers,
@@ -134,8 +135,8 @@ def detect_aes_ecb_cipher(ciphers: Iterable[bytes]) -> bytes:
     )
 
 
-# Assuming the cipher comes from the plain text $AES_BLOCK_MODE_DETECTION_STRING, detect whether it was encrypted with
-# ECB or CBC block mode
+# Function that detect whether a cipher was encrypted with either ECB or CBC block mode
+# NOTE: The cipher needs to be generated with the plaintext $AES_BLOCK_MODE_DETECTION_STRING,
 def detect_aes_block_mode(cipher: bytes) -> BlockCipherMode:
     # Try to find any two concecutive bytes which are completly idencital
     any_duplicate_bytes: bool = any(
