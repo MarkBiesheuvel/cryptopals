@@ -1,4 +1,4 @@
-from typing import Iterable, List, Dict
+from typing import Iterable, List, Dict, Callable
 from math import ceil
 from string import ascii_lowercase, ascii_uppercase, printable
 from itertools import combinations
@@ -150,3 +150,43 @@ def detect_aes_block_mode(cipher: bytes) -> BlockCipherMode:
     )
 
     return BlockCipherMode.ECB if any_duplicate_bytes else BlockCipherMode.CBC
+
+
+def brute_force_ecb_fixed_key_unknown_string(encrypt: Callable[[bytes], bytes]) -> bytes:
+    dictionary: Dict[bytes, bytes]
+
+    # Starting with no known characters
+    known_characters: List[int] = []
+
+    # TODO: determine the block size
+    block_size: int = BLOCK_SIZE
+
+    # TODO: truncate known_characters if it's longer than the $block_size
+    prefix: List[int] = ([0] * (block_size - 1)) + known_characters
+
+    # Create plaintext for the prefix followed by each byte value
+    plaintext_combos = (
+        bytes(prefix + [byte_value])
+        for byte_value in range(255)
+    )
+
+    # Let the oracle encrypt each plaintext
+    plaintext_cipher_pairs = (
+        (plaintext, encrypt(plaintext))
+        for plaintext in plaintext_combos
+    )
+
+    # Store the first block of the cipher with the corresponding plaintext
+    dictionary = {
+        cipher[:block_size]: plaintext
+        for plaintext, cipher in plaintext_cipher_pairs
+    }
+
+    # Lookup the cipher of just the prefix and look it up in the dictionary
+    # This will give us the value of one of the bytes of the unknown string
+    character = dictionary[encrypt(bytes(prefix))[:block_size]][-1]
+
+    # TODO: iterate until all characters of the unknown string are deciphered
+    known_characters.append(character)
+
+    return bytes(known_characters)

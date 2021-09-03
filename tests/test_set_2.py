@@ -36,3 +36,11 @@ def test_challenge_11() -> None:
 
         # Use analyzer to detect the mode
         assert analyzer.detect_aes_block_mode(cipher) == actual_mode
+
+
+def test_challenge_12() -> None:
+    plaintext: bytes = analyzer.brute_force_ecb_fixed_key_unknown_string(
+        oracle.ecb_fixed_key_unknown_string
+    )
+
+    assert plaintext == b'R'
