@@ -23,6 +23,9 @@ LETTER_FREQUENCY: Dict[str, float] = {
 # After encrypting this plaintext with AES ECB mode, the cipher should have at least two repeated blocks of 16 bytes
 AES_BLOCK_MODE_DETECTION_STRING: bytes = b'UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU'
 
+# The byte value of an arbitrary character to be used in building plaintext
+DEFAULT_CHARACTER: int = 85
+
 
 # Function to score a character with the likelyhood of it being part of the plaintext
 def score(byte: int) -> float:
@@ -152,8 +155,38 @@ def detect_aes_block_mode(cipher: bytes) -> BlockCipherMode:
     return BlockCipherMode.ECB if any_duplicate_bytes else BlockCipherMode.CBC
 
 
+# Function that determines the block size of an encryption oracle
+def detect_block_size(encrypt: Callable[[bytes], bytes]) -> Tuple[int, int]:
+    previous_length: int
+    current_length: int
+    plaintext: List[int] = []
+
+    # Find the length of the cipher when encrypting with an empty plaintext
+    current_length = len(encrypt(bytes(plaintext)))
+    previous_length = current_length
+
+    # Keep increasing the plaintext length until there is a jump in cipher length
+    while previous_length == current_length:
+        plaintext.append(DEFAULT_CHARACTER)
+        previous_length = current_length
+        current_length = len(encrypt(bytes(plaintext)))
+
+    # The block size is equal to the job in cipher length, since we only added a single byte to the plaintext
+    block_size: int = current_length - previous_length
+
+    # Also calculate the length of the unknown string that is appended to the plaintext
+    # The plaintext plus unknown string fit exactly in a cipher of the previous length, since the current length
+    # needed an extra block of padding
+    unknown_string_length: int = previous_length - len(plaintext)
+
+    return (block_size, unknown_string_length)
+
+
 def brute_force_ecb_fixed_key_unknown_string(encrypt: Callable[[bytes], bytes]) -> bytes:
     # Define types of all variables used in the for loop
+    block_size: int
+    unknown_string_length: int
+    block_offset: int
     prefix: List[int]
     plaintext_values: Iterable[bytes]
     plaintext_cipher_pairs: Iterable[Tuple[bytes, bytes]]
@@ -164,14 +197,15 @@ def brute_force_ecb_fixed_key_unknown_string(encrypt: Callable[[bytes], bytes]) 
     # Starting with no known characters
     known_characters: List[int] = []
 
-    # TODO: determine the block size
-    block_size: int = BLOCK_SIZE
+    block_size, unknown_string_length = detect_block_size(encrypt)
 
-    # TODO: figure out what to do for the next blocks
-    for _ in range(block_size):
+    for byte_index in range(unknown_string_length):
+        # Calculate the position of the block that will contain the byte with the current index
+        block_position = (byte_index // block_size) * block_size
+
         # Pad our plaintext with a specific number of bytes ("0x00") in order to position
         # the next byte of the unknown string at the last byte of a block
-        prefix = ([0] * (block_size - len(known_characters) - 1))
+        prefix = [DEFAULT_CHARACTER] * (block_position + block_size - len(known_characters) - 1)
 
         # Create plaintext of the prefix followed by all known characters so far followed by each possible byte value
         # Here we iterate over the entire byte range 0-255; this could be reduced to string.printable
@@ -188,14 +222,14 @@ def brute_force_ecb_fixed_key_unknown_string(encrypt: Callable[[bytes], bytes]) 
 
         # Store the first block of the cipher with the corresponding last byte
         dictionary = {
-            cipher[:block_size]: plaintext[-1]
+            cipher[block_position:block_position+block_size]: plaintext[-1]
             for plaintext, cipher in plaintext_cipher_pairs
         }
 
         # Lookup the cipher of just the prefix and look it up in the dictionary
         # This will give us the value of one of the bytes of the unknown string
         cipher = encrypt(bytes(prefix))
-        character = dictionary[cipher[:block_size]]
+        character = dictionary[cipher[block_position:block_position+block_size]]
 
         # Add the discovered character to the list of known characters so it can be used to dicover the next character
         known_characters.append(character)
