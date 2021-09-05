@@ -39,8 +39,6 @@ def test_challenge_11() -> None:
 
 
 def test_challenge_12() -> None:
-    plaintext: bytes = analyzer.brute_force_ecb_fixed_key_unknown_string(
-        oracle.ecb_fixed_key_unknown_string
-    )
+    plaintext: bytes = string_to_bytes('Rollin\' in my 5.')
 
-    assert plaintext == b'R'
+    assert analyzer.brute_force_ecb_fixed_key_unknown_string(oracle.ecb_fixed_key_unknown_string) == plaintext

@@ -1,4 +1,4 @@
-from typing import Iterable, List, Dict, Callable
+from typing import Iterable, List, Dict, Tuple, Callable
 from math import ceil
 from string import ascii_lowercase, ascii_uppercase, printable
 from itertools import combinations
@@ -153,7 +153,13 @@ def detect_aes_block_mode(cipher: bytes) -> BlockCipherMode:
 
 
 def brute_force_ecb_fixed_key_unknown_string(encrypt: Callable[[bytes], bytes]) -> bytes:
-    dictionary: Dict[bytes, bytes]
+    # Define types of all variables used in the for loop
+    prefix: List[int]
+    plaintext_values: Iterable[bytes]
+    plaintext_cipher_pairs: Iterable[Tuple[bytes, bytes]]
+    dictionary: Dict[bytes, int]
+    cipher: bytes
+    character: int
 
     # Starting with no known characters
     known_characters: List[int] = []
@@ -161,32 +167,38 @@ def brute_force_ecb_fixed_key_unknown_string(encrypt: Callable[[bytes], bytes]) 
     # TODO: determine the block size
     block_size: int = BLOCK_SIZE
 
-    # TODO: truncate known_characters if it's longer than the $block_size
-    prefix: List[int] = ([0] * (block_size - 1)) + known_characters
+    # TODO: figure out what to do for the next blocks
+    for _ in range(block_size):
+        # Pad our plaintext with a specific number of bytes ("0x00") in order to position
+        # the next byte of the unknown string at the last byte of a block
+        prefix = ([0] * (block_size - len(known_characters) - 1))
 
-    # Create plaintext for the prefix followed by each byte value
-    plaintext_combos = (
-        bytes(prefix + [byte_value])
-        for byte_value in range(255)
-    )
+        # Create plaintext of the prefix followed by all known characters so far followed by each possible byte value
+        # Here we iterate over the entire byte range 0-255; this could be reduced to string.printable
+        plaintext_values = (
+            bytes(prefix + known_characters + [byte_value])
+            for byte_value in range(256)
+        )
 
-    # Let the oracle encrypt each plaintext
-    plaintext_cipher_pairs = (
-        (plaintext, encrypt(plaintext))
-        for plaintext in plaintext_combos
-    )
+        # Let the oracle encrypt each plaintext
+        plaintext_cipher_pairs = (
+            (plaintext, encrypt(plaintext))
+            for plaintext in plaintext_values
+        )
 
-    # Store the first block of the cipher with the corresponding plaintext
-    dictionary = {
-        cipher[:block_size]: plaintext
-        for plaintext, cipher in plaintext_cipher_pairs
-    }
+        # Store the first block of the cipher with the corresponding last byte
+        dictionary = {
+            cipher[:block_size]: plaintext[-1]
+            for plaintext, cipher in plaintext_cipher_pairs
+        }
 
-    # Lookup the cipher of just the prefix and look it up in the dictionary
-    # This will give us the value of one of the bytes of the unknown string
-    character = dictionary[encrypt(bytes(prefix))[:block_size]][-1]
+        # Lookup the cipher of just the prefix and look it up in the dictionary
+        # This will give us the value of one of the bytes of the unknown string
+        cipher = encrypt(bytes(prefix))
+        character = dictionary[cipher[:block_size]]
 
-    # TODO: iterate until all characters of the unknown string are deciphered
-    known_characters.append(character)
+        # Add the discovered character to the list of known characters so it can be used to dicover the next character
+        known_characters.append(character)
 
+    # Convert all characters into a byte array
     return bytes(known_characters)
