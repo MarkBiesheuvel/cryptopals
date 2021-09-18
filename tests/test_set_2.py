@@ -1,5 +1,6 @@
 import pytest
-from cryptopals import aes, oracle, analyzer
+from cryptopals import aes, analyzer
+from cryptopals.oracle import RandomBlockModeOracle, EcbUnknownStringOracle
 from cryptopals.conversion import string_to_bytes, bytes_to_string, base64_to_bytes
 from cryptopals.operation import pkcs7_pad
 from .helpers import file_iterator, funky_music
@@ -26,19 +27,22 @@ def test_challenge_10() -> None:
 
 def test_challenge_11() -> None:
     # Already specify the types of the variables in the for-loop
+    oracle: RandomBlockModeOracle
     cipher: bytes
     actual_mode: aes.BlockCipherMode
 
     # Test 256 iterations since it is a random function
     for _ in range(256):
+        # Initialize a new oracle
+        oracle = RandomBlockModeOracle()
+
         # Let the encryption oracle encrypt our plaintext $AES_BLOCK_MODE_DETECTION_STRING
-        cipher, actual_mode = oracle.random_block_mode(analyzer.AES_BLOCK_MODE_DETECTION_STRING)
+        cipher = oracle.encrypt(analyzer.AES_BLOCK_MODE_DETECTION_STRING)
 
         # Use analyzer to detect the mode
-        assert analyzer.detect_aes_block_mode(cipher) == actual_mode
+        assert analyzer.detect_aes_block_mode(cipher) == oracle.mode
 
 
 def test_challenge_12() -> None:
-    plaintext: bytes = oracle.UNKNOWN_STRING
-
-    assert analyzer.brute_force_ecb_fixed_key_unknown_string(oracle.ecb_fixed_key_unknown_string) == plaintext
+    oracle: EcbUnknownStringOracle = EcbUnknownStringOracle()
+    assert analyzer.brute_force_ecb_fixed_key_unknown_string(oracle.encrypt) == oracle.unknown_string

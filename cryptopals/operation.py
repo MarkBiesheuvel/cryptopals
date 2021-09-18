@@ -1,3 +1,5 @@
+from random import randrange
+
 
 # Function that takes two equal-length bytes and produces their XOR combination
 def fixed_xor(input_a: bytes, input_b: bytes) -> bytes:
@@ -37,3 +39,7 @@ def pkcs7_pad(input: bytes, block_size: int) -> bytes:
 def pkcs7_unpad(input: bytes) -> bytes:
     difference = input[-1]
     return input[:-difference]
+
+
+def random_bytes(length: int) -> bytes:
+    return bytes([randrange(256) for _ in range(length)])
