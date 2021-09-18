@@ -1,8 +1,9 @@
 import pytest
 from typing import Iterable
-from cryptopals import aes, analyzer
+from cryptopals.aes import decrypt_ecb_mode
+from cryptopals.adversary import brute_force_single_byte_xor, brute_force_repeating_key_xor, find_aes_ecb_cipher
 from cryptopals.conversion import string_to_bytes, hexadecimal_to_bytes, base64_to_bytes
-from cryptopals.operation import fixed_xor, repeating_key_xor
+from cryptopals.operation import fixed_xor, repeating_key_xor, hamming_distance
 from .helpers import file_iterator, funky_music
 
 
@@ -24,7 +25,7 @@ def test_challenge_2() -> None:
 def test_challenge_3() -> None:
     cipher: bytes = hexadecimal_to_bytes('1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736')
     plaintext: bytes = string_to_bytes('Cooking MC\'s like a pound of bacon')
-    assert analyzer.brute_force_single_byte_xor([cipher]) == plaintext
+    assert brute_force_single_byte_xor([cipher]) == plaintext
 
 
 def test_challenge_4() -> None:
@@ -33,7 +34,7 @@ def test_challenge_4() -> None:
         for line in file_iterator('tests/data/4.txt')
     )
     plaintext: bytes = string_to_bytes('Now that the party is jumping\n')
-    assert analyzer.brute_force_single_byte_xor(ciphers) == plaintext
+    assert brute_force_single_byte_xor(ciphers) == plaintext
 
 
 def test_challenge_5() -> None:
@@ -49,18 +50,18 @@ def test_challenge_5() -> None:
 def test_challenge_6() -> None:
     input_a: bytes = string_to_bytes('this is a test')
     input_b: bytes = string_to_bytes('wokka wokka!!!')
-    assert analyzer.hamming_distance(input_a, input_b) == 37
+    assert hamming_distance(input_a, input_b) == 37
 
     cipher: bytes = base64_to_bytes(''.join(file_iterator('tests/data/6.txt')))
     plaintext: bytes = funky_music()
-    assert analyzer.brute_force_repeating_key_xor(cipher, 40) == plaintext
+    assert brute_force_repeating_key_xor(cipher, 40) == plaintext
 
 
 def test_challenge_7() -> None:
     cipher: bytes = base64_to_bytes(''.join(file_iterator('tests/data/7.txt')))
     key: bytes = string_to_bytes('YELLOW SUBMARINE')
     plaintext: bytes = funky_music()
-    assert aes.decrypt_ecb_mode(cipher, key) == plaintext
+    assert decrypt_ecb_mode(cipher, key) == plaintext
 
 
 def test_challenge_8() -> None:
@@ -74,4 +75,4 @@ def test_challenge_8() -> None:
         '54789a6b0308649af70dc06f4fd5d2d69c744cd283d403180c98c8f6db1f2a3f9c4040deb0ab51b29933f2c123c58386b06fba186a'
     )
 
-    assert analyzer.detect_aes_ecb_cipher(ciphers) == ecb_cipher
+    assert find_aes_ecb_cipher(ciphers) == ecb_cipher

@@ -1,5 +1,6 @@
 import pytest
-from cryptopals import aes, analyzer
+from cryptopals.aes import encrypt_cbc_mode, decrypt_cbc_mode, BlockCipherMode
+from cryptopals.adversary import detect_aes_block_mode, brute_force_ecb_unknown_string
 from cryptopals.oracle import RandomBlockModeOracle, EcbUnknownStringOracle
 from cryptopals.conversion import string_to_bytes, bytes_to_string, base64_to_bytes
 from cryptopals.operation import pkcs7_pad
@@ -17,32 +18,29 @@ def test_challenge_10() -> None:
     input: bytes = string_to_bytes('Hello, World!')
     key: bytes = string_to_bytes('YELLOW SUBMARINE')
     iv: bytes = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    output: bytes = aes.encrypt_cbc_mode(input, key, iv)
-    assert aes.decrypt_cbc_mode(output, key, iv) == input
+    output: bytes = encrypt_cbc_mode(input, key, iv)
+    assert decrypt_cbc_mode(output, key, iv) == input
 
     cipher: bytes = base64_to_bytes(''.join(file_iterator('tests/data/10.txt')))
     plaintext: bytes = funky_music()
-    assert aes.decrypt_cbc_mode(cipher, key, iv) == plaintext
+    assert decrypt_cbc_mode(cipher, key, iv) == plaintext
 
 
 def test_challenge_11() -> None:
     # Already specify the types of the variables in the for-loop
     oracle: RandomBlockModeOracle
     cipher: bytes
-    actual_mode: aes.BlockCipherMode
+    actual_mode: BlockCipherMode
 
     # Test 256 iterations since it is a random function
     for _ in range(256):
-        # Initialize a new oracle
+        # Initialize a new oracle to get a new random mode and random key
         oracle = RandomBlockModeOracle()
 
-        # Let the encryption oracle encrypt our plaintext $AES_BLOCK_MODE_DETECTION_STRING
-        cipher = oracle.encrypt(analyzer.AES_BLOCK_MODE_DETECTION_STRING)
-
         # Use analyzer to detect the mode
-        assert analyzer.detect_aes_block_mode(cipher) == oracle.mode
+        assert detect_aes_block_mode(oracle.encrypt) == oracle.mode
 
 
 def test_challenge_12() -> None:
     oracle: EcbUnknownStringOracle = EcbUnknownStringOracle()
-    assert analyzer.brute_force_ecb_fixed_key_unknown_string(oracle.encrypt) == oracle.unknown_string
+    assert brute_force_ecb_unknown_string(oracle.encrypt) == oracle.unknown_string
