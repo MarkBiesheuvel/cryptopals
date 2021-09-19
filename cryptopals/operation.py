@@ -64,7 +64,7 @@ def average_hamming_distance(cipher: bytes, block_size: int, number_of_blocks: i
         raise Exception('Invalid operation')
 
     # First $number_of_blocks blocks of size $block_size
-    blocks: Iterable[bytes] = (cipher[i*block_size:(i+1)*block_size] for i in range(number_of_blocks))
+    blocks: Iterable[bytes] = (get_block(cipher, i, block_size) for i in range(number_of_blocks))
 
     # Combine each block with each other block
     combos: List[Tuple[bytes, bytes]] = list(combinations(blocks, 2))
@@ -74,3 +74,11 @@ def average_hamming_distance(cipher: bytes, block_size: int, number_of_blocks: i
         hamming_distance(block_a, block_b) / block_size
         for block_a, block_b in combos
     ) / len(combos)
+
+
+# Function to retrieve the block at $block_index from a $cipher
+def get_block(cipher: bytes, block_index: int, block_size: int):
+    start_index: int = block_index * block_size
+    end_index: int = (block_index + 1) * block_size
+
+    return cipher[start_index:end_index]

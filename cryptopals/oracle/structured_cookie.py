@@ -1,6 +1,7 @@
 from typing import Iterable, List, Dict
 from .oracle import Oracle
 from ..aes import encrypt_ebc_mode, decrypt_ecb_mode
+from ..conversion import bytes_to_string
 
 CHARACTER_AMPERSAND = b'&'
 CHARACTER_EQUALS_SIGN = b'='
@@ -11,8 +12,8 @@ class StructuredCookieOracle(Oracle):
     def __init__(self):
         super(StructuredCookieOracle, self).__init__()
 
-        # Autoincrement ID
-        self.lastest_id = 0
+        # Autoincrement ID, but use a starting position where it's unlikely to impact padding
+        self.lastest_id = 1337
 
     def parse(self, profile: bytes) -> Dict[bytes, bytes]:
         pairs: Iterable[List[bytes]] = (

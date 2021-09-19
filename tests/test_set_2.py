@@ -1,7 +1,7 @@
 import pytest
 from typing import Dict
 from cryptopals.aes import encrypt_cbc_mode, decrypt_cbc_mode, BlockCipherMode
-from cryptopals.adversary import detect_aes_block_mode, brute_force_ecb_unknown_string
+from cryptopals.adversary import detect_aes_block_mode, brute_force_ecb_unknown_string, forge_admin_profile
 from cryptopals.oracle import RandomBlockModeOracle, EcbUnknownStringOracle, StructuredCookieOracle
 from cryptopals.conversion import string_to_bytes, bytes_to_string, base64_to_bytes
 from cryptopals.operation import pkcs7_pad
@@ -48,14 +48,10 @@ def test_challenge_12() -> None:
 
 
 def test_challenge_13() -> None:
+    role: bytes = string_to_bytes('role')
+    admin: bytes = string_to_bytes('admin')
+
     oracle: StructuredCookieOracle = StructuredCookieOracle()
+    cipher: bytes = forge_admin_profile(oracle)
 
-    email: bytes = string_to_bytes('foo@bar.com')
-    assert oracle.profile_for(email) == b'email=foo@bar.com&uid=1&role=user'
-
-    cipher: bytes = oracle.encrypt(email)
-    profile: Dict[bytes, bytes] = oracle.decrypt(cipher)
-    assert profile[b'role'] == b'user'
-    assert profile[b'email'] == email
-
-    # TODO: implement adversary
+    assert oracle.decrypt(cipher)[role] == admin
