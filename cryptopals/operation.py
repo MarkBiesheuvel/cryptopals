@@ -2,6 +2,10 @@ from typing import Iterable, List, Tuple
 from random import randrange
 from itertools import combinations
 
+# The byte value of an arbitrary character to be used in building nonrandom plaintext
+# The value 85 was chosen since it is alphanumeric character (U) and is 0101 0101 in binary
+DEFAULT_CHARACTER: int = 85
+
 
 # Function that takes two equal-length bytes and produces their XOR combination
 def fixed_xor(input_a: bytes, input_b: bytes) -> bytes:
@@ -45,6 +49,10 @@ def pkcs7_unpad(input: bytes) -> bytes:
 
 def random_bytes(length: int) -> bytes:
     return bytes([randrange(256) for _ in range(length)])
+
+
+def nonrandom_bytes(length: int) -> bytes:
+    return bytes([DEFAULT_CHARACTER] * length)
 
 
 def hamming_distance(input_a: bytes, input_b: bytes) -> int:

@@ -1,10 +1,7 @@
 from .detect_block_size import detect_block_size
 from ..oracle import Oracle
 from ..aes import BLOCK_SIZE
-from ..operation import pkcs7_pad, get_block
-
-# The byte value of an arbitrary character to be used in building plaintext
-DEFAULT_CHARACTER: int = 85
+from ..operation import pkcs7_pad, get_block, nonrandom_bytes
 
 # Assumtion: we know that all profile will be prefixed with "email="
 PROFILE_PREFIX = b'email='
@@ -53,7 +50,7 @@ def get_desired_last_block(oracle: Oracle, block_size: int) -> bytes:
     plaintext: bytes = pkcs7_pad(DESIRED_ROLE, block_size)
 
     # Determine how many characters we need to prepend by comparing the BLOCK_SIZE to the length of "email="
-    prefix: bytes = bytes([DEFAULT_CHARACTER] * (block_size - len(PROFILE_PREFIX)))
+    prefix: bytes = nonrandom_bytes(block_size - len(PROFILE_PREFIX))
 
     # Construct the plaintext, trying to make it look like an email address
     email: bytes = prefix + plaintext + DOMAIN_NAME
@@ -71,6 +68,6 @@ def get_cipher(oracle: Oracle, block_size: int, additional_string_length: int) -
     email_length = block_size - (additional_string_length - len(DEFAULT_ROLE) + len(DOMAIN_NAME)) % block_size
 
     # Construct email address of desired length
-    email = bytes([DEFAULT_CHARACTER] * email_length) + DOMAIN_NAME
+    email = nonrandom_bytes(email_length) + DOMAIN_NAME
 
     return oracle.encrypt(email)
