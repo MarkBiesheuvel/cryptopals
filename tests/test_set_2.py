@@ -1,7 +1,8 @@
 import pytest
+from typing import Dict
 from cryptopals.aes import encrypt_cbc_mode, decrypt_cbc_mode, BlockCipherMode
 from cryptopals.adversary import detect_aes_block_mode, brute_force_ecb_unknown_string
-from cryptopals.oracle import RandomBlockModeOracle, EcbUnknownStringOracle
+from cryptopals.oracle import RandomBlockModeOracle, EcbUnknownStringOracle, StructuredCookieOracle
 from cryptopals.conversion import string_to_bytes, bytes_to_string, base64_to_bytes
 from cryptopals.operation import pkcs7_pad
 from .helpers import file_iterator, funky_music
@@ -44,3 +45,17 @@ def test_challenge_11() -> None:
 def test_challenge_12() -> None:
     oracle: EcbUnknownStringOracle = EcbUnknownStringOracle()
     assert brute_force_ecb_unknown_string(oracle) == oracle.unknown_string
+
+
+def test_challenge_13() -> None:
+    oracle: StructuredCookieOracle = StructuredCookieOracle()
+
+    email: bytes = string_to_bytes('foo@bar.com')
+    assert oracle.profile_for(email) == b'email=foo@bar.com&uid=1&role=user'
+
+    cipher: bytes = oracle.encrypt(email)
+    profile: Dict[bytes, bytes] = oracle.decrypt(cipher)
+    assert profile[b'role'] == b'user'
+    assert profile[b'email'] == email
+
+    # TODO: implement adversary
