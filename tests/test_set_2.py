@@ -38,9 +38,9 @@ def test_challenge_11() -> None:
         oracle = RandomBlockModeOracle()
 
         # Use analyzer to detect the mode
-        assert detect_aes_block_mode(oracle.encrypt) == oracle.mode
+        assert detect_aes_block_mode(oracle) == oracle.mode
 
 
 def test_challenge_12() -> None:
     oracle: EcbUnknownStringOracle = EcbUnknownStringOracle()
-    assert brute_force_ecb_unknown_string(oracle.encrypt) == oracle.unknown_string
+    assert brute_force_ecb_unknown_string(oracle) == oracle.unknown_string

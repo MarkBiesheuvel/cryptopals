@@ -1,5 +1,5 @@
 from typing import Iterable, Dict
-from string import ascii_lowercase, ascii_uppercase, printable
+from string import ascii_lowercase, printable
 from ..operation import single_byte_xor
 
 # Source: http://norvig.com/mayzner.html

@@ -1,12 +1,12 @@
-from typing import Iterable, List, Dict, Tuple, Callable
+from typing import Iterable, List, Dict, Tuple
 from .detect_block_size import detect_block_size
-from ..aes import BLOCK_SIZE
+from ..oracle import Oracle
 
 # The byte value of an arbitrary character to be used in building plaintext
 DEFAULT_CHARACTER: int = 85
 
 
-def brute_force_ecb_unknown_string(encrypt: Callable[[bytes], bytes]) -> bytes:
+def brute_force_ecb_unknown_string(oracle: Oracle) -> bytes:
     # Define types of all variables used in the for loop
     block_size: int
     unknown_string_length: int
@@ -21,7 +21,7 @@ def brute_force_ecb_unknown_string(encrypt: Callable[[bytes], bytes]) -> bytes:
     # Starting with no known characters
     known_characters: List[int] = []
 
-    block_size, unknown_string_length = detect_block_size(encrypt)
+    block_size, unknown_string_length = detect_block_size(oracle)
 
     for byte_index in range(unknown_string_length):
         # Calculate the position of the block that will contain the byte with the current index
@@ -40,7 +40,7 @@ def brute_force_ecb_unknown_string(encrypt: Callable[[bytes], bytes]) -> bytes:
 
         # Let the oracle encrypt each plaintext
         plaintext_cipher_pairs = (
-            (plaintext, encrypt(plaintext))
+            (plaintext, oracle.encrypt(plaintext))
             for plaintext in plaintext_values
         )
 
@@ -52,7 +52,7 @@ def brute_force_ecb_unknown_string(encrypt: Callable[[bytes], bytes]) -> bytes:
 
         # Lookup the cipher of just the prefix and look it up in the dictionary
         # This will give us the value of one of the bytes of the unknown string
-        cipher = encrypt(bytes(prefix))
+        cipher = oracle.encrypt(bytes(prefix))
         character = dictionary[cipher[block_position:block_position+block_size]]
 
         # Add the discovered character to the list of known characters so it can be used to dicover the next character

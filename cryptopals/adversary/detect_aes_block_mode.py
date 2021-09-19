@@ -1,5 +1,5 @@
-from typing import Callable
 from ..aes import BlockCipherMode, BLOCK_SIZE
+from ..oracle import Oracle
 
 # "Carefully" chosen input string for detecting AES ECB block mode
 # The string contains an arbitrary character 64 times in a row; in this case it's 64 times "0x55"
@@ -8,9 +8,9 @@ AES_BLOCK_MODE_DETECTION_STRING: bytes = b'UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
 
 
 # Function that detect whether a cipher was encrypted with either ECB or CBC block mode
-def detect_aes_block_mode(encrypt: Callable[[bytes], bytes]) -> BlockCipherMode:
+def detect_aes_block_mode(oracle: Oracle) -> BlockCipherMode:
     # Use the oracle function to encrypt our carefully chosen plaintext
-    cipher: bytes = encrypt(AES_BLOCK_MODE_DETECTION_STRING)
+    cipher: bytes = oracle.encrypt(AES_BLOCK_MODE_DETECTION_STRING)
 
     # Try to find any two concecutive bytes which are completly idencital
     any_duplicate_bytes: bool = any(
