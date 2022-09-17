@@ -55,3 +55,8 @@ def test_challenge_13() -> None:
     cipher: bytes = forge_admin_profile(oracle)
 
     assert oracle.decrypt(cipher)[role] == admin
+
+
+def test_challenge_14() -> None:
+    oracle: EcbUnknownStringOracle = EcbUnknownStringOracle(prefix_size=6)
+    assert brute_force_ecb_unknown_string(oracle) == oracle.unknown_string
