@@ -1,32 +1,40 @@
 from typing import Iterable, List, Dict, Tuple
 from .detect_block_size import detect_block_size
 from ..oracle import Oracle
-from ..operation import get_block, nonrandom_bytes
+from ..operation import nonrandom_bytes
+from ..text import Text
 
 # List of printable ASCII charactors
 PRINTABLE_CHARACTERS = list(range(9, 13)) + list(range(32, 126))
 
 
-def detect_prepended_string_length(oracle, block_size) -> int:
-    offset: int = block_size
-    next_block: bytes = get_block(oracle.encrypt(nonrandom_bytes(offset)), 0, block_size)
+# Get the first block of the cipher given a plaintext of {plaintext_length}
+def first_block_of_cipher(oracle: Oracle, plaintext_length: int, block_size: int):
+    plaintext: Text = Text(nonrandom_bytes(plaintext_length), block_size)
+    ciphertext: Text = oracle.encrypt(plaintext)
+    return ciphertext.get_block(0)
 
-    # As long as (prepended_string_length + offset) is larger than a single block,
+
+def detect_prepended_string_length(oracle, block_size: int) -> int:
+    plaintext_length: int = block_size
+    next_block: bytes = first_block_of_cipher(oracle, plaintext_length, block_size)
+
+    # As long as ({prepended_string_length} + {plaintext_length}) is larger than a single block,
     # the first block will always be indentical.
-    # Keep reducing the offset until the first block of the cipher is different to find prepended_string_length
+    # Keep reducing {plaintext_length} until the first block of the cipher is different to find prepended_string_length
     while True:
         current_block = next_block
-        next_block = get_block(oracle.encrypt(nonrandom_bytes(offset - 1)), 0, block_size)
+        next_block = first_block_of_cipher(oracle, plaintext_length - 1, block_size)
 
         if next_block == current_block:
-            offset -= 1
+            plaintext_length -= 1
         else:
             break
 
-    return block_size - offset
+    return block_size - plaintext_length
 
 
-def brute_force_ecb_unknown_string(oracle: Oracle) -> bytes:
+def brute_force_ecb_unknown_string(oracle: Oracle) -> Text:
     # Starting with no known characters
     known_characters: bytearray = bytearray()
 
@@ -50,21 +58,21 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> bytes:
         prefix: bytes = nonrandom_bytes((block_index + 1) * block_size - byte_index - 1)
 
         # Create plaintexts from the prefix, followed by all known characters, followed by each printable byte value
-        plaintext_values: Iterable[bytes] = (
-            prefix + known_characters + bytes([byte_value])
+        plaintexts: Iterable[Text] = (
+            Text(prefix + known_characters + bytes([byte_value]), block_size)
             for byte_value in PRINTABLE_CHARACTERS
         )
 
         # Let the oracle encrypt each plaintext with the format
-        plaintext_cipher_pairs: Iterable[Tuple[bytes, bytes]] = (
+        plaintext_cipher_pairs: Iterable[Tuple[Text, Text]] = (
             (plaintext, oracle.encrypt(plaintext))
-            for plaintext in plaintext_values
+            for plaintext in plaintexts
         )
 
         # Store the block of the cipher containing the different bytes values in the last position
         dictionary: Dict[bytes, int] = {
-            get_block(cipher, block_index, block_size): plaintext[-1]
-            for plaintext, cipher in plaintext_cipher_pairs
+            ciphertext.get_block(block_index): plaintext.get_byte(-1)
+            for plaintext, ciphertext in plaintext_cipher_pairs
         }
 
         # Encrypt only the prefix and lookup the block in the dictionary
@@ -72,8 +80,8 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> bytes:
         # Visualization: block size is 4, unknown string has 5 characters of which 2 are known, byte is X
         # 0000 [0kkX] kkuu u
         # 0000 [0kku] uu
-        cipher: bytes = oracle.encrypt(bytes(prefix))
-        block: bytes = get_block(cipher, block_index, block_size)
+        ciphertext: Text = oracle.encrypt(Text(prefix))
+        block: bytes = ciphertext.get_block(block_index)
 
         # Add the discovered character to the list of known characters so it can be used in the next step
         if block in dictionary:
@@ -83,4 +91,4 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> bytes:
             raise Exception('Unable to detect charachter')
 
     # Convert from bytesarray to bytes
-    return bytes(known_characters)
+    return Text(bytes(known_characters))

@@ -1,6 +1,6 @@
 from typing import Iterable, Dict
 from string import ascii_lowercase, printable
-from ..operation import single_byte_xor
+from ..text import Text
 
 # Source: http://norvig.com/mayzner.html
 # Since the dataset contained roughly 743 B words, I added 743 B spaces to the set and recalculated all frequencies
@@ -26,28 +26,25 @@ def score(byte: int) -> float:
 
 
 # Function to find the most likely plaintext out of a iterator of candidates
-def find_plaintext(candidates: Iterable[bytes]) -> bytes:
+def find_likely_plaintext(plaintexts: Iterable[Text]) -> Text:
     # Filter out any candidates with non-printable characters
-    candidates = filter(
-        lambda candidate: all(chr(byte) in printable for byte in candidate),
-        candidates
-    )
+    plaintexts = (plaintext for plaintext in plaintexts if plaintext.is_printable())
 
     # TODO: handle error if no candidate is left over (i.e. probably the key was incorrect)
     return max(
-        candidates,
-        key=lambda candidate: sum(score(byte) for byte in candidate),
+        plaintexts,
+        key=lambda plaintext: sum(score(byte) for byte in plaintext.to_bytes()),
     )
 
 
 # Function that brute forces a one-byte keys against every cipher to find the most likely plaintext
-def brute_force_single_byte_xor(ciphers: Iterable[bytes]) -> bytes:
+def brute_force_single_byte_xor(ciphers: Iterable[Text]) -> Text:
     # Iterate over all one-byte values and try to XOR it with the cipher
-    candidates: Iterable[bytes] = (
-        single_byte_xor(cipher, byte)
+    candidate_plaintexts: Iterable[Text] = (
+        cipher.single_byte_xor(candidate_key)
         for cipher in ciphers
-        for byte in range(256)
+        for candidate_key in range(256)
     )
 
     # Find most likely plaintext
-    return find_plaintext(candidates)
+    return find_likely_plaintext(candidate_plaintexts)

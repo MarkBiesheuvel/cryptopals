@@ -1,10 +1,9 @@
 from typing import Iterable, List, Dict
 from .oracle import Oracle
-from ..aes import encrypt_ebc_mode, decrypt_ecb_mode
-from ..conversion import bytes_to_string
+from ..text import Text
 
-CHARACTER_AMPERSAND = b'&'
-CHARACTER_EQUALS_SIGN = b'='
+CHARACTER_AMPERSAND = '&'
+CHARACTER_EQUALS_SIGN = '='
 
 
 class StructuredCookieOracle(Oracle):
@@ -15,10 +14,10 @@ class StructuredCookieOracle(Oracle):
         # Autoincrement ID, but use a starting position where it's unlikely to impact padding
         self.lastest_id = 1337
 
-    def parse(self, profile: bytes) -> Dict[bytes, bytes]:
-        pairs: Iterable[List[bytes]] = (
+    def parse(self, profile: Text) -> Dict[str, str]:
+        pairs: Iterable[List[str]] = (
             pair.split(CHARACTER_EQUALS_SIGN)
-            for pair in profile.split(CHARACTER_AMPERSAND)
+            for pair in profile.to_ascii().split(CHARACTER_AMPERSAND)
         )
 
         return {
@@ -26,19 +25,25 @@ class StructuredCookieOracle(Oracle):
             for pair in pairs
         }
 
-    def profile_for(self, email: bytes) -> bytes:
-        if CHARACTER_AMPERSAND in email or CHARACTER_EQUALS_SIGN in email:
-            raise Exception('Invalid operation')
+    def profile_for(self, email: Text) -> Text:
+        if not email.is_printable():
+            raise Exception('Unreadable email')
+
+        # TODO: Detect based on byte value
+        if CHARACTER_AMPERSAND in email.to_ascii() or CHARACTER_EQUALS_SIGN in email.to_ascii():
+            raise Exception('Forbidded character in email')
 
         # Simulate a website where user ids automatically increment
         self.lastest_id += 1
 
-        return b'email=%b&uid=%a&role=user' % (email, self.lastest_id)
+        # TODO: verify whether this is the best way to perform byte interpolation
+        value: bytes = b'email=%b&uid=%a&role=user' % (email.to_bytes(), self.lastest_id)
+        return Text(value)
 
-    def encrypt(self, email: bytes) -> bytes:
-        profile: bytes = self.profile_for(email)
-        return encrypt_ebc_mode(profile, self.key)
+    def encrypt(self, email: Text) -> Text:
+        profile: Text = self.profile_for(email)
+        return profile.encrypt_ebc_mode(self.key)
 
-    def decrypt(self, cipher: bytes) -> Dict[bytes, bytes]:
-        profile: bytes = decrypt_ecb_mode(cipher, self.key)
+    def decrypt(self, ciphertext: Text) -> Dict[str, str]:
+        profile: Text = ciphertext.decrypt_ecb_mode(self.key)
         return self.parse(profile)

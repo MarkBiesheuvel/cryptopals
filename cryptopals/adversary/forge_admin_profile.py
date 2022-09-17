@@ -1,7 +1,7 @@
 from .detect_block_size import detect_block_size
 from ..oracle import Oracle
-from ..aes import BLOCK_SIZE
-from ..operation import pkcs7_pad, get_block, nonrandom_bytes
+from ..operation import nonrandom_bytes
+from ..text import Text
 
 # Assumtion: we know that all profile will be prefixed with "email="
 PROFILE_PREFIX = b'email='
@@ -19,7 +19,7 @@ DESIRED_ROLE = b'admin'
 # We can only supply the email field in the profile, but want to set the role field to admin
 #
 # Assumption: the role field is last in the list, so if we carefully construct our email adress the word admin will
-# fall into its own block. The block will be padded to the BLOCK_SIZE
+# fall into its own block. The block will be padded to the {block_size}
 # The last two blocks we desire would look something like this (where X, Y, and Z are some variable)
 # X&uid=YYYY&role=
 # adminZZZZZZZZZZZ
@@ -31,43 +31,49 @@ DESIRED_ROLE = b'admin'
 # @gmail.com&uid=B
 #
 # After encrypting our carefully chosen email addres we can copy past it to the end of a cipher
-def forge_admin_profile(oracle: Oracle) -> bytes:
+def forge_admin_profile(oracle: Oracle) -> Text:
     # Detect the block size
     block_size, additional_string_length = detect_block_size(oracle)
 
     # Build the desired last block
-    desired_last_block = get_desired_last_block(oracle, block_size,)
+    desired_last_block = get_desired_last_block(oracle, block_size)
 
     # Build a normal cipher (which aligns so the last block can be replaced)
-    cipher: bytes = get_cipher(oracle, block_size, additional_string_length)
+    ciphertext: Text = forge_ciphertext(oracle, block_size, additional_string_length)
 
     # Forge a cipher by using the all blocks from the cipher except the last and only the desired last block
-    return cipher[0:len(cipher)-block_size] + desired_last_block
+    return Text(
+        ciphertext.get_byte_range(0, ciphertext.length - block_size) + desired_last_block,
+        block_size
+    )
 
 
 def get_desired_last_block(oracle: Oracle, block_size: int) -> bytes:
     # Generate our desired last block using pkcs#7 padding
-    plaintext: bytes = pkcs7_pad(DESIRED_ROLE, block_size)
+    plaintext: Text = Text(DESIRED_ROLE, block_size).pkcs7_pad()
 
-    # Determine how many characters we need to prepend by comparing the BLOCK_SIZE to the length of "email="
+    # Determine how many characters we need to prepend by comparing the {block_size} to the length of "email="
     prefix: bytes = nonrandom_bytes(block_size - len(PROFILE_PREFIX))
 
     # Construct the plaintext, trying to make it look like an email address
-    email: bytes = prefix + plaintext + DOMAIN_NAME
+    email: Text = Text(
+        prefix + plaintext.to_bytes() + DOMAIN_NAME,
+        block_size
+    )
 
     # Encrypt our profile using the oracle
-    cipher: bytes = oracle.encrypt(email)
+    ciphertext: Text = oracle.encrypt(email)
 
     # Retrieve the 2nd block to be used as last block later
-    return get_block(cipher, 1, block_size)
+    return ciphertext.get_block(1)
 
 
-def get_cipher(oracle: Oracle, block_size: int, additional_string_length: int) -> bytes:
+def forge_ciphertext(oracle: Oracle, block_size: int, additional_string_length: int) -> Text:
     # Calculate how long our email address needs to be in order for it to fit perfectly in a multiple of $block_size
     # excluding the length of the default role and including the domain name we use
     email_length = block_size - (additional_string_length - len(DEFAULT_ROLE) + len(DOMAIN_NAME)) % block_size
 
     # Construct email address of desired length
-    email = nonrandom_bytes(email_length) + DOMAIN_NAME
+    email = Text(nonrandom_bytes(email_length) + DOMAIN_NAME, block_size)
 
     return oracle.encrypt(email)

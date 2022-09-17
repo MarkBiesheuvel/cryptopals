@@ -1,6 +1,6 @@
 from base64 import b64encode, b64decode
 
-# Use ASCII encoding, since other encodings could introduce multi-byte / variable length characters
+# Use ASCII encoding to avoid any encodings with multi-byte or variable length characters
 CHARACTOR_ENCODING = 'ascii'
 
 
