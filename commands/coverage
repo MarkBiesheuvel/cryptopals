@@ -1,0 +1,2 @@
+#!/bin/sh
+py.test --numprocesses=6 --dist=load --cov=cryptopals --cov-report=html --cov-fail-under=99

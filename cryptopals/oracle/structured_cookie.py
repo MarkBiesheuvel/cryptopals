@@ -27,11 +27,11 @@ class StructuredCookieOracle(Oracle):
 
     def profile_for(self, email: Text) -> Text:
         if not email.is_printable():
-            raise Exception('Unreadable email')
+            raise Exception('Unreadable email')  # pragma: no cover
 
         # TODO: Detect based on byte value
         if CHARACTER_AMPERSAND in email.to_ascii() or CHARACTER_EQUALS_SIGN in email.to_ascii():
-            raise Exception('Forbidded character in email')
+            raise Exception('Forbidded character in email')  # pragma: no cover
 
         # Simulate a website where user ids automatically increment
         self.lastest_id += 1

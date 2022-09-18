@@ -13,4 +13,4 @@ class Oracle:
         )
 
     def encrypt(self, plaintext: Text) -> Text:
-        return plaintext
+        return plaintext  # pragma: no cover

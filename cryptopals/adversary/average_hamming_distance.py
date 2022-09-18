@@ -11,7 +11,7 @@ NUMBER_OF_BLOCKS: int = 6
 def average_hamming_distance(ciphertext: Text, block_size: int) -> float:
     # This operation does not work if there are not enough blocks
     if (ciphertext.length / NUMBER_OF_BLOCKS) < block_size:
-        raise Exception('Invalid operation')
+        raise Exception('Invalid operation')  # pragma: no cover
 
     # Adjust the block size to match the key length
     ciphertext.block_size = block_size

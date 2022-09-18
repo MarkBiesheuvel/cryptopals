@@ -104,7 +104,7 @@ class Text:
     # Xor operation between two Texts
     def fixed_xor(self, other: Text) -> Text:
         if self.length != other.length:
-            raise Exception('Invalid operation')
+            raise Exception('Invalid operation')  # pragma: no cover
 
         # Python does not support bitwise operations on bytes, so we need to XOR byte-by-byte
         return Text.from_iterable(a ^ b for a, b in zip(self.to_bytes(), other.to_bytes()))
@@ -112,7 +112,7 @@ class Text:
     # Xor operation between Text and a sinlge byte key (given as int)
     def single_byte_xor(self, key: int) -> Text:
         if key < 0 or 255 < key:
-            raise Exception('Invalid operation')
+            raise Exception('Invalid operation')  # pragma: no cover
 
         # Xor each byte of the Text with the same key
         return Text.from_iterable(byte ^ key for byte in self.to_bytes())
@@ -156,7 +156,7 @@ class Text:
     # Assumption: value does not contain unprintable characters
     def to_ascii(self) -> str:
         if not self.is_printable():
-            raise Exception('Text contains unprintable characters')
+            raise Exception('Text contains unprintable characters')  # pragma: no cover
 
         return bytes_to_string(self.value)
 
@@ -229,14 +229,14 @@ class Text:
 
     # Return a string representation of the Text
     # Blocks of {block_size} are separated by space
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return ' '.join(
             bytes_to_hexadecimal(block)
             for block in self.get_blocks()
         )
 
-    def __repr__(self) -> str:
-        return self.to_ascii() if self.is_printable() else self.__str__()
+    def __repr__(self) -> str:  # pragma: no cover
+        return self.__str__()
 
     # Returns whether two texts are equal
     # In this case {block_size} is ignored
@@ -244,13 +244,13 @@ class Text:
         if isinstance(other, self.__class__):
             return self.to_bytes() == other.to_bytes()
         else:
-            return False
+            return False  # pragma: no cover
 
     # Add two Texts together if the block_size is equal
     def __add__(self, other: object) -> Text:
         if isinstance(other, self.__class__):
             if self.block_size != other.block_size:
-                raise Exception('Unequal block size. Are these intended to be added?')
+                raise Exception('Unequal block size. Are these intended to be added?')  # pragma: no cover
 
             return Text(
                 self.to_bytes() + other.to_bytes(),
@@ -264,4 +264,4 @@ class Text:
             )
 
         else:
-            raise Exception('Incompatible types')
+            raise Exception('Incompatible types')  # pragma: no cover

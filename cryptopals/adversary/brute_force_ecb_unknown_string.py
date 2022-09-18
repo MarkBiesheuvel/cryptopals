@@ -103,7 +103,7 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> Text:
             character: int = dictionary[block]
             known_characters += character
         else:
-            raise Exception('Unable to detect charachter')
+            raise Exception('Unable to detect charachter')  # pragma: no cover
 
     # Convert from bytesarray to bytes
     return known_characters
