@@ -1,6 +1,5 @@
 from .detect_block_size import detect_block_size
 from ..oracle import Oracle
-from ..operation import nonrandom_bytes
 from ..text import Text
 
 # Assumtion: we know that all profile will be prefixed with "email="
@@ -44,21 +43,25 @@ def forge_admin_profile(oracle: Oracle) -> Text:
     # Forge a cipher by using the all blocks from the cipher except the last and only the desired last block
     return Text(
         ciphertext.get_byte_range(0, ciphertext.length - block_size) + desired_last_block,
-        block_size
+        block_size=block_size
     )
 
 
 def get_desired_last_block(oracle: Oracle, block_size: int) -> bytes:
     # Generate our desired last block using pkcs#7 padding
-    plaintext: Text = Text(DESIRED_ROLE, block_size).pkcs7_pad()
+    plaintext: Text = Text(DESIRED_ROLE, block_size=block_size).pkcs7_pad()
 
     # Determine how many characters we need to prepend by comparing the {block_size} to the length of "email="
-    prefix: bytes = nonrandom_bytes(block_size - len(PROFILE_PREFIX))
+    prefix: Text = Text.fixed_bytes(
+        length=block_size - len(PROFILE_PREFIX),
+        block_size=block_size
+    )
 
     # Construct the plaintext, trying to make it look like an email address
+    # TODO: implment add function on Text
     email: Text = Text(
-        prefix + plaintext.to_bytes() + DOMAIN_NAME,
-        block_size
+        prefix.to_bytes() + plaintext.to_bytes() + DOMAIN_NAME,
+        block_size=block_size
     )
 
     # Encrypt our profile using the oracle
@@ -74,6 +77,14 @@ def forge_ciphertext(oracle: Oracle, block_size: int, additional_string_length: 
     email_length = block_size - (additional_string_length - len(DEFAULT_ROLE) + len(DOMAIN_NAME)) % block_size
 
     # Construct email address of desired length
-    email = Text(nonrandom_bytes(email_length) + DOMAIN_NAME, block_size)
+    prefix: Text = Text.fixed_bytes(
+        length=email_length,
+        block_size=block_size
+    )
+    # TODO: implment add function on Text
+    email = Text(
+        prefix.to_bytes() + DOMAIN_NAME,
+        block_size=block_size
+    )
 
     return oracle.encrypt(email)

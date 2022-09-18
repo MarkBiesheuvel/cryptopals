@@ -63,7 +63,7 @@ def test_challenge_06() -> None:
 
 
 def test_challenge_07() -> None:
-    key: bytes = b'YELLOW SUBMARINE'
+    key: Text = Text.from_ascii('YELLOW SUBMARINE')
     ciphertext: Text = Text.from_base64(file_as_string('tests/data/7.txt'))
     plaintext: Text = funky_music()
 

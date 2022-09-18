@@ -1,5 +1,6 @@
+from __future__ import annotations
 from typing import List
-from ..aes import BlockCipherMode
+from Crypto.Cipher import AES
 from ..oracle import Oracle
 from ..text import Text
 
@@ -10,10 +11,11 @@ AES_BLOCK_MODE_DETECTION_STRING: Text = Text(b'UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
 
 
 # Function that detect whether a cipher was encrypted with either ECB or CBC block mode
-def detect_aes_block_mode(oracle: Oracle) -> BlockCipherMode:
+def detect_aes_block_mode(oracle: Oracle) -> int:
     # Use the oracle function to encrypt our carefully chosen plaintext
     ciphertext: Text = oracle.encrypt(AES_BLOCK_MODE_DETECTION_STRING)
 
+    # Convert to list in order to get the length
     blocks: List[bytes] = list(ciphertext.get_blocks())
 
     # Try to find two concecutive blocks which are idencital
@@ -22,4 +24,4 @@ def detect_aes_block_mode(oracle: Oracle) -> BlockCipherMode:
         for block_index in range(len(blocks) - 1)
     )
 
-    return BlockCipherMode.ECB if any_idencital_blocks else BlockCipherMode.CBC
+    return AES.MODE_ECB if any_idencital_blocks else AES.MODE_CBC

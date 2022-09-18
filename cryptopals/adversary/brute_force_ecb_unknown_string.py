@@ -1,7 +1,6 @@
 from typing import Iterable, List, Dict, Tuple
 from .detect_block_size import detect_block_size
 from ..oracle import Oracle
-from ..operation import nonrandom_bytes
 from ..text import Text
 
 # List of printable ASCII charactors
@@ -10,9 +9,12 @@ PRINTABLE_CHARACTERS = list(range(9, 13)) + list(range(32, 126))
 
 # Get the first block of the cipher given a plaintext of {plaintext_length}
 def first_block_of_cipher(oracle: Oracle, plaintext_length: int, block_size: int):
-    plaintext: Text = Text(nonrandom_bytes(plaintext_length), block_size)
-    ciphertext: Text = oracle.encrypt(plaintext)
-    return ciphertext.get_block(0)
+    plaintext: Text = Text.fixed_bytes(
+        length=plaintext_length,
+        block_size=block_size
+    )
+
+    return oracle.encrypt(plaintext).get_block(0)
 
 
 def detect_prepended_string_length(oracle, block_size: int) -> int:
@@ -55,11 +57,18 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> Text:
 
         # Prefix all plaintexts with a specific number of bytes to position
         # the character we are looking for in the last position of the block
-        prefix: bytes = nonrandom_bytes((block_index + 1) * block_size - byte_index - 1)
+        prefix: Text = Text.fixed_bytes(
+            length=(block_index + 1) * block_size - byte_index - 1,
+            block_size=block_size
+        )
 
         # Create plaintexts from the prefix, followed by all known characters, followed by each printable byte value
         plaintexts: Iterable[Text] = (
-            Text(prefix + known_characters + bytes([byte_value]), block_size)
+            # TODO: implement add function on Text and convert known_characters to Text
+            Text(
+                prefix.to_bytes() + known_characters + bytes([byte_value]),
+                block_size=block_size
+            )
             for byte_value in PRINTABLE_CHARACTERS
         )
 
@@ -80,7 +89,7 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> Text:
         # Visualization: block size is 4, unknown string has 5 characters of which 2 are known, byte is X
         # 0000 [0kkX] kkuu u
         # 0000 [0kku] uu
-        ciphertext: Text = oracle.encrypt(Text(prefix))
+        ciphertext: Text = oracle.encrypt(prefix)
         block: bytes = ciphertext.get_block(block_index)
 
         # Add the discovered character to the list of known characters so it can be used in the next step

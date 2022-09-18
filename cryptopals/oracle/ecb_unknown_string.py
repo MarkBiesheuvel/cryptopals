@@ -1,6 +1,5 @@
 from .oracle import Oracle
 from ..text import Text
-from ..operation import random_bytes
 
 # Given string by https://cryptopals.com/sets/2/challenges/12
 UNKNOWN_STRING: Text = Text.from_base64(
@@ -15,11 +14,12 @@ class EcbUnknownStringOracle(Oracle):
     def __init__(self, prefix_size: int = 0):
         super(EcbUnknownStringOracle, self).__init__()
         self.unknown_string: Text = UNKNOWN_STRING
-        self.random_prefix: bytes = random_bytes(prefix_size)
+        self.random_prefix: Text = Text.random_bytes(length=prefix_size)
 
     def encrypt(self, plaintext: Text) -> Text:
         # Prepend and append bytes to the given plaintext
-        plaintext = Text(self.random_prefix + plaintext.to_bytes() + self.unknown_string.to_bytes())
+        # TODO: implment add function on Text
+        plaintext = Text(self.random_prefix.to_bytes() + plaintext.to_bytes() + self.unknown_string.to_bytes())
 
         # Encrypt using AES EBC
         return plaintext.encrypt_ebc_mode(self.key)

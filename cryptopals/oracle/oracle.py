@@ -1,5 +1,4 @@
 from Crypto.Cipher import AES
-from ..operation import random_bytes
 from ..text import Text
 
 
@@ -8,7 +7,10 @@ class Oracle:
 
     def __init__(self) -> None:
         # Pick a random 128-bit key (16 bytes)
-        self.key: bytes = random_bytes(AES.block_size)
+        self.key: Text = Text.random_bytes(
+            length=AES.block_size,
+            block_size=AES.block_size
+        )
 
     def encrypt(self, plaintext: Text) -> Text:
         return plaintext

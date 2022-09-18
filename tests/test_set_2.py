@@ -1,6 +1,5 @@
 import pytest
 from typing import Dict
-from cryptopals.aes import BlockCipherMode
 from cryptopals.adversary import detect_aes_block_mode, brute_force_ecb_unknown_string, forge_admin_profile
 from cryptopals.oracle import RandomBlockModeOracle, EcbUnknownStringOracle, StructuredCookieOracle
 from cryptopals.text import Text
@@ -10,20 +9,25 @@ from .helpers import file_iterator, file_as_string, funky_music
 def test_challenge_09() -> None:
     yellow_submarine = 'YELLOW SUBMARINE'
 
-    assert Text.from_ascii(yellow_submarine, 20).pkcs7_pad() == \
+    assert Text.from_ascii(yellow_submarine, block_size=20).pkcs7_pad() == \
         Text(b'YELLOW SUBMARINE\x04\x04\x04\x04')
 
-    assert Text.from_ascii(yellow_submarine, 31).pkcs7_pad() == \
+    assert Text.from_ascii(yellow_submarine, block_size=31).pkcs7_pad() == \
         Text(b'YELLOW SUBMARINE\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f')
 
-    assert Text.from_ascii(yellow_submarine, 16).pkcs7_pad() == \
+    assert Text.from_ascii(yellow_submarine, block_size=16).pkcs7_pad() == \
         Text(b'YELLOW SUBMARINE\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10')
 
 
 def test_challenge_10() -> None:
     plaintext_1: Text = Text.from_ascii('Hello, World!')
-    key: bytes = b'YELLOW SUBMARINE'
-    iv: bytes = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    key: Text = Text.from_ascii('YELLOW SUBMARINE')
+    iv: Text = Text.fixed_bytes(
+        length=key.length,
+        block_size=key.length,
+        fixed_byte=0
+    )
+
     ciphertext_1: Text = plaintext_1.encrypt_cbc_mode(key, iv)
 
     assert ciphertext_1.decrypt_cbc_mode(key, iv) == plaintext_1
