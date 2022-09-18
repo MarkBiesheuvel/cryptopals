@@ -210,9 +210,16 @@ class Text:
         )
 
     def pkcs7_unpad(self) -> Text:
+        # The value of last byte indicates how many bytes were padded
         difference: int = self.get_byte(-1)
+
+        # Verify that all padded bytes have the same value
+        if not all(byte == difference for byte in self.get_byte_range(-difference, self.length)):
+            raise Exception('Invalid padding')
+
+        # Remove that number of bytes from the end
         return Text(
-            self.value[:-difference],
+            self.get_byte_range(0, self.length - difference),
             block_size=self.block_size
         )
 

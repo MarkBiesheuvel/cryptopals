@@ -1,5 +1,6 @@
 import pytest
 from typing import Dict
+from random import choice, randint
 from cryptopals.adversary import detect_aes_block_mode, brute_force_ecb_unknown_string, forge_admin_profile
 from cryptopals.oracle import RandomBlockModeOracle, EcbUnknownStringOracle, StructuredCookieOracle
 from cryptopals.text import Text
@@ -44,7 +45,7 @@ def test_challenge_11() -> None:
         # Initialize a new oracle to get a new random mode and random key
         oracle: RandomBlockModeOracle = RandomBlockModeOracle()
 
-        # Use analyzer to detect the mode
+        # Use adversary to detect the mode used by the oracle
         assert detect_aes_block_mode(oracle) == oracle.mode
 
 
@@ -62,6 +63,26 @@ def test_challenge_13() -> None:
 
 
 def test_challenge_14() -> None:
-    # TODO: variable length prefix
-    oracle: EcbUnknownStringOracle = EcbUnknownStringOracle(prefix_size=4)
-    assert brute_force_ecb_unknown_string(oracle) == oracle.unknown_string
+    # Test 4 iterations since it is a random function
+    for _ in range(4):
+        # Initialize oracles with random prefix sizes
+        # NOTE: currently only works if {prefix_size} < {block_size}
+        oracle: EcbUnknownStringOracle = EcbUnknownStringOracle(prefix_size=randint(0, 15))
+
+        # Use adversary to retrieve the unknown string within the oracle
+        assert brute_force_ecb_unknown_string(oracle) == oracle.unknown_string
+
+
+def test_challenge_15() -> None:
+    plaintext: Text = Text.from_ascii('ICE ICE BABY')
+
+    # Verify correct padding
+    assert Text(b'ICE ICE BABY\x04\x04\x04\x04').pkcs7_unpad() == plaintext
+
+    # Verify incorrect padding (mismatching byte value and number of bytes)
+    with pytest.raises(Exception):
+        Text(b'ICE ICE BABY\x05\x05\x05\x05').pkcs7_unpad()
+
+    # Verify incorrect padding (unequal byte values)
+    with pytest.raises(Exception):
+        Text(b'ICE ICE BABY\x01\x02\x03\x04').pkcs7_unpad()

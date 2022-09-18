@@ -32,6 +32,8 @@ def detect_prepended_string_length(oracle, block_size: int) -> int:
     # As long as ({prepended_string_length} + {plaintext_length}) is larger than a single block,
     # the first block will always be indentical.
     # Keep reducing {plaintext_length} until the first block of the cipher is different to find prepended_string_length
+    #
+    # NOTE: Assuming {prepended_string_length} < {block_size}
     while True:
         current_block = next_block
         next_block = first_block_of_cipher(oracle, plaintext_length - 1, block_size)
