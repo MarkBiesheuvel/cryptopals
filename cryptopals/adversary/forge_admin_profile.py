@@ -3,16 +3,16 @@ from ..oracle import Oracle
 from ..text import Text
 
 # Assumtion: we know that all profile will be prefixed with "email="
-PROFILE_PREFIX = b'email='
+PROFILE_PREFIX: str = 'email='
 
 # A random but valid domain name for our email address
-DOMAIN_NAME = b'@example.com'
+DOMAIN_NAME: str = '@example.com'
 
 # The role that is assigned by default, used in length calculation
-DEFAULT_ROLE = b'user'
+DEFAULT_ROLE: str = 'user'
 
 # The role we want to forge
-DESIRED_ROLE = b'admin'
+DESIRED_ROLE: str = 'admin'
 
 
 # We can only supply the email field in the profile, but want to set the role field to admin
@@ -49,7 +49,10 @@ def forge_admin_profile(oracle: Oracle) -> Text:
 
 def get_desired_last_block(oracle: Oracle, block_size: int) -> bytes:
     # Generate our desired last block using pkcs#7 padding
-    plaintext: Text = Text(DESIRED_ROLE, block_size=block_size).pkcs7_pad()
+    plaintext: Text = Text.from_ascii(
+        DESIRED_ROLE,
+        block_size=block_size
+    ).pkcs7_pad()
 
     # Determine how many characters we need to prepend by comparing the {block_size} to the length of "email="
     prefix: Text = Text.fixed_bytes(
@@ -58,11 +61,11 @@ def get_desired_last_block(oracle: Oracle, block_size: int) -> bytes:
     )
 
     # Construct the plaintext, trying to make it look like an email address
-    # TODO: implment add function on Text
-    email: Text = Text(
-        prefix.to_bytes() + plaintext.to_bytes() + DOMAIN_NAME,
+    domain: Text = Text.from_ascii(
+        DOMAIN_NAME,
         block_size=block_size
     )
+    email: Text = (prefix + plaintext + domain)
 
     # Encrypt our profile using the oracle
     ciphertext: Text = oracle.encrypt(email)
@@ -74,17 +77,17 @@ def get_desired_last_block(oracle: Oracle, block_size: int) -> bytes:
 def forge_ciphertext(oracle: Oracle, block_size: int, additional_string_length: int) -> Text:
     # Calculate how long our email address needs to be in order for it to fit perfectly in a multiple of $block_size
     # excluding the length of the default role and including the domain name we use
-    email_length = block_size - (additional_string_length - len(DEFAULT_ROLE) + len(DOMAIN_NAME)) % block_size
+    email_length = (block_size - (additional_string_length - len(DEFAULT_ROLE) + len(DOMAIN_NAME))) % block_size
 
-    # Construct email address of desired length
+    # Construct "valid" email address of desired length
     prefix: Text = Text.fixed_bytes(
         length=email_length,
         block_size=block_size
     )
-    # TODO: implment add function on Text
-    email = Text(
-        prefix.to_bytes() + DOMAIN_NAME,
+    domain: Text = Text.from_ascii(
+        DOMAIN_NAME,
         block_size=block_size
     )
+    email: Text = (prefix + domain)
 
     return oracle.encrypt(email)

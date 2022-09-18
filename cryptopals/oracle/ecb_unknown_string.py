@@ -18,8 +18,7 @@ class EcbUnknownStringOracle(Oracle):
 
     def encrypt(self, plaintext: Text) -> Text:
         # Prepend and append bytes to the given plaintext
-        # TODO: implment add function on Text
-        plaintext = Text(self.random_prefix.to_bytes() + plaintext.to_bytes() + self.unknown_string.to_bytes())
+        plaintext = (self.random_prefix + plaintext + self.unknown_string)
 
         # Encrypt using AES EBC
         return plaintext.encrypt_ebc_mode(self.key)

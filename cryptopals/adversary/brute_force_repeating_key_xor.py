@@ -15,10 +15,10 @@ def brute_force_repeating_key_xor(ciphertext: Text, max_key_length: int) -> Text
     # Split cipher up into chunks where each chunk $i contains the bytes from cipher at position $(i % key_length)
     # Visualized: text=abcdefghi,key_length=3 -> [adg] [beh] [cfi]
     ciphertext_chunks: Iterable[Text] = (
-        Text(bytes(
+        Text.from_iterable(
             ciphertext.get_byte(byte_index)
             for byte_index in range(chunk_index, ciphertext.length, key_length)
-        ))
+        )
         for chunk_index in range(key_length)
     )
 
@@ -29,7 +29,7 @@ def brute_force_repeating_key_xor(ciphertext: Text, max_key_length: int) -> Text
     ]
 
     # Reconstruct the plaintext by placing all bytes back into the original order
-    return Text(bytes(
+    return Text.from_iterable(
         plaintext_chunks[byte_index % key_length].get_byte(byte_index // key_length)
         for byte_index in range(ciphertext.length)
-    ))
+    )

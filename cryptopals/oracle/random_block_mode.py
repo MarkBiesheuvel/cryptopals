@@ -20,8 +20,7 @@ class RandomBlockModeOracle(Oracle):
         # Apply random prefix and postfix to the plaintext
         # This simulates the adversary having partial control over the input
         # For example, storing their username, which than is embeded in a json document and encrypted
-        # TODO: implment add function on Text
-        plaintext = Text(self.prefix.to_bytes() + plaintext.to_bytes() + self.postfix.to_bytes())
+        plaintext = (self.prefix + plaintext + self.postfix)
 
         if self.mode == AES.MODE_ECB:
             return plaintext.encrypt_ebc_mode(self.key)

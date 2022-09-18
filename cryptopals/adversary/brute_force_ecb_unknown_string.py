@@ -7,6 +7,14 @@ from ..text import Text
 PRINTABLE_CHARACTERS = list(range(9, 13)) + list(range(32, 126))
 
 
+# Initialize a text with only a single byte
+def single_byte(byte_value: int, block_size: int) -> Text:
+    return Text.from_iterable(
+        [byte_value],
+        block_size=block_size
+    )
+
+
 # Get the first block of the cipher given a plaintext of {plaintext_length}
 def first_block_of_cipher(oracle: Oracle, plaintext_length: int, block_size: int):
     plaintext: Text = Text.fixed_bytes(
@@ -37,11 +45,11 @@ def detect_prepended_string_length(oracle, block_size: int) -> int:
 
 
 def brute_force_ecb_unknown_string(oracle: Oracle) -> Text:
-    # Starting with no known characters
-    known_characters: bytearray = bytearray()
-
     # Detect the block size and determine how many extra bytes the oracle produces
     block_size, additional_string_length = detect_block_size(oracle)
+
+    # Starting with no known characters
+    known_characters: Text = Text.from_iterable([], block_size=block_size)
 
     # Calculate offset to align the next unknown byte in the last position of a block
     prepended_string_length: int = detect_prepended_string_length(oracle, block_size)
@@ -64,11 +72,7 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> Text:
 
         # Create plaintexts from the prefix, followed by all known characters, followed by each printable byte value
         plaintexts: Iterable[Text] = (
-            # TODO: implement add function on Text and convert known_characters to Text
-            Text(
-                prefix.to_bytes() + known_characters + bytes([byte_value]),
-                block_size=block_size
-            )
+            (prefix + known_characters + single_byte(byte_value, block_size))
             for byte_value in PRINTABLE_CHARACTERS
         )
 
@@ -95,9 +99,9 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> Text:
         # Add the discovered character to the list of known characters so it can be used in the next step
         if block in dictionary:
             character: int = dictionary[block]
-            known_characters.append(character)
+            known_characters += character
         else:
             raise Exception('Unable to detect charachter')
 
     # Convert from bytesarray to bytes
-    return Text(bytes(known_characters))
+    return known_characters

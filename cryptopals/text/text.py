@@ -56,15 +56,20 @@ class Text:
     def from_hexadecimal(value: str, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> Text:
         return Text(hexadecimal_to_bytes(value), block_size=block_size)
 
+    # Initialize a new Text from an Iterable of ints
+    @staticmethod
+    def from_iterable(value: Iterable[int], /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> Text:
+        return Text(bytes(value), block_size=block_size)
+
     # Initialize a new Text of {length} containing random bytes
     @staticmethod
     def random_bytes(*, length: int, block_size: int = DEFAULT_BLOCK_SIZE) -> Text:
-        return Text(bytes(randrange(256) for _ in range(length)), block_size=block_size)
+        return Text.from_iterable((randrange(256) for _ in range(length)), block_size=block_size)
 
     # Initialize a new Text of {length} containing fixed bytes
     @staticmethod
     def fixed_bytes(*, length: int, block_size: int = DEFAULT_BLOCK_SIZE, fixed_byte=DEFAULT_CHARACTER) -> Text:
-        return Text(bytes(fixed_byte for _ in range(length)), block_size=block_size)
+        return Text.from_iterable((fixed_byte for _ in range(length)), block_size=block_size)
 
     # ================ #
     # BLOCK OPERATIONS #
@@ -102,9 +107,7 @@ class Text:
             raise Exception('Invalid operation')
 
         # Python does not support bitwise operations on bytes, so we need to XOR byte-by-byte
-        return Text(
-            bytes(a ^ b for a, b in zip(self.to_bytes(), other.to_bytes()))
-        )
+        return Text.from_iterable(a ^ b for a, b in zip(self.to_bytes(), other.to_bytes()))
 
     # Xor operation between Text and a sinlge byte key (given as int)
     def single_byte_xor(self, key: int) -> Text:
@@ -112,19 +115,14 @@ class Text:
             raise Exception('Invalid operation')
 
         # Xor each byte of the Text with the same key
-        return Text(
-            bytes(byte ^ key for byte in self.to_bytes())
-        )
+        return Text.from_iterable(byte ^ key for byte in self.to_bytes())
 
     # Xor operation between Text and a multi byte key
     def repeating_key_xor(self, key: bytes) -> Text:
         # TODO: convert key from bytes to Text
         key_length: int = len(key)
 
-        return Text(
-            bytes(byte ^ key[i % key_length] for (i, byte) in enumerate(self.to_bytes())),
-            block_size=key_length
-        )
+        return Text.from_iterable(byte ^ key[i % key_length] for (i, byte) in enumerate(self.to_bytes()))
 
     # ===================== #
     # MATH/LOGIC OPERATIONS #
@@ -203,11 +201,11 @@ class Text:
         desired_length: int = (self.length // self.block_size + 1) * self.block_size
         difference: int = desired_length - self.length
 
-        return Text(
-            bytes([
+        return Text.from_iterable(
+            (
                 self.get_byte(index) if index < self.length else difference
                 for index in range(desired_length)
-            ]),
+            ),
             block_size=self.block_size
         )
 
@@ -237,6 +235,26 @@ class Text:
     # In this case {block_size} is ignored
     def __eq__(self, other: object) -> bool:
         if isinstance(other, self.__class__):
-            return self.value == other.value
+            return self.to_bytes() == other.to_bytes()
         else:
             return False
+
+    # Add two Texts together if the block_size is equal
+    def __add__(self, other: object) -> Text:
+        if isinstance(other, self.__class__):
+            if self.block_size != other.block_size:
+                raise Exception('Unequal block size. Are these intended to be added?')
+
+            return Text(
+                self.to_bytes() + other.to_bytes(),
+                block_size=self.block_size
+            )
+
+        elif isinstance(other, int):
+            return Text(
+                self.to_bytes() + bytes([other]),
+                block_size=self.block_size
+            )
+
+        else:
+            raise Exception('Incompatible types')
