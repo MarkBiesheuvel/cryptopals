@@ -1,7 +1,7 @@
 from Crypto.Cipher import AES
 from random import choice, randint
 from .oracle import Oracle
-from ..text import Text
+from ..text import Text, Ciphertext, Plaintext
 
 
 class RandomBlockModeOracle(Oracle):
@@ -13,10 +13,10 @@ class RandomBlockModeOracle(Oracle):
         self.mode: int = choice([AES.MODE_ECB, AES.MODE_CBC])
 
         # Pick a prefix and postfix length at random
-        self.prefix: Text = Text.random_bytes(length=randint(5, 100))
-        self.postfix: Text = Text.random_bytes(length=randint(5, 100))
+        self.prefix: Plaintext = Plaintext.random_bytes(length=randint(5, 100))
+        self.postfix: Plaintext = Plaintext.random_bytes(length=randint(5, 100))
 
-    def encrypt(self, plaintext: Text) -> Text:
+    def encrypt(self, plaintext: Plaintext) -> Ciphertext:
         # Apply random prefix and postfix to the plaintext
         # This simulates the adversary having partial control over the input
         # For example, storing their username, which than is embeded in a json document and encrypted

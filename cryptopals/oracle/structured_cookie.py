@@ -1,6 +1,6 @@
 from typing import Iterable, List, Dict
 from .oracle import Oracle
-from ..text import Text
+from ..text import Ciphertext, Plaintext
 
 CHARACTER_AMPERSAND = '&'
 CHARACTER_EQUALS_SIGN = '='
@@ -14,7 +14,7 @@ class StructuredCookieOracle(Oracle):
         # Autoincrement ID, but use a starting position where it's unlikely to impact padding
         self.lastest_id = 1337
 
-    def parse(self, profile: Text) -> Dict[str, str]:
+    def parse(self, profile: Plaintext) -> Dict[str, str]:
         pairs: Iterable[List[str]] = (
             pair.split(CHARACTER_EQUALS_SIGN)
             for pair in profile.to_ascii().split(CHARACTER_AMPERSAND)
@@ -25,7 +25,7 @@ class StructuredCookieOracle(Oracle):
             for pair in pairs
         }
 
-    def profile_for(self, email: Text) -> Text:
+    def profile_for(self, email: Plaintext) -> Plaintext:
         if not email.is_printable():
             raise Exception('Unreadable email')  # pragma: no cover
 
@@ -38,12 +38,12 @@ class StructuredCookieOracle(Oracle):
 
         # TODO: verify whether this is the best way to perform byte interpolation
         value: bytes = b'email=%b&uid=%a&role=user' % (email.to_bytes(), self.lastest_id)
-        return Text(value)
+        return Plaintext(value)
 
-    def encrypt(self, email: Text) -> Text:
-        profile: Text = self.profile_for(email)
+    def encrypt(self, email: Plaintext) -> Ciphertext:
+        profile: Plaintext = self.profile_for(email)
         return profile.encrypt_ebc_mode(self.key)
 
-    def decrypt(self, ciphertext: Text) -> Dict[str, str]:
-        profile: Text = ciphertext.decrypt_ecb_mode(self.key)
+    def decrypt(self, ciphertext: Ciphertext) -> Dict[str, str]:
+        profile: Plaintext = ciphertext.decrypt_ecb_mode(self.key)
         return self.parse(profile)

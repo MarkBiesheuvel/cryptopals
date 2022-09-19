@@ -2,18 +2,18 @@ from __future__ import annotations
 from typing import List
 from Crypto.Cipher import AES
 from ..oracle import Oracle
-from ..text import Text
+from ..text import Ciphertext, Plaintext
 
 # "Carefully" chosen input string for detecting AES ECB block mode
-# The string contains an arbitrary character 64 times in a row; in this case it's 64 times "0x55"
+# The string contains an arbitrary character 64 times in a row
 # After encrypting this plaintext with AES ECB mode, the cipher should have at least two repeated blocks of 16 bytes
-AES_BLOCK_MODE_DETECTION_STRING: Text = Text(b'UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU')
+AES_BLOCK_MODE_DETECTION_STRING: Plaintext = Plaintext.fixed_bytes(length=64)
 
 
 # Function that detect whether a cipher was encrypted with either ECB or CBC block mode
 def detect_aes_block_mode(oracle: Oracle) -> int:
     # Use the oracle function to encrypt our carefully chosen plaintext
-    ciphertext: Text = oracle.encrypt(AES_BLOCK_MODE_DETECTION_STRING)
+    ciphertext: Ciphertext = oracle.encrypt(AES_BLOCK_MODE_DETECTION_STRING)
 
     # Convert to list in order to get the length
     blocks: List[bytes] = list(ciphertext.get_blocks())

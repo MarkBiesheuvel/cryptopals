@@ -1,11 +1,11 @@
 from typing import List, Tuple
 from ..oracle import Oracle
-from ..text import Text
+from ..text import Ciphertext, Plaintext
 
 
 def ciphertext_length(oracle: Oracle, plaintext_length: int):
-    plaintext: Text = Text.fixed_bytes(length=plaintext_length)
-    ciphertext: Text = oracle.encrypt(plaintext)
+    plaintext: Plaintext = Plaintext.fixed_bytes(length=plaintext_length)
+    ciphertext: Ciphertext = oracle.encrypt(plaintext)
     return ciphertext.length
 
 

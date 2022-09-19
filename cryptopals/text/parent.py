@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterable, List
+from typing import Iterable, List, Type, TypeVar, Any
 from Crypto.Cipher import AES
 from math import ceil
 from random import randrange
@@ -27,6 +27,9 @@ PRINTABLE_CHARACTERS: List[int] = [
     112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125
 ]
 
+# Type alias to indicate Text and any subclasses
+T = TypeVar('T', bound='Text')
+
 
 # Class to represent either a plaintext or ciphertext
 class Text:
@@ -42,34 +45,35 @@ class Text:
         self.block_size = block_size
 
     # Initialize a new Text from a ASCII encoded string
-    @staticmethod
-    def from_ascii(value: str, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> Text:
-        return Text(string_to_bytes(value), block_size=block_size)
+    @classmethod
+    def from_ascii(cls: Type[T], value: str, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> T:
+        return cls(string_to_bytes(value), block_size=block_size)
 
     # Initialize a new Text from a base64 encoded sring
-    @staticmethod
-    def from_base64(value: str, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> Text:
-        return Text(base64_to_bytes(value), block_size=block_size)
+    @classmethod
+    def from_base64(cls: Type[T], value: str, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> T:
+        return cls(base64_to_bytes(value), block_size=block_size)
 
     # Initialize a new Text from a hexadecimal string
-    @staticmethod
-    def from_hexadecimal(value: str, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> Text:
-        return Text(hexadecimal_to_bytes(value), block_size=block_size)
+    @classmethod
+    def from_hexadecimal(cls: Type[T], value: str, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> T:
+        return cls(hexadecimal_to_bytes(value), block_size=block_size)
 
     # Initialize a new Text from an Iterable of ints
-    @staticmethod
-    def from_iterable(value: Iterable[int], /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> Text:
-        return Text(bytes(value), block_size=block_size)
+    @classmethod
+    def from_iterable(cls: Type[T], value: Iterable[int], /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> T:
+        return cls(bytes(value), block_size=block_size)
 
     # Initialize a new Text of {length} containing random bytes
-    @staticmethod
-    def random_bytes(*, length: int, block_size: int = DEFAULT_BLOCK_SIZE) -> Text:
-        return Text.from_iterable((randrange(256) for _ in range(length)), block_size=block_size)
+    @classmethod
+    def random_bytes(cls: Type[T], *, length: int, block_size: int = DEFAULT_BLOCK_SIZE) -> T:
+        return cls.from_iterable((randrange(256) for _ in range(length)), block_size=block_size)
 
     # Initialize a new Text of {length} containing fixed bytes
-    @staticmethod
-    def fixed_bytes(*, length: int, block_size: int = DEFAULT_BLOCK_SIZE, fixed_byte=DEFAULT_CHARACTER) -> Text:
-        return Text.from_iterable((fixed_byte for _ in range(length)), block_size=block_size)
+    @classmethod
+    def fixed_bytes(cls: Type[T], *, length: int, block_size: int = DEFAULT_BLOCK_SIZE,
+                    fixed_byte=DEFAULT_CHARACTER) -> T:
+        return cls.from_iterable((fixed_byte for _ in range(length)), block_size=block_size)
 
     # ================ #
     # BLOCK OPERATIONS #
@@ -102,27 +106,29 @@ class Text:
     # =============== #
 
     # Xor operation between two Texts
-    def fixed_xor(self, other: Text) -> Text:
+    def fixed_xor(self, other: Text, /, *, target_class: Type[T]) -> T:
+        # Input validation
         if self.length != other.length:
             raise Exception('Invalid operation')  # pragma: no cover
 
         # Python does not support bitwise operations on bytes, so we need to XOR byte-by-byte
-        return Text.from_iterable(a ^ b for a, b in zip(self.to_bytes(), other.to_bytes()))
+        return target_class.from_iterable(a ^ b for a, b in zip(self.to_bytes(), other.to_bytes()))
 
     # Xor operation between Text and a sinlge byte key (given as int)
-    def single_byte_xor(self, key: int) -> Text:
+    def single_byte_xor(self, key: int, /, *, target_class: Type[T]) -> T:
+        # Input validation
         if key < 0 or 255 < key:
             raise Exception('Invalid operation')  # pragma: no cover
 
         # Xor each byte of the Text with the same key
-        return Text.from_iterable(byte ^ key for byte in self.to_bytes())
+        return target_class.from_iterable(byte ^ key for byte in self.to_bytes())
 
     # Xor operation between Text and a multi byte key
-    def repeating_key_xor(self, key: bytes) -> Text:
+    def repeating_key_xor(self, key: bytes, /, *, target_class: Type[T]) -> T:
         # TODO: convert key from bytes to Text
         key_length: int = len(key)
 
-        return Text.from_iterable(byte ^ key[i % key_length] for (i, byte) in enumerate(self.to_bytes()))
+        return target_class.from_iterable(byte ^ key[i % key_length] for (i, byte) in enumerate(self.to_bytes()))
 
     # ===================== #
     # MATH/LOGIC OPERATIONS #
@@ -131,7 +137,7 @@ class Text:
     # Returns Hamming distance between two Texts
     def hamming_distance(self, other: Text) -> int:
         # By computing the XOR, all bits that were different are 1, all bits that were the same are zero
-        difference: Text = self.fixed_xor(other)
+        difference: Text = self.fixed_xor(other, target_class=Text)
 
         # Count the number of 1s in the difference
         return sum(
@@ -160,69 +166,6 @@ class Text:
 
         return bytes_to_string(self.value)
 
-    # ======================== #
-    # CRYPTOGRAPHIC OPERATIONS #
-    # ======================== #
-    # TODO: find type of stream, and move to test (so it doesn't create a new stream for each operation)
-
-    def encrypt_ebc_mode(self, key: Text) -> Text:
-        stream = AES.new(key.to_bytes(), AES.MODE_ECB)
-        return Text(
-            stream.encrypt(self.pkcs7_pad().to_bytes()),
-            block_size=self.block_size
-        )
-
-    def decrypt_ecb_mode(self, key: Text) -> Text:
-        stream = AES.new(key.to_bytes(), AES.MODE_ECB)
-        return Text(
-            stream.decrypt(self.to_bytes()),
-            block_size=self.block_size
-        ).pkcs7_unpad()
-
-    def encrypt_cbc_mode(self, key: Text, iv: Text) -> Text:
-        stream = AES.new(key.to_bytes(), AES.MODE_CBC, iv=iv.to_bytes())
-        return Text(
-            stream.encrypt(self.pkcs7_pad().to_bytes()),
-            block_size=self.block_size
-        )
-
-    def decrypt_cbc_mode(self, key: Text, iv: Text) -> Text:
-        stream = AES.new(key.to_bytes(), AES.MODE_CBC, iv=iv.to_bytes())
-        return Text(
-            stream.decrypt(self.to_bytes()),
-            block_size=self.block_size
-        ).pkcs7_unpad()
-
-    # Pad Text based on block size
-    def pkcs7_pad(self) -> Text:
-        # Calculate the desired length based on the $block_size
-        # After the padding the string should be longer, so we calculate how many times the $block_size fits in the
-        # input and then add 1 extra block
-        desired_length: int = (self.length // self.block_size + 1) * self.block_size
-        difference: int = desired_length - self.length
-
-        return Text.from_iterable(
-            (
-                self.get_byte(index) if index < self.length else difference
-                for index in range(desired_length)
-            ),
-            block_size=self.block_size
-        )
-
-    def pkcs7_unpad(self) -> Text:
-        # The value of last byte indicates how many bytes were padded
-        difference: int = self.get_byte(-1)
-
-        # Verify that all padded bytes have the same value
-        if not all(byte == difference for byte in self.get_byte_range(-difference, self.length)):
-            raise Exception('Invalid padding')
-
-        # Remove that number of bytes from the end
-        return Text(
-            self.get_byte_range(0, self.length - difference),
-            block_size=self.block_size
-        )
-
     # ============= #
     # MAGIC METHODS #
     # ============= #
@@ -236,29 +179,39 @@ class Text:
         )
 
     def __repr__(self) -> str:  # pragma: no cover
-        return self.__str__()
+        return '{cls}({value})'.format(
+            cls=self.__class__.__name__,
+            value=self.__str__()
+        )
 
     # Returns whether two texts are equal
     # In this case {block_size} is ignored
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, self.__class__):
+    def __eq__(self: T, other: Any) -> bool:
+        # Verify whether both Texts of same type (Plaintext<>Ciphertext)
+        if self.__class__ == other.__class__:
             return self.to_bytes() == other.to_bytes()
         else:
             return False  # pragma: no cover
 
     # Add two Texts together if the block_size is equal
-    def __add__(self, other: object) -> Text:
-        if isinstance(other, self.__class__):
+    def __add__(self: T, other: Any) -> T:
+        # Compare for Text or subclass of Text (Plaintext/Ciphertext)
+        if isinstance(other, Text):
             if self.block_size != other.block_size:
-                raise Exception('Unequal block size. Are these intended to be added?')  # pragma: no cover
+                raise Exception('Unequal block size')  # pragma: no cover
 
-            return Text(
+            if self.__class__ != other.__class__:
+                raise Exception('Incompatble plaintext/ciphertext')  # pragma: no cover
+
+            # Maintain exact same class (Text/Plaintext/Ciphertext)
+            return self.__class__(
                 self.to_bytes() + other.to_bytes(),
                 block_size=self.block_size
             )
 
         elif isinstance(other, int):
-            return Text(
+            # Maintain exact same class (Text/Plaintext/Ciphertext)
+            return self.__class__(
                 self.to_bytes() + bytes([other]),
                 block_size=self.block_size
             )

@@ -1,5 +1,5 @@
 from Crypto.Cipher import AES
-from ..text import Text
+from ..text import Text, Ciphertext, Plaintext
 
 
 # Parent class for oracles
@@ -12,5 +12,5 @@ class Oracle:
             block_size=AES.block_size
         )
 
-    def encrypt(self, plaintext: Text) -> Text:
-        return plaintext  # pragma: no cover
+    def encrypt(self, plaintext: Plaintext) -> Ciphertext:
+        return Ciphertext(plaintext.to_bytes())  # pragma: no cover

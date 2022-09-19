@@ -3,25 +3,25 @@ from typing import Dict
 from random import choice, randint
 from cryptopals.adversary import detect_aes_block_mode, brute_force_ecb_unknown_string, forge_admin_profile
 from cryptopals.oracle import RandomBlockModeOracle, EcbUnknownStringOracle, StructuredCookieOracle
-from cryptopals.text import Text
+from cryptopals.text import Text, Plaintext, Ciphertext
 from .helpers import file_iterator, file_as_string, funky_music
 
 
 def test_challenge_09() -> None:
     yellow_submarine = 'YELLOW SUBMARINE'
 
-    assert Text.from_ascii(yellow_submarine, block_size=20).pkcs7_pad() == \
-        Text(b'YELLOW SUBMARINE\x04\x04\x04\x04')
+    assert Plaintext.from_ascii(yellow_submarine, block_size=20).pkcs7_pad() == \
+        Plaintext(b'YELLOW SUBMARINE\x04\x04\x04\x04')
 
-    assert Text.from_ascii(yellow_submarine, block_size=31).pkcs7_pad() == \
-        Text(b'YELLOW SUBMARINE\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f')
+    assert Plaintext.from_ascii(yellow_submarine, block_size=31).pkcs7_pad() == \
+        Plaintext(b'YELLOW SUBMARINE\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f')
 
-    assert Text.from_ascii(yellow_submarine, block_size=16).pkcs7_pad() == \
-        Text(b'YELLOW SUBMARINE\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10')
+    assert Plaintext.from_ascii(yellow_submarine, block_size=16).pkcs7_pad() == \
+        Plaintext(b'YELLOW SUBMARINE\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10')
 
 
 def test_challenge_10() -> None:
-    plaintext_1: Text = Text.from_ascii('Hello, World!')
+    plaintext_1: Plaintext = Plaintext.from_ascii('Hello, World!')
     key: Text = Text.from_ascii('YELLOW SUBMARINE')
     iv: Text = Text.fixed_bytes(
         length=key.length,
@@ -29,12 +29,12 @@ def test_challenge_10() -> None:
         fixed_byte=0
     )
 
-    ciphertext_1: Text = plaintext_1.encrypt_cbc_mode(key, iv)
+    ciphertext_1: Ciphertext = plaintext_1.encrypt_cbc_mode(key, iv)
 
     assert ciphertext_1.decrypt_cbc_mode(key, iv) == plaintext_1
 
-    ciphertext_2: Text = Text.from_base64(file_as_string('tests/data/10.txt'))
-    plaintext_2: Text = funky_music()
+    ciphertext_2: Ciphertext = Ciphertext.from_base64(file_as_string('tests/data/10.txt'))
+    plaintext_2: Plaintext = funky_music()
 
     assert ciphertext_2.decrypt_cbc_mode(key, iv) == plaintext_2
 
@@ -56,12 +56,13 @@ def test_challenge_12() -> None:
 
 def test_challenge_13() -> None:
     oracle: StructuredCookieOracle = StructuredCookieOracle()
-    ciphertext: Text = forge_admin_profile(oracle)
+    ciphertext: Ciphertext = forge_admin_profile(oracle)
 
     forged_profile: Dict[str, str] = oracle.decrypt(ciphertext)
     assert forged_profile['role'] == 'admin'
 
 
+# TODO: split up in class+methods
 def test_challenge_14() -> None:
     # Test 4 iterations since it is a random function
     for _ in range(4):
@@ -74,15 +75,15 @@ def test_challenge_14() -> None:
 
 
 def test_challenge_15() -> None:
-    plaintext: Text = Text.from_ascii('ICE ICE BABY')
+    plaintext: Text = Plaintext.from_ascii('ICE ICE BABY')
 
     # Verify correct padding
-    assert Text(b'ICE ICE BABY\x04\x04\x04\x04').pkcs7_unpad() == plaintext
+    assert Plaintext(b'ICE ICE BABY\x04\x04\x04\x04').pkcs7_unpad() == plaintext
 
     # Verify incorrect padding (mismatching byte value and number of bytes)
     with pytest.raises(Exception):
-        Text(b'ICE ICE BABY\x05\x05\x05\x05').pkcs7_unpad()
+        Plaintext(b'ICE ICE BABY\x05\x05\x05\x05').pkcs7_unpad()
 
     # Verify incorrect padding (unequal byte values)
     with pytest.raises(Exception):
-        Text(b'ICE ICE BABY\x01\x02\x03\x04').pkcs7_unpad()
+        Plaintext(b'ICE ICE BABY\x01\x02\x03\x04').pkcs7_unpad()

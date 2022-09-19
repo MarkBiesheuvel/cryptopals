@@ -1,23 +1,23 @@
 from typing import Iterable, List, Dict, Tuple
 from .detect_block_size import detect_block_size
 from ..oracle import Oracle
-from ..text import Text
+from ..text import Ciphertext, Plaintext
 
 # List of printable ASCII charactors
 PRINTABLE_CHARACTERS = list(range(9, 13)) + list(range(32, 126))
 
 
 # Initialize a text with only a single byte
-def single_byte(byte_value: int, block_size: int) -> Text:
-    return Text.from_iterable(
+def single_byte(byte_value: int, block_size: int) -> Plaintext:
+    return Plaintext.from_iterable(
         [byte_value],
         block_size=block_size
     )
 
 
 # Get the first block of the cipher given a plaintext of {plaintext_length}
-def first_block_of_cipher(oracle: Oracle, plaintext_length: int, block_size: int):
-    plaintext: Text = Text.fixed_bytes(
+def get_first_cipher_block_for_plaintext_length(oracle: Oracle, plaintext_length: int, block_size: int):
+    plaintext: Plaintext = Plaintext.fixed_bytes(
         length=plaintext_length,
         block_size=block_size
     )
@@ -27,7 +27,8 @@ def first_block_of_cipher(oracle: Oracle, plaintext_length: int, block_size: int
 
 def detect_prepended_string_length(oracle, block_size: int) -> int:
     plaintext_length: int = block_size
-    next_block: bytes = first_block_of_cipher(oracle, plaintext_length, block_size)
+    current_block: bytes
+    next_block: bytes = get_first_cipher_block_for_plaintext_length(oracle, plaintext_length, block_size)
 
     # As long as ({prepended_string_length} + {plaintext_length}) is larger than a single block,
     # the first block will always be indentical.
@@ -36,7 +37,7 @@ def detect_prepended_string_length(oracle, block_size: int) -> int:
     # NOTE: Assuming {prepended_string_length} < {block_size}
     while True:
         current_block = next_block
-        next_block = first_block_of_cipher(oracle, plaintext_length - 1, block_size)
+        next_block = get_first_cipher_block_for_plaintext_length(oracle, plaintext_length - 1, block_size)
 
         if next_block == current_block:
             plaintext_length -= 1
@@ -46,12 +47,14 @@ def detect_prepended_string_length(oracle, block_size: int) -> int:
     return block_size - plaintext_length
 
 
-def brute_force_ecb_unknown_string(oracle: Oracle) -> Text:
+def brute_force_ecb_unknown_string(oracle: Oracle) -> Plaintext:
     # Detect the block size and determine how many extra bytes the oracle produces
+    block_size: int
+    additional_string_length: int
     block_size, additional_string_length = detect_block_size(oracle)
 
     # Starting with no known characters
-    known_characters: Text = Text.from_iterable([], block_size=block_size)
+    known_characters: Plaintext = Plaintext.from_iterable([], block_size=block_size)
 
     # Calculate offset to align the next unknown byte in the last position of a block
     prepended_string_length: int = detect_prepended_string_length(oracle, block_size)
@@ -67,27 +70,21 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> Text:
 
         # Prefix all plaintexts with a specific number of bytes to position
         # the character we are looking for in the last position of the block
-        prefix: Text = Text.fixed_bytes(
+        prefix: Plaintext = Plaintext.fixed_bytes(
             length=(block_index + 1) * block_size - byte_index - 1,
             block_size=block_size
         )
 
         # Create plaintexts from the prefix, followed by all known characters, followed by each printable byte value
-        plaintexts: Iterable[Text] = (
-            (prefix + known_characters + single_byte(byte_value, block_size))
+        plaintexts: Dict[int, Plaintext] = {
+            byte_value: (prefix + known_characters + single_byte(byte_value, block_size))
             for byte_value in PRINTABLE_CHARACTERS
-        )
-
-        # Let the oracle encrypt each plaintext with the format
-        plaintext_cipher_pairs: Iterable[Tuple[Text, Text]] = (
-            (plaintext, oracle.encrypt(plaintext))
-            for plaintext in plaintexts
-        )
+        }
 
         # Store the block of the cipher containing the different bytes values in the last position
-        dictionary: Dict[bytes, int] = {
-            ciphertext.get_block(block_index): plaintext.get_byte(-1)
-            for plaintext, ciphertext in plaintext_cipher_pairs
+        blocks: Dict[bytes, int] = {
+            oracle.encrypt(plaintext).get_block(block_index): byte_value
+            for byte_value, plaintext in plaintexts.items()
         }
 
         # Encrypt only the prefix and lookup the block in the dictionary
@@ -95,12 +92,11 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> Text:
         # Visualization: block size is 4, unknown string has 5 characters of which 2 are known, byte is X
         # 0000 [0kkX] kkuu u
         # 0000 [0kku] uu
-        ciphertext: Text = oracle.encrypt(prefix)
-        block: bytes = ciphertext.get_block(block_index)
+        block: bytes = oracle.encrypt(prefix).get_block(block_index)
 
         # Add the discovered character to the list of known characters so it can be used in the next step
-        if block in dictionary:
-            character: int = dictionary[block]
+        if block in blocks:
+            character: int = blocks[block]
             known_characters += character
         else:
             raise Exception('Unable to detect charachter')  # pragma: no cover
