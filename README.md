@@ -6,15 +6,15 @@ Since the challanges share a lot of common functionality, such as byte conversio
 
 To test all the challenges:
 ```sh
-py.test -v
+commands/test
 ```
 
-To verify code styling:
+To verify code styling and type hints
 ```sh
-pycodestyle
+commands/lint
 ```
 
-To verify the static typing:
+To verify test coverage
 ```sh
-mypy -p cryptopals -p tests --pretty
+commands/coverage
 ```

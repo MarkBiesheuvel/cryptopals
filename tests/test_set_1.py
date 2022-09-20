@@ -54,25 +54,22 @@ def test_challenge_05() -> None:
     assert plaintext.repeating_key_xor(key, target_class=Ciphertext) == ciphertext
 
 
-def test_challenge_06() -> None:
+def test_challenge_06(funky_music) -> None:
     plaintext_1: Plaintext = Plaintext.from_ascii('this is a test')
     plaintext_2: Plaintext = Plaintext.from_ascii('wokka wokka!!!')
 
     assert plaintext_1.hamming_distance(plaintext_2) == 37
 
     ciphertext: Ciphertext = Ciphertext.from_base64(file_as_string('tests/data/6.txt'))
-    plaintext: Plaintext = funky_music()
 
-    assert brute_force_repeating_key_xor(ciphertext, 40) == plaintext
+    assert brute_force_repeating_key_xor(ciphertext, 40) == funky_music
 
 
-def test_challenge_07() -> None:
-    # TODO: create class for Key
+def test_challenge_07(funky_music) -> None:
     key: Block = Block.from_ascii('YELLOW SUBMARINE')
     ciphertext: Ciphertext = Ciphertext.from_base64(file_as_string('tests/data/7.txt'))
-    plaintext: Plaintext = funky_music()
 
-    assert ciphertext.decrypt_ecb_mode(key) == plaintext
+    assert ciphertext.decrypt_ecb_mode(key) == funky_music
 
 
 def test_challenge_08() -> None:

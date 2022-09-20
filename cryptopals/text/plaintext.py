@@ -1,5 +1,8 @@
 from __future__ import annotations
+from typing import cast
 from Crypto.Cipher import AES
+from Crypto.Cipher._mode_ecb import EcbMode
+from Crypto.Cipher._mode_cbc import CbcMode
 from .parent import Text
 
 # NOTE: cannot load Plaintext using "from . import" as it would cause a circular dependency
@@ -14,14 +17,16 @@ import cryptopals
 class Plaintext(Text):
 
     def encrypt_ebc_mode(self, key: Text) -> cryptopals.Ciphertext:
-        stream = AES.new(key.to_bytes(), AES.MODE_ECB)
+        stream: EcbMode = cast(EcbMode, AES.new(key.to_bytes(), AES.MODE_ECB))
+
         return cryptopals.Ciphertext(
             stream.encrypt(self.pkcs7_pad().to_bytes()),
             block_size=self.block_size
         )
 
     def encrypt_cbc_mode(self, key: Text, iv: Text) -> cryptopals.Ciphertext:
-        stream = AES.new(key.to_bytes(), AES.MODE_CBC, iv=iv.to_bytes())
+        stream: CbcMode = cast(CbcMode, AES.new(key.to_bytes(), AES.MODE_CBC, iv=iv.to_bytes()))
+
         return cryptopals.Ciphertext(
             stream.encrypt(self.pkcs7_pad().to_bytes()),
             block_size=self.block_size

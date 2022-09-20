@@ -28,13 +28,15 @@ def score(byte: int) -> float:
 # Function to find the most likely plaintext out of a iterator of candidates
 def find_likely_plaintext(plaintexts: Iterable[Plaintext]) -> Plaintext:
     # Filter out any candidates with non-printable characters
-    plaintexts = (plaintext for plaintext in plaintexts if plaintext.is_printable())
+    printable_plaintexts: Iterable[Plaintext] = (plaintext for plaintext in plaintexts if plaintext.is_printable())
 
-    # TODO: handle error if no candidate is left over (i.e. probably the key was incorrect)
-    return max(
-        plaintexts,
-        key=lambda plaintext: sum(score(byte) for byte in plaintext.to_bytes()),
-    )
+    try:
+        return max(
+            printable_plaintexts,
+            key=lambda plaintext: sum(score(byte) for byte in plaintext.to_bytes()),
+        )
+    except ValueError:  # pragma: no cover
+        raise Exception('None of the plaintexts are printable')
 
 
 # Function that brute forces a one-byte keys against every cipher to find the most likely plaintext

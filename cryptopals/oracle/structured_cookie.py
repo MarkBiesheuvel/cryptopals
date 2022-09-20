@@ -2,8 +2,8 @@ from typing import Iterable, List, Dict
 from .oracle import Oracle
 from .. import Ciphertext, Plaintext
 
-CHARACTER_AMPERSAND = '&'
-CHARACTER_EQUALS_SIGN = '='
+CHARACTER_AMPERSAND: str = '&'
+CHARACTER_EQUALS_SIGN: str = '='
 
 
 class StructuredCookieOracle(Oracle):
@@ -29,16 +29,23 @@ class StructuredCookieOracle(Oracle):
         if not email.is_printable():
             raise Exception('Unreadable email')  # pragma: no cover
 
-        # TODO: Detect based on byte value
-        if CHARACTER_AMPERSAND in email.to_ascii() or CHARACTER_EQUALS_SIGN in email.to_ascii():
+        # Convert to ASCII string for this part, as it's easier
+        email_string: str = email.to_ascii()
+
+        # Check for forbidden characters
+        if CHARACTER_AMPERSAND in email_string or CHARACTER_EQUALS_SIGN in email_string:
             raise Exception('Forbidded character in email')  # pragma: no cover
 
         # Simulate a website where user ids automatically increment
         self.lastest_id += 1
 
-        # TODO: verify whether this is the best way to perform byte interpolation
-        value: bytes = b'email=%b&uid=%a&role=user' % (email.to_bytes(), self.lastest_id)
-        return Plaintext(value)
+        # Build structured cookie profile
+        profile: str = 'email={email}&uid={id}&role=user'.format(
+            email=email_string,
+            id=self.lastest_id
+        )
+
+        return Plaintext.from_ascii(profile)
 
     def encrypt(self, email: Plaintext) -> Ciphertext:
         profile: Plaintext = self.profile_for(email)

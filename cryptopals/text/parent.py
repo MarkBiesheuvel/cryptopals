@@ -3,6 +3,7 @@ from typing import Iterable, List, Type, TypeVar, Any
 from Crypto.Cipher import AES
 from math import ceil
 from random import randrange
+from itertools import cycle
 from .conversion import (
     string_to_bytes,
     base64_to_bytes,
@@ -123,7 +124,10 @@ class Text:
             raise Exception('Invalid operation')  # pragma: no cover
 
         # Python does not support bitwise operations on bytes, so we need to XOR byte-by-byte
-        return target_class.from_iterable(a ^ b for a, b in zip(self.to_bytes(), other.to_bytes()))
+        return target_class.from_iterable(
+            self_byte ^ other_byte
+            for self_byte, other_byte in zip(self.to_bytes(), other.to_bytes())
+        )
 
     # Xor operation between Text and a sinlge byte key (given as int)
     def single_byte_xor(self, key: int, /, *, target_class: Type[T]) -> T:
@@ -132,14 +136,18 @@ class Text:
             raise Exception('Invalid operation')  # pragma: no cover
 
         # Xor each byte of the Text with the same key
-        return target_class.from_iterable(byte ^ key for byte in self.to_bytes())
+        return target_class.from_iterable(
+            byte ^ key
+            for byte in self.to_bytes()
+        )
 
     # Xor operation between Text and a multi byte key
     def repeating_key_xor(self, key: bytes, /, *, target_class: Type[T]) -> T:
-        # TODO: convert key from bytes to Text
-        key_length: int = len(key)
-
-        return target_class.from_iterable(byte ^ key[i % key_length] for (i, byte) in enumerate(self.to_bytes()))
+        # Repeat/cycle the key multiple times, and XOR it with the text
+        return target_class.from_iterable(
+            text_byte ^ key_byte
+            for text_byte, key_byte in zip(self.to_bytes(), cycle(key))
+        )
 
     # ===================== #
     # MATH/LOGIC OPERATIONS #

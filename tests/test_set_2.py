@@ -20,7 +20,7 @@ def test_challenge_09() -> None:
         Plaintext(b'YELLOW SUBMARINE\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10')
 
 
-def test_challenge_10() -> None:
+def test_challenge_10(funky_music) -> None:
     plaintext_1: Plaintext = Plaintext.from_ascii('Hello, World!')
     key: Block = Block.from_ascii('YELLOW SUBMARINE')
     iv: Block = Block.fixed_bytes(
@@ -34,9 +34,8 @@ def test_challenge_10() -> None:
     assert ciphertext_1.decrypt_cbc_mode(key, iv) == plaintext_1
 
     ciphertext_2: Ciphertext = Ciphertext.from_base64(file_as_string('tests/data/10.txt'))
-    plaintext_2: Plaintext = funky_music()
 
-    assert ciphertext_2.decrypt_cbc_mode(key, iv) == plaintext_2
+    assert ciphertext_2.decrypt_cbc_mode(key, iv) == funky_music
 
 
 def test_challenge_11() -> None:
