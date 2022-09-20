@@ -16,7 +16,7 @@ def single_byte(byte_value: int, block_size: int) -> Plaintext:
 
 
 # Get the first block of the cipher given a plaintext of {plaintext_length}
-def get_first_cipher_block_for_plaintext_length(oracle: Oracle, plaintext_length: int, block_size: int):
+def get_first_cipher_block_for_plaintext_length(oracle: Oracle, plaintext_length: int, block_size: int) -> bytes:
     plaintext: Plaintext = Plaintext.fixed_bytes(
         length=plaintext_length,
         block_size=block_size

@@ -2,51 +2,27 @@ from __future__ import annotations
 from Crypto.Cipher import AES
 from .parent import Text
 
-# NOTE: Both ciphertext and plaintext are both just a string of bytes.
-#       However, here are two separate classes to provide better type hints throughout the code base.
-
-
-# Type hint for ciphertext
-# Provides methods for decrypting
-class Ciphertext(Text):
-
-    def decrypt_ecb_mode(self, key: Text) -> Plaintext:
-        # TODO: add type hint to {stream}
-        stream = AES.new(key.to_bytes(), AES.MODE_ECB)
-
-        plaintext: Plaintext = Plaintext(
-            stream.decrypt(self.to_bytes()),
-            block_size=self.block_size
-        )
-
-        return plaintext.pkcs7_unpad()
-
-    def decrypt_cbc_mode(self, key: Text, iv: Text) -> Plaintext:
-        # TODO: add type hint to {stream}
-        stream = AES.new(key.to_bytes(), AES.MODE_CBC, iv=iv.to_bytes())
-
-        plaintext: Plaintext = Plaintext(
-            stream.decrypt(self.to_bytes()),
-            block_size=self.block_size
-        )
-
-        return plaintext.pkcs7_unpad()
+# NOTE: cannot load Plaintext using "from . import" as it would cause a circular dependency
+import cryptopals
 
 
 # Type hint for plaintext
 # Provides methods for encrypting and padding
+#
+# NOTE: Both ciphertext and plaintext are both just a string of bytes.
+#       However, here are two separate classes to provide better type hints throughout the code base.
 class Plaintext(Text):
 
-    def encrypt_ebc_mode(self, key: Text) -> Ciphertext:
+    def encrypt_ebc_mode(self, key: Text) -> cryptopals.Ciphertext:
         stream = AES.new(key.to_bytes(), AES.MODE_ECB)
-        return Ciphertext(
+        return cryptopals.Ciphertext(
             stream.encrypt(self.pkcs7_pad().to_bytes()),
             block_size=self.block_size
         )
 
-    def encrypt_cbc_mode(self, key: Text, iv: Text) -> Ciphertext:
+    def encrypt_cbc_mode(self, key: Text, iv: Text) -> cryptopals.Ciphertext:
         stream = AES.new(key.to_bytes(), AES.MODE_CBC, iv=iv.to_bytes())
-        return Ciphertext(
+        return cryptopals.Ciphertext(
             stream.encrypt(self.pkcs7_pad().to_bytes()),
             block_size=self.block_size
         )

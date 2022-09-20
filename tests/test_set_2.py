@@ -1,9 +1,9 @@
 import pytest
 from typing import Dict
 from random import choice, randint
+from cryptopals import Block, Ciphertext, Plaintext
 from cryptopals.adversary import detect_aes_block_mode, brute_force_ecb_unknown_string, forge_admin_profile
 from cryptopals.oracle import RandomBlockModeOracle, EcbUnknownStringOracle, StructuredCookieOracle
-from cryptopals.text import Text, Plaintext, Ciphertext
 from .helpers import file_iterator, file_as_string, funky_music
 
 
@@ -22,8 +22,8 @@ def test_challenge_09() -> None:
 
 def test_challenge_10() -> None:
     plaintext_1: Plaintext = Plaintext.from_ascii('Hello, World!')
-    key: Text = Text.from_ascii('YELLOW SUBMARINE')
-    iv: Text = Text.fixed_bytes(
+    key: Block = Block.from_ascii('YELLOW SUBMARINE')
+    iv: Block = Block.fixed_bytes(
         length=key.length,
         block_size=key.length,
         fixed_byte=0
@@ -75,7 +75,7 @@ def test_challenge_14() -> None:
 
 
 def test_challenge_15() -> None:
-    plaintext: Text = Plaintext.from_ascii('ICE ICE BABY')
+    plaintext: Plaintext = Plaintext.from_ascii('ICE ICE BABY')
 
     # Verify correct padding
     assert Plaintext(b'ICE ICE BABY\x04\x04\x04\x04').pkcs7_unpad() == plaintext

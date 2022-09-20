@@ -1,5 +1,5 @@
 from typing import Iterable
-from cryptopals.text import Plaintext
+from cryptopals import Plaintext
 
 
 # Function that iterates over the lines in a file
@@ -20,5 +20,6 @@ def file_as_string(filename: str) -> str:
 
 # The solution to a few challenges is the lyrics to the song "Vanilla Ice - Play That Funky Music (Ariel Shohet Remix)"
 # The song can be found on YouTube: https://youtu.be/n2Ubq9XII8c
+# TODO: convert to pytest fixture
 def funky_music() -> Plaintext:
     return Plaintext.from_hexadecimal(file_as_string('tests/data/n2Ubq9XII8c.txt'))

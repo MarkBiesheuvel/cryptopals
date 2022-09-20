@@ -1,7 +1,7 @@
 from Crypto.Cipher import AES
 from random import choice, randint
 from .oracle import Oracle
-from ..text import Text, Ciphertext, Plaintext
+from ..text import Block, Ciphertext, Plaintext
 
 
 class RandomBlockModeOracle(Oracle):
@@ -27,7 +27,7 @@ class RandomBlockModeOracle(Oracle):
 
         elif self.mode == AES.MODE_CBC:
             # Pick a random initialization vector
-            iv: Text = Text.random_bytes(length=plaintext.block_size)
+            iv: Block = Block.random_bytes(length=plaintext.block_size)
 
             return plaintext.encrypt_cbc_mode(self.key, iv)
 

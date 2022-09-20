@@ -44,6 +44,11 @@ class Text:
         self.length = len(value)
         self.block_size = block_size
 
+    # Initialize a new Text from an existing Text (either to change class or change block_size)
+    @classmethod
+    def from_text(cls: Type[T], value: Text, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> T:
+        return cls(value.to_bytes(), block_size=block_size)
+
     # Initialize a new Text from a ASCII encoded string
     @classmethod
     def from_ascii(cls: Type[T], value: str, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> T:

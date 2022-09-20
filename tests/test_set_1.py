@@ -1,7 +1,7 @@
 import pytest
 from typing import Iterable
+from cryptopals import Block, Ciphertext, Plaintext
 from cryptopals.adversary import brute_force_single_byte_xor, brute_force_repeating_key_xor, find_aes_ecb_cipher
-from cryptopals.text import Text, Ciphertext, Plaintext
 from .helpers import file_iterator, file_as_string, funky_music
 
 
@@ -68,7 +68,7 @@ def test_challenge_06() -> None:
 
 def test_challenge_07() -> None:
     # TODO: create class for Key
-    key: Text = Plaintext.from_ascii('YELLOW SUBMARINE')
+    key: Block = Block.from_ascii('YELLOW SUBMARINE')
     ciphertext: Ciphertext = Ciphertext.from_base64(file_as_string('tests/data/7.txt'))
     plaintext: Plaintext = funky_music()
 

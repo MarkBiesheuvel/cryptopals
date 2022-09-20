@@ -9,7 +9,7 @@ def brute_force_repeating_key_xor(ciphertext: Ciphertext, max_key_length: int) -
     # Find the key length with the lowest normalized hamming distance between the first N blocks
     key_length: int = min(
         range(2, max_key_length),
-        key=lambda key_length: average_hamming_distance(ciphertext, key_length)
+        key=lambda key_length: average_hamming_distance(Ciphertext.from_text(ciphertext, block_size=key_length))
     )
 
     # Split cipher up into chunks where each chunk $i contains the bytes from cipher at position $(i % key_length)
