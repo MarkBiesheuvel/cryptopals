@@ -1,7 +1,7 @@
 from Crypto.Cipher import AES
 from random import choice, randint
 from .oracle import Oracle
-from ..text import Block, Ciphertext, Plaintext
+from .. import Block, Ciphertext, Plaintext
 
 
 class RandomBlockModeOracle(Oracle):

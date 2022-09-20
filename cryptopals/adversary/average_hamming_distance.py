@@ -1,6 +1,6 @@
 from typing import Iterable, List, Tuple
 from itertools import combinations
-from ..text.parent import Text
+from .. import Text, Block
 
 # Number of blocks to compare to eachother to find the most likely key length
 # Higher number will be more accurate, but break on shorter ciphertexts
@@ -14,13 +14,13 @@ def average_hamming_distance(text: Text) -> float:
         raise Exception('Invalid operation')  # pragma: no cover
 
     # First {NUMBER_OF_BLOCKS} blocks of size {text.block_size}
-    blocks: Iterable[Text] = (
-        Text(text.get_block(block_index))
+    blocks: Iterable[Block] = (
+        text.get_block(block_index)
         for block_index in range(NUMBER_OF_BLOCKS)
     )
 
     # Combine each block with each other block
-    combos: List[Tuple[Text, Text]] = list(combinations(blocks, 2))
+    combos: List[Tuple[Block, Block]] = list(combinations(blocks, 2))
 
     # Calculate the average hamming distance between blocks
     return sum(

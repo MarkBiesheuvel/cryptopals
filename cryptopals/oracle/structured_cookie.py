@@ -1,6 +1,6 @@
 from typing import Iterable, List, Dict
 from .oracle import Oracle
-from ..text import Ciphertext, Plaintext
+from .. import Ciphertext, Plaintext
 
 CHARACTER_AMPERSAND = '&'
 CHARACTER_EQUALS_SIGN = '='

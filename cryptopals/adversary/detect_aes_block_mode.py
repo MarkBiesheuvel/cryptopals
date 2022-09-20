@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import List
+from typing import Iterable, Tuple
 from Crypto.Cipher import AES
+from more_itertools import pairwise
 from ..oracle import Oracle
-from ..text import Ciphertext, Plaintext
+from .. import Block, Ciphertext, Plaintext
 
 # "Carefully" chosen input string for detecting AES ECB block mode
 # The string contains an arbitrary character 64 times in a row
@@ -15,13 +16,13 @@ def detect_aes_block_mode(oracle: Oracle) -> int:
     # Use the oracle function to encrypt our carefully chosen plaintext
     ciphertext: Ciphertext = oracle.encrypt(AES_BLOCK_MODE_DETECTION_STRING)
 
-    # Convert to list in order to get the length
-    blocks: List[bytes] = list(ciphertext.get_blocks())
+    # All blocks of cipher
+    blocks: Iterable[Block] = ciphertext.get_blocks()
+
+    # Combine each block with each other block
+    combos: Iterable[Tuple[Block, Block]] = pairwise(blocks)
 
     # Try to find two concecutive blocks which are idencital
-    any_idencital_blocks: bool = any(
-        ciphertext.get_block(block_index) == ciphertext.get_block(block_index + 1)
-        for block_index in range(len(blocks) - 1)
-    )
+    any_idencital_blocks: bool = any(block_1 == block_2 for block_1, block_2 in combos)
 
     return AES.MODE_ECB if any_idencital_blocks else AES.MODE_CBC

@@ -1,7 +1,7 @@
 from typing import Iterable, List, Dict, Tuple
 from .detect_block_size import detect_block_size
 from ..oracle import Oracle
-from ..text import Ciphertext, Plaintext
+from .. import Block, Ciphertext, Plaintext
 
 # List of printable ASCII charactors
 PRINTABLE_CHARACTERS = list(range(9, 13)) + list(range(32, 126))
@@ -16,7 +16,7 @@ def single_byte(byte_value: int, block_size: int) -> Plaintext:
 
 
 # Get the first block of the cipher given a plaintext of {plaintext_length}
-def get_first_cipher_block_for_plaintext_length(oracle: Oracle, plaintext_length: int, block_size: int) -> bytes:
+def get_first_cipher_block_for_plaintext_length(oracle: Oracle, plaintext_length: int, block_size: int) -> Block:
     plaintext: Plaintext = Plaintext.fixed_bytes(
         length=plaintext_length,
         block_size=block_size
@@ -27,8 +27,8 @@ def get_first_cipher_block_for_plaintext_length(oracle: Oracle, plaintext_length
 
 def detect_prepended_string_length(oracle, block_size: int) -> int:
     plaintext_length: int = block_size
-    current_block: bytes
-    next_block: bytes = get_first_cipher_block_for_plaintext_length(oracle, plaintext_length, block_size)
+    current_block: Block
+    next_block: Block = get_first_cipher_block_for_plaintext_length(oracle, plaintext_length, block_size)
 
     # As long as ({prepended_string_length} + {plaintext_length}) is larger than a single block,
     # the first block will always be indentical.
@@ -82,7 +82,7 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> Plaintext:
         }
 
         # Store the block of the cipher containing the different bytes values in the last position
-        blocks: Dict[bytes, int] = {
+        blocks: Dict[Block, int] = {
             oracle.encrypt(plaintext).get_block(block_index): byte_value
             for byte_value, plaintext in plaintexts.items()
         }
@@ -92,7 +92,7 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> Plaintext:
         # Visualization: block size is 4, unknown string has 5 characters of which 2 are known, byte is X
         # 0000 [0kkX] kkuu u
         # 0000 [0kku] uu
-        block: bytes = oracle.encrypt(prefix).get_block(block_index)
+        block: Block = oracle.encrypt(prefix).get_block(block_index)
 
         # Add the discovered character to the list of known characters so it can be used in the next step
         if block in blocks:

@@ -1,5 +1,5 @@
 from Crypto.Cipher import AES
-from ..text import Block, Ciphertext, Plaintext
+from .. import Block, Ciphertext, Plaintext
 
 
 # Parent class for oracles

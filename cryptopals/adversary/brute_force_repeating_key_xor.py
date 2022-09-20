@@ -1,7 +1,7 @@
 from typing import Iterable, List
 from .average_hamming_distance import average_hamming_distance
 from .brute_force_single_byte_xor import brute_force_single_byte_xor
-from ..text import Ciphertext, Plaintext
+from .. import Ciphertext, Plaintext
 
 
 # Function that determines the most likely key length and brute forces each byte of the key

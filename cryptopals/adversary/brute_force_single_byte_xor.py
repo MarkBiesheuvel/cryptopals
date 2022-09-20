@@ -1,6 +1,6 @@
 from typing import Iterable, Dict
 from string import ascii_lowercase, printable
-from ..text import Ciphertext, Plaintext
+from .. import Ciphertext, Plaintext
 
 # Source: http://norvig.com/mayzner.html
 # Since the dataset contained roughly 743 B words, I added 743 B spaces to the set and recalculated all frequencies

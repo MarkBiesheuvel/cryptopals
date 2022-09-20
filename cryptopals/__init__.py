@@ -1,1 +1,1 @@
-from .text import Block, Ciphertext, Plaintext
+from .text import Text, Block, Ciphertext, Plaintext

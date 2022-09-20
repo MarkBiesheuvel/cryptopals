@@ -11,6 +11,9 @@ from .conversion import (
     bytes_to_hexadecimal
 )
 
+# NOTE: cannot load Plaintext using "from . import" as it would cause a circular dependency
+import cryptopals
+
 # The byte value of an arbitrary character to be used in building nonrandom/fixed plaintext.
 # Using a NULL byte (0x00) might be raise suspicion in an oracle, so let's use an alphanumeric character instead.
 # The value 85 (0x55 or 'U') is chosen because the binary pattern looks fun: 0101 0101
@@ -93,13 +96,16 @@ class Text:
         return self.value[start_index:end_index]
 
     # Return the block at the {block_index}
-    def get_block(self, block_index: int) -> bytes:
+    def get_block(self, block_index: int) -> cryptopals.Block:
         start_index: int = self.block_size * block_index
         end_index: int = self.block_size * (block_index + 1)
-        return self.get_byte_range(start_index, end_index)
+        return cryptopals.Block(
+            self.get_byte_range(start_index, end_index),
+            block_size=self.block_size
+        )
 
     # Return all blocks of this Text
-    def get_blocks(self) -> Iterable[bytes]:
+    def get_blocks(self) -> Iterable[cryptopals.Block]:
         number_of_blocks: int = ceil(self.length / self.block_size)
         return (
             self.get_block(block_index)
@@ -179,7 +185,7 @@ class Text:
     # Blocks of {block_size} are separated by space
     def __str__(self) -> str:  # pragma: no cover
         return ' '.join(
-            bytes_to_hexadecimal(block)
+            bytes_to_hexadecimal(block.to_bytes())
             for block in self.get_blocks()
         )
 
@@ -188,6 +194,10 @@ class Text:
             cls=self.__class__.__name__,
             value=self.__str__()
         )
+
+    # Return a hash of the Text (to be used in dict keys)
+    def __hash__(self) -> int:
+        return hash(self.value)
 
     # Returns whether two texts are equal
     # In this case {block_size} is ignored

@@ -1,6 +1,6 @@
 from .detect_block_size import detect_block_size
 from ..oracle import Oracle
-from ..text import Ciphertext, Plaintext
+from .. import Block, Ciphertext, Plaintext
 
 # Assumtion: we know that all profile will be prefixed with "email="
 PROFILE_PREFIX: str = 'email='
@@ -37,19 +37,19 @@ def forge_admin_profile(oracle: Oracle) -> Ciphertext:
     block_size, additional_string_length = detect_block_size(oracle)
 
     # Build the desired last block
-    desired_last_block: bytes = get_desired_last_block(oracle, block_size)
+    desired_last_block: Block = get_desired_last_block(oracle, block_size)
 
     # Build a normal cipher (which aligns so the last block can be replaced)
     ciphertext: Ciphertext = forge_ciphertext(oracle, block_size, additional_string_length)
 
     # Forge a cipher by using the all blocks from the cipher except the last and only the desired last block
     return Ciphertext(
-        ciphertext.get_byte_range(0, ciphertext.length - block_size) + desired_last_block,
+        ciphertext.get_byte_range(0, ciphertext.length - block_size) + desired_last_block.to_bytes(),
         block_size=block_size
     )
 
 
-def get_desired_last_block(oracle: Oracle, block_size: int) -> bytes:
+def get_desired_last_block(oracle: Oracle, block_size: int) -> Block:
     # Generate our desired last block using pkcs#7 padding
     plaintext: Plaintext = Plaintext.from_ascii(
         DESIRED_ROLE,

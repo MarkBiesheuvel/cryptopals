@@ -1,7 +1,7 @@
 from typing import Iterable
 from Crypto.Cipher import AES
 from .average_hamming_distance import average_hamming_distance
-from ..text import Ciphertext
+from .. import Ciphertext
 
 
 # Function that detects the cipher which is most likely encrypted using ECB mode

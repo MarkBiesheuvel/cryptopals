@@ -1,5 +1,5 @@
 from .oracle import Oracle
-from ..text import Ciphertext, Plaintext
+from .. import Ciphertext, Plaintext
 
 # Given string by https://cryptopals.com/sets/2/challenges/12
 UNKNOWN_STRING: Plaintext = Plaintext.from_base64(
