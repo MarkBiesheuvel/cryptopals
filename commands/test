@@ -1,2 +1,2 @@
 #!/bin/sh
-py.test --numprocesses=6 --dist=load -r fEP --failed-first
+py.test --numprocesses=auto --dist=load -r fEP
