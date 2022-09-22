@@ -108,6 +108,8 @@ class Text:
     # Return all blocks of this Text
     def get_blocks(self) -> Iterable[cryptopals.Block]:
         number_of_blocks: int = ceil(self.length / self.block_size)
+
+        # TODO: fix bug when last block is not of correct length
         return (
             self.get_block(block_index)
             for block_index in range(number_of_blocks)

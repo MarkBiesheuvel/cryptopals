@@ -11,17 +11,6 @@ class StructuredCookieOracle(Oracle):
     # Autoincrement ID, but use a starting position where it's unlikely to impact padding
     lastest_id: int = 1337
 
-    def parse(self, profile: Plaintext) -> Dict[str, str]:
-        pairs: Iterable[List[str]] = (
-            pair.split(CHARACTER_EQUALS_SIGN)
-            for pair in profile.to_ascii().split(CHARACTER_AMPERSAND)
-        )
-
-        return {
-            pair[0]: pair[1]
-            for pair in pairs
-        }
-
     def profile_for(self, email: Plaintext) -> Plaintext:
         if not email.is_printable():
             raise Exception('Unreadable email')  # pragma: no cover
@@ -50,4 +39,13 @@ class StructuredCookieOracle(Oracle):
 
     def decrypt(self, ciphertext: Ciphertext) -> Dict[str, str]:
         profile: Plaintext = ciphertext.decrypt_ecb_mode(self.key)
-        return self.parse(profile)
+
+        pairs: Iterable[List[str]] = (
+            pair.split(CHARACTER_EQUALS_SIGN)
+            for pair in profile.to_ascii().split(CHARACTER_AMPERSAND)
+        )
+
+        return {
+            pair[0]: pair[1]
+            for pair in pairs
+        }
