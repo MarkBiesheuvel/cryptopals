@@ -3,7 +3,7 @@ from ..oracle import Oracle
 from .. import Ciphertext, Plaintext
 
 
-def ciphertext_length(oracle: Oracle, plaintext_length: int):
+def ciphertext_length(oracle: Oracle, plaintext_length: int) -> int:
     plaintext: Plaintext = Plaintext.fixed_bytes(length=plaintext_length)
     ciphertext: Ciphertext = oracle.encrypt(plaintext)
     return ciphertext.length

@@ -20,7 +20,7 @@ def test_challenge_09() -> None:
         Plaintext(b'YELLOW SUBMARINE\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10')
 
 
-def test_challenge_10(funky_music) -> None:
+def test_challenge_10(funky_music: Plaintext) -> None:
     plaintext_1: Plaintext = Plaintext.from_ascii('Hello, World!')
     key: Block = Block.from_ascii('YELLOW SUBMARINE')
     iv: Block = Block.fixed_bytes(

@@ -25,7 +25,7 @@ def get_first_cipher_block_for_plaintext_length(oracle: Oracle, plaintext_length
     return oracle.encrypt(plaintext).get_block(0)
 
 
-def detect_prepended_string_length(oracle, block_size: int) -> int:
+def detect_prepended_string_length(oracle: Oracle, block_size: int) -> int:
     plaintext_length: int = block_size
     current_block: Block
     next_block: Block = get_first_cipher_block_for_plaintext_length(oracle, plaintext_length, block_size)

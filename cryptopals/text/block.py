@@ -10,7 +10,7 @@ from .parent import Text
 #       However, here are two separate classes to provide better type hints throughout the code base.
 class Block(Text):
 
-    def __init__(self, value: bytes, /, *, block_size: Optional[int] = None):
+    def __init__(self, value: bytes, /, *, block_size: Optional[int] = None) -> None:
         length: int = len(value)
 
         if block_size is None:

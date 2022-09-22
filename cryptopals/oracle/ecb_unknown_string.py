@@ -11,7 +11,7 @@ UNKNOWN_STRING: Plaintext = Plaintext.from_base64(
 
 class EcbUnknownStringOracle(Oracle):
 
-    def __init__(self, *, prefix_size: int = 0):
+    def __init__(self, *, prefix_size: int = 0) -> None:
         super(EcbUnknownStringOracle, self).__init__()
         self.unknown_string: Plaintext = UNKNOWN_STRING
         self.random_prefix: Plaintext = Plaintext.random_bytes(length=prefix_size)

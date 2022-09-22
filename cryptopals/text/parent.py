@@ -43,7 +43,7 @@ class Text:
     # ============ #
 
     # Initializer
-    def __init__(self, value: bytes, /, *, block_size: int = DEFAULT_BLOCK_SIZE):
+    def __init__(self, value: bytes, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> None:
         self.value = value
         self.length = len(value)
         self.block_size = block_size
@@ -81,7 +81,7 @@ class Text:
     # Initialize a new Text of {length} containing fixed bytes
     @classmethod
     def fixed_bytes(cls: Type[T], *, length: int, block_size: int = DEFAULT_BLOCK_SIZE,
-                    fixed_byte=DEFAULT_CHARACTER) -> T:
+                    fixed_byte: int = DEFAULT_CHARACTER) -> T:
         return cls.from_iterable((fixed_byte for _ in range(length)), block_size=block_size)
 
     # ================ #
@@ -212,7 +212,7 @@ class Text:
     def __eq__(self: T, other: Any) -> bool:
         # Verify whether both Texts of same type (Plaintext<>Ciphertext)
         if self.__class__ == other.__class__:
-            return self.to_bytes() == other.to_bytes()
+            return bool(self.to_bytes() == other.to_bytes())
         else:
             return False  # pragma: no cover
 

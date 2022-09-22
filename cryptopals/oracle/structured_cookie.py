@@ -8,11 +8,8 @@ CHARACTER_EQUALS_SIGN: str = '='
 
 class StructuredCookieOracle(Oracle):
 
-    def __init__(self):
-        super(StructuredCookieOracle, self).__init__()
-
-        # Autoincrement ID, but use a starting position where it's unlikely to impact padding
-        self.lastest_id = 1337
+    # Autoincrement ID, but use a starting position where it's unlikely to impact padding
+    lastest_id: int = 1337
 
     def parse(self, profile: Plaintext) -> Dict[str, str]:
         pairs: Iterable[List[str]] = (

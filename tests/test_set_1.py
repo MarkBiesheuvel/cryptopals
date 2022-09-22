@@ -54,7 +54,7 @@ def test_challenge_05() -> None:
     assert plaintext.repeating_key_xor(key, target_class=Ciphertext) == ciphertext
 
 
-def test_challenge_06(funky_music) -> None:
+def test_challenge_06(funky_music: Plaintext) -> None:
     plaintext_1: Plaintext = Plaintext.from_ascii('this is a test')
     plaintext_2: Plaintext = Plaintext.from_ascii('wokka wokka!!!')
 
@@ -65,7 +65,7 @@ def test_challenge_06(funky_music) -> None:
     assert brute_force_repeating_key_xor(ciphertext, 40) == funky_music
 
 
-def test_challenge_07(funky_music) -> None:
+def test_challenge_07(funky_music: Plaintext) -> None:
     key: Block = Block.from_ascii('YELLOW SUBMARINE')
     ciphertext: Ciphertext = Ciphertext.from_base64(file_as_string('tests/data/7.txt'))
 
