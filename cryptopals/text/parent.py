@@ -9,6 +9,7 @@ from .conversion import (
     base64_to_bytes,
     hexadecimal_to_bytes,
     bytes_to_string,
+    bytes_to_base64,
     bytes_to_hexadecimal
 )
 
@@ -181,8 +182,9 @@ class Text:
 
     # Encode as ASCII string
     # Assumption: value does not contain unprintable characters
-    def to_ascii(self) -> str:
-        if not self.is_printable():
+    def to_ascii(self, *, safe_mode: bool = True) -> str:
+        # Allow usage with unprintable characters by disabling safe mode
+        if safe_mode and not self.is_printable():
             raise Exception('Text contains unprintable characters')  # pragma: no cover
 
         return bytes_to_string(self.value)
@@ -194,15 +196,19 @@ class Text:
     # Return a string representation of the Text
     # Blocks of {block_size} are separated by space
     def __str__(self) -> str:  # pragma: no cover
-        return ' '.join(
-            bytes_to_hexadecimal(block.to_bytes())
-            for block in self.get_blocks()
-        )
+        # If the text is nicely divisible into blocks, use that for printing, otherwise
+        if (self.length % self.block_size == 0):
+            return ' '.join(
+                bytes_to_hexadecimal(block.to_bytes())
+                for block in self.get_blocks()
+            )
+        else:
+            return bytes_to_hexadecimal(self.to_bytes())
 
     def __repr__(self) -> str:  # pragma: no cover
-        return '{cls}({value})'.format(
+        return '{cls}.from_base64(\'{value}\')'.format(
             cls=self.__class__.__name__,
-            value=self.__str__()
+            value=bytes_to_base64(self.to_bytes())
         )
 
     # Return a hash of the Text (to be used in dict keys)

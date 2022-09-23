@@ -1,7 +1,9 @@
 from base64 import b64encode, b64decode
 
-# Use ASCII encoding to avoid any encodings with multi-byte or variable length characters
-CHARACTOR_ENCODING = 'ascii'
+# Use ISO/IEC 8859 encoding to ...
+# 1. avoid any encodings with multi-byte or variable length characters
+# 2. use the full 8 bits of a byte (compared to ASCII which only uses 7 bits)
+CHARACTOR_ENCODING = 'iso-8859-1'
 
 
 def bytes_to_string(value: bytes) -> str:

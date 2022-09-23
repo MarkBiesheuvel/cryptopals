@@ -30,7 +30,7 @@ DESIRED_ROLE: str = 'admin'
 # @gmail.com&uid=B
 #
 # After encrypting our carefully chosen email addres we can copy past it to the end of a cipher
-def forge_admin_profile(oracle: Oracle) -> Ciphertext:
+def forge_admin_cookie(oracle: Oracle) -> Ciphertext:
     # Detect the block size
     block_size: int
     additional_string_length: int

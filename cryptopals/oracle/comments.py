@@ -50,9 +50,12 @@ class CommentsOracle(Oracle):
     def decrypt(self, ciphertext: Ciphertext) -> Dict[str, str]:
         properties: Plaintext = ciphertext.decrypt_cbc_mode(self.key, self.iv)
 
+        # NOTE: Disable the is_printable verification to allow a bitflip attack to work
+        datastring: str = properties.to_ascii(safe_mode=False)
+
         pairs: Iterable[List[str]] = (
             pair.split(CHARACTER_EQUALS)
-            for pair in properties.to_ascii().split(CHARACTER_SEPERATOR)
+            for pair in datastring.split(CHARACTER_SEPERATOR)
         )
 
         return {
