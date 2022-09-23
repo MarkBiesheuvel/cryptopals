@@ -39,7 +39,7 @@ class CommentsOracle(Oracle):
 
         # Join everything into a string and convert to Plaintext object
         return Plaintext.from_ascii(
-            ';'.join('{}={}'.format(k, v) for k, v in properties.items())
+            ';'.join(f'{key}={value}' for key, value in properties.items())
         )
 
     def encrypt(self, userdata: Plaintext) -> Ciphertext:

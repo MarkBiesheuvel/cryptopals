@@ -206,10 +206,7 @@ class Text:
             return bytes_to_hexadecimal(self.to_bytes())
 
     def __repr__(self) -> str:  # pragma: no cover
-        return '{cls}.from_base64(\'{value}\')'.format(
-            cls=self.__class__.__name__,
-            value=bytes_to_base64(self.to_bytes())
-        )
+        return f'{self.__class__.__name__}({self.to_bytes()!r})'
 
     # Return a hash of the Text (to be used in dict keys)
     def __hash__(self) -> int:

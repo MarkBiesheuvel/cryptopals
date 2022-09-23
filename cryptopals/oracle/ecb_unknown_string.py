@@ -21,4 +21,4 @@ class EcbUnknownStringOracle(Oracle):
         plaintext = (self.random_prefix + plaintext + self.unknown_string)
 
         # Encrypt using AES EBC
-        return plaintext.encrypt_ebc_mode(self.key)
+        return plaintext.encrypt_ecb_mode(self.key)

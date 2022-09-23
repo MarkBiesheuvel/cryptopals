@@ -16,7 +16,7 @@ import cryptopals
 #       However, here are two separate classes to provide better type hints throughout the code base.
 class Plaintext(Text):
 
-    def encrypt_ebc_mode(self, key: Text) -> cryptopals.Ciphertext:
+    def encrypt_ecb_mode(self, key: Text) -> cryptopals.Ciphertext:
         stream: EcbMode = cast(EcbMode, AES.new(key.to_bytes(), AES.MODE_ECB))
 
         return cryptopals.Ciphertext(

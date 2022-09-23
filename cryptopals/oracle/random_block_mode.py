@@ -23,7 +23,7 @@ class RandomBlockModeOracle(Oracle):
         plaintext = (self.prefix + plaintext + self.postfix)
 
         if self.mode == AES.MODE_ECB:
-            return plaintext.encrypt_ebc_mode(self.key)
+            return plaintext.encrypt_ecb_mode(self.key)
 
         elif self.mode == AES.MODE_CBC:
             # Pick a random initialization vector

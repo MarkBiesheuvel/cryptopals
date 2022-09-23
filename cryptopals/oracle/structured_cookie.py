@@ -26,16 +26,13 @@ class StructuredCookieOracle(Oracle):
         self.lastest_id += 1
 
         # Build structured cookie profile
-        profile: str = 'email={email}&uid={id}&role=user'.format(
-            email=email_string,
-            id=self.lastest_id
-        )
+        profile: str = f'email={email_string}&uid={self.lastest_id}&role=user'
 
         return Plaintext.from_ascii(profile)
 
     def encrypt(self, email: Plaintext) -> Ciphertext:
         profile: Plaintext = self.profile_for(email)
-        return profile.encrypt_ebc_mode(self.key)
+        return profile.encrypt_ecb_mode(self.key)
 
     def decrypt(self, ciphertext: Ciphertext) -> Dict[str, str]:
         profile: Plaintext = ciphertext.decrypt_ecb_mode(self.key)
