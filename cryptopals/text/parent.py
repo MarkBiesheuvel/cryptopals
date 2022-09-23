@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Iterable, List, Type, TypeVar, Any
 from Crypto.Cipher import AES
-from math import ceil
 from random import randrange
 from itertools import cycle
 from .conversion import (
@@ -108,9 +107,11 @@ class Text:
 
     # Return all blocks of this Text
     def get_blocks(self) -> Iterable[cryptopals.Block]:
-        number_of_blocks: int = ceil(self.length / self.block_size)
+        if (self.length % self.block_size != 0):
+            raise ValueError('Unpadded text can not be divided into blocks')
 
-        # TODO: fix bug when last block is not of correct length
+        number_of_blocks: int = self.length // self.block_size
+
         return (
             self.get_block(block_index)
             for block_index in range(number_of_blocks)
@@ -124,7 +125,7 @@ class Text:
     def fixed_xor(self, other: Text, /, *, target_class: Type[T]) -> T:
         # Input validation
         if self.length != other.length:
-            raise Exception('Invalid operation')  # pragma: no cover
+            raise ValueError('Invalid operation')
 
         # Python does not support bitwise operations on bytes, so we need to XOR byte-by-byte
         return target_class.from_iterable(
@@ -136,7 +137,7 @@ class Text:
     def single_byte_xor(self, key: int, /, *, target_class: Type[T]) -> T:
         # Input validation
         if key < 0 or 255 < key:
-            raise Exception('Invalid operation')  # pragma: no cover
+            raise ValueError('Invalid operation')
 
         # Xor each byte of the Text with the same key
         return target_class.from_iterable(
@@ -185,7 +186,7 @@ class Text:
     def to_ascii(self, *, safe_mode: bool = True) -> str:
         # Allow usage with unprintable characters by disabling safe mode
         if safe_mode and not self.is_printable():
-            raise Exception('Text contains unprintable characters')  # pragma: no cover
+            raise ValueError('Text contains unprintable characters')
 
         return bytes_to_string(self.value)
 
@@ -195,7 +196,7 @@ class Text:
 
     # Return a string representation of the Text
     # Blocks of {block_size} are separated by space
-    def __str__(self) -> str:  # pragma: no cover
+    def __str__(self) -> str:
         # If the text is nicely divisible into blocks, use that for printing, otherwise
         if (self.length % self.block_size == 0):
             return ' '.join(
@@ -205,7 +206,7 @@ class Text:
         else:
             return bytes_to_hexadecimal(self.to_bytes())
 
-    def __repr__(self) -> str:  # pragma: no cover
+    def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.to_bytes()!r})'
 
     # Return a hash of the Text (to be used in dict keys)
@@ -219,17 +220,17 @@ class Text:
         if self.__class__ == other.__class__:
             return bool(self.to_bytes() == other.to_bytes())
         else:
-            return False  # pragma: no cover
+            return False
 
     # Add two Texts together if the block_size is equal
     def __add__(self: T, other: Any) -> T:
         # Compare for Text or subclass of Text (Plaintext/Ciphertext)
         if isinstance(other, Text):
             if self.block_size != other.block_size:
-                raise Exception('Unequal block size')  # pragma: no cover
+                raise ValueError('Unequal block size')
 
             if self.__class__ != other.__class__:
-                raise Exception('Incompatble plaintext/ciphertext')  # pragma: no cover
+                raise ValueError('Incompatble plaintext/ciphertext')
 
             # Maintain exact same class (Text/Plaintext/Ciphertext)
             return self.__class__(
@@ -245,4 +246,4 @@ class Text:
             )
 
         else:
-            raise Exception('Incompatible types')  # pragma: no cover
+            raise TypeError('Incompatible types')

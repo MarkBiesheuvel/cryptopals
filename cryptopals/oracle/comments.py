@@ -54,7 +54,7 @@ class CommentsOracle(Oracle):
         datastring: str = properties.to_ascii(safe_mode=False)
 
         pairs: Iterable[List[str]] = (
-            pair.split(CHARACTER_EQUALS)
+            pair.split(CHARACTER_EQUALS) if CHARACTER_EQUALS in pair else [pair, '']
             for pair in datastring.split(CHARACTER_SEPERATOR)
         )
 

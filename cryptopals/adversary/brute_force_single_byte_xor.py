@@ -35,7 +35,7 @@ def find_likely_plaintext(plaintexts: Iterable[Plaintext]) -> Plaintext:
             printable_plaintexts,
             key=lambda plaintext: sum(score(byte) for byte in plaintext.to_bytes()),
         )
-    except ValueError:  # pragma: no cover
+    except ValueError:
         raise Exception('None of the plaintexts are printable')
 
 

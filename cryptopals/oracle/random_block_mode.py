@@ -32,4 +32,4 @@ class RandomBlockModeOracle(Oracle):
             return plaintext.encrypt_cbc_mode(self.key, iv)
 
         else:
-            raise Exception('Invalid operation')  # pragma: no cover
+            raise Exception('Invalid operation')

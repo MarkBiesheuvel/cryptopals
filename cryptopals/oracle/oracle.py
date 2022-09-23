@@ -13,4 +13,4 @@ class Oracle:
         )
 
     def encrypt(self, plaintext: Plaintext) -> Ciphertext:
-        return Ciphertext(plaintext.to_bytes())  # pragma: no cover
+        raise NotImplementedError
