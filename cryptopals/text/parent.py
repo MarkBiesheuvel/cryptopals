@@ -182,13 +182,20 @@ class Text:
         return self.value
 
     # Encode as ASCII string
-    # Assumption: value does not contain unprintable characters
     def to_ascii(self, *, safe_mode: bool = True) -> str:
         # Allow usage with unprintable characters by disabling safe mode
         if safe_mode and not self.is_printable():
             raise ValueError('Text contains unprintable characters')
 
-        return bytes_to_string(self.value)
+        return bytes_to_string(self.to_bytes())
+
+    # Encode as hexadecimal string
+    def to_hexadecimal(self) -> str:
+        return bytes_to_hexadecimal(self.to_bytes())
+
+    # Encode as base64 string
+    def to_base64(self) -> str:
+        return bytes_to_base64(self.to_bytes())
 
     # ============= #
     # MAGIC METHODS #

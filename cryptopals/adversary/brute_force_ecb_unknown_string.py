@@ -1,4 +1,4 @@
-from typing import Iterable, List, Dict, Tuple
+from typing import Iterable, List, Dict, Tuple, Optional
 from .detect_block_size import detect_block_size
 from ..oracle import Oracle
 from .. import Block, Ciphertext, Plaintext
@@ -27,24 +27,23 @@ def get_first_cipher_block_for_plaintext_length(oracle: Oracle, plaintext_length
 
 def detect_prepended_string_length(oracle: Oracle, block_size: int) -> int:
     plaintext_length: int = block_size
-    current_block: Block
-    next_block: Block = get_first_cipher_block_for_plaintext_length(oracle, plaintext_length, block_size)
+    current_block: Optional[Block] = None
+    previous_block: Optional[Block] = None
 
     # As long as ({prepended_string_length} + {plaintext_length}) is larger than a single block,
     # the first block will always be indentical.
     # Keep reducing {plaintext_length} until the first block of the cipher is different to find prepended_string_length
     #
     # NOTE: Assuming {prepended_string_length} < {block_size}
-    while True:
-        current_block = next_block
-        next_block = get_first_cipher_block_for_plaintext_length(oracle, plaintext_length - 1, block_size)
+    while (previous_block is None) or (previous_block == current_block):
+        # Calculate new block values
+        previous_block = current_block
+        current_block = get_first_cipher_block_for_plaintext_length(oracle, plaintext_length, block_size)
 
-        if next_block == current_block:
-            plaintext_length -= 1
-        else:
-            break
+        # Try a short plaintext next iteration
+        plaintext_length -= 1
 
-    return block_size - plaintext_length
+    return block_size - plaintext_length - 2
 
 
 def brute_force_ecb_unknown_string(oracle: Oracle) -> Plaintext:
@@ -94,12 +93,13 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> Plaintext:
         # 0000 [0kku] uu
         block: Block = oracle.encrypt(prefix).get_block(block_index)
 
+        # This should never happen, but just in case there is a bug in the adversary, raise a custom error message
+        if block not in blocks:  # pragma: no cover
+            raise IndexError('This should never happen')
+
         # Add the discovered character to the list of known characters so it can be used in the next step
-        if block in blocks:
-            character: int = blocks[block]
-            known_characters += character
-        else:
-            raise Exception('Unable to detect charachter')
+        character: int = blocks[block]
+        known_characters += character
 
     # Convert from bytesarray to bytes
     return known_characters

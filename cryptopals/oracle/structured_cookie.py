@@ -13,14 +13,14 @@ class StructuredCookieOracle(Oracle):
 
     def profile_for(self, email: Plaintext) -> Plaintext:
         if not email.is_printable():
-            raise Exception('Unreadable email')
+            raise ValueError('Unreadable email')
 
         # Convert to ASCII string for this part, as it's easier
         email_string: str = email.to_ascii()
 
         # Check for forbidden characters
         if CHARACTER_AMPERSAND in email_string or CHARACTER_EQUALS_SIGN in email_string:
-            raise Exception('Forbidded character in email')
+            raise ValueError('Forbidded character in email')
 
         # Simulate a website where user ids automatically increment
         self.lastest_id += 1

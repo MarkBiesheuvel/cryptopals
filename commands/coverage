@@ -1,2 +1,2 @@
 #!/bin/sh
-py.test --numprocesses=auto --dist=load --cov=cryptopals --cov-report=html --cov-fail-under=97
+py.test --numprocesses=auto --dist=load --cov=cryptopals --cov-report=html --cov-fail-under=100

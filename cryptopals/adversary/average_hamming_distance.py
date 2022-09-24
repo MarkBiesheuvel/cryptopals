@@ -11,7 +11,7 @@ NUMBER_OF_BLOCKS: int = 6
 def average_hamming_distance(text: Text) -> float:
     # This operation does not work if there are not enough blocks
     if (text.length / NUMBER_OF_BLOCKS) < text.block_size:
-        raise Exception('Invalid operation')
+        raise ValueError('Invalid operation')
 
     # First {NUMBER_OF_BLOCKS} blocks of size {text.block_size}
     blocks: Iterable[Block] = (
