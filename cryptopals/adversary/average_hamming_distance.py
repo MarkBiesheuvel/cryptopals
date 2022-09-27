@@ -2,7 +2,7 @@ from typing import Iterable, List, Tuple
 from itertools import combinations
 from .. import Text, Block
 
-# Number of blocks to compare to eachother to find the most likely key length
+# Number of blocks to compare to each other to find the most likely key length
 # Higher number will be more accurate, but break on shorter ciphertexts
 NUMBER_OF_BLOCKS: int = 6
 

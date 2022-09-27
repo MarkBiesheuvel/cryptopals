@@ -8,7 +8,7 @@ def plaintext() -> Plaintext:
     return Plaintext.from_ascii('Hello, World!')
 
 
-# Any test cases for Oracle class that are not covered by the cryptopal challenges
+# Any test cases for Oracle class that are not covered by the cryptopals challenges
 class TestMiscellaneousOracle:
 
     def test_exception_unimplemented_encrypt(self, plaintext: Plaintext) -> None:

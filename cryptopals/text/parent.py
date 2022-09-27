@@ -58,7 +58,7 @@ class Text:
     def from_ascii(cls: Type[T], value: str, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> T:
         return cls(string_to_bytes(value), block_size=block_size)
 
-    # Initialize a new Text from a base64 encoded sring
+    # Initialize a new Text from a base64 encoded string
     @classmethod
     def from_base64(cls: Type[T], value: str, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> T:
         return cls(base64_to_bytes(value), block_size=block_size)
@@ -108,7 +108,7 @@ class Text:
     # Return all blocks of this Text
     def get_blocks(self) -> Iterable[cryptopals.Block]:
         if (self.length % self.block_size != 0):
-            raise ValueError('Unpadded text can not be divided into blocks')
+            raise ValueError('Text can not be divided into blocks')
 
         number_of_blocks: int = self.length // self.block_size
 
@@ -133,7 +133,7 @@ class Text:
             for self_byte, other_byte in zip(self.to_bytes(), other.to_bytes())
         )
 
-    # Xor operation between Text and a sinlge byte key (given as int)
+    # Xor operation between Text and a single byte key (given as int)
     def single_byte_xor(self, key: int, /, *, target_class: Type[T]) -> T:
         # Input validation
         if key < 0 or 255 < key:
@@ -169,7 +169,7 @@ class Text:
             for i in range(8)  # Eight bits in a byte
         )
 
-    # Return whether this Text contains only printable ASCII chracters
+    # Return whether this Text contains only printable ASCII characters
     def is_printable(self) -> bool:
         return all(byte in PRINTABLE_CHARACTERS for byte in self.to_bytes())
 
@@ -237,7 +237,7 @@ class Text:
                 raise ValueError('Unequal block size')
 
             if self.__class__ != other.__class__:
-                raise ValueError('Incompatble plaintext/ciphertext')
+                raise ValueError('Incompatible plaintext/ciphertext')
 
             # Maintain exact same class (Text/Plaintext/Ciphertext)
             return self.__class__(

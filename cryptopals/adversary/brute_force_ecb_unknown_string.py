@@ -3,7 +3,7 @@ from .detect_block_size import detect_block_size
 from ..oracle import Oracle
 from .. import Block, Ciphertext, Plaintext
 
-# List of printable ASCII charactors
+# List of printable ASCII characters
 PRINTABLE_CHARACTERS = list(range(9, 13)) + list(range(32, 126))
 
 
@@ -31,7 +31,7 @@ def detect_prepended_string_length(oracle: Oracle, block_size: int) -> int:
     previous_block: Optional[Block] = None
 
     # As long as ({prepended_string_length} + {plaintext_length}) is larger than a single block,
-    # the first block will always be indentical.
+    # the first block will always be identical.
     # Keep reducing {plaintext_length} until the first block of the cipher is different to find prepended_string_length
     #
     # NOTE: Assuming {prepended_string_length} < {block_size}
@@ -94,12 +94,12 @@ def brute_force_ecb_unknown_string(oracle: Oracle) -> Plaintext:
         block: Block = oracle.encrypt(prefix).get_block(block_index)
 
         # This should never happen, but just in case there is a bug in the adversary, raise a custom error message
-        if block not in blocks:  # pragma: no cover
+        if block not in blocks:
             raise IndexError('This should never happen')
 
         # Add the discovered character to the list of known characters so it can be used in the next step
         character: int = blocks[block]
         known_characters += character
 
-    # Convert from bytesarray to bytes
+    # Convert from bytearray to bytes
     return known_characters

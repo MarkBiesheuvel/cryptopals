@@ -9,7 +9,7 @@ CHARACTER_EQUALS_SIGN: str = '='
 class StructuredCookieOracle(Oracle):
 
     # Autoincrement ID, but use a starting position where it's unlikely to impact padding
-    lastest_id: int = 1337
+    latest_id: int = 1337
 
     def profile_for(self, email: Plaintext) -> Plaintext:
         if not email.is_printable():
@@ -20,13 +20,13 @@ class StructuredCookieOracle(Oracle):
 
         # Check for forbidden characters
         if CHARACTER_AMPERSAND in email_string or CHARACTER_EQUALS_SIGN in email_string:
-            raise ValueError('Forbidded character in email')
+            raise ValueError('Forbidden character in email')
 
         # Simulate a website where user ids automatically increment
-        self.lastest_id += 1
+        self.latest_id += 1
 
         # Build structured cookie profile
-        profile: str = f'email={email_string}&uid={self.lastest_id}&role=user'
+        profile: str = f'email={email_string}&uid={self.latest_id}&role=user'
 
         return Plaintext.from_ascii(profile)
 

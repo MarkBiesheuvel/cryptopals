@@ -2,7 +2,7 @@ from .detect_block_size import detect_block_size
 from ..oracle import Oracle
 from .. import Block, Ciphertext, Plaintext
 
-# Assumtion: we know that all profile will be prefixed with "email="
+# Assumption: we know that all profile will be prefixed with "email="
 PROFILE_PREFIX: str = 'email='
 
 # A random but valid domain name for our email address
@@ -17,19 +17,19 @@ DESIRED_ROLE: str = 'admin'
 
 # We can only supply the email field in the profile, but want to set the role field to admin
 #
-# Assumption: the role field is last in the list, so if we carefully construct our email adress the word admin will
+# Assumption: the role field is last in the list, so if we carefully construct our email address the word admin will
 # fall into its own block. The block will be padded to the {block_size}
 # The last two blocks we desire would look something like this (where X, Y, and Z are some variable)
 # X&uid=YYYY&role=
 # adminZZZZZZZZZZZ
 #
-# We can construct an email address that includes this sequence of bytes and allign it so that it alligns with a block
+# We can construct an email address that includes this sequence of bytes and align it so that it aligns with a block
 # That would look something like this (where A, B and Z are some variable):
 # email=AAAAAAAAAA
 # adminZZZZZZZZZZZ
 # @gmail.com&uid=B
 #
-# After encrypting our carefully chosen email addres we can copy past it to the end of a cipher
+# After encrypting our carefully chosen email address we can copy past it to the end of a cipher
 def forge_admin_cookie(oracle: Oracle) -> Ciphertext:
     # Detect the block size
     block_size: int

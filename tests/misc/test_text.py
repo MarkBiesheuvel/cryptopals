@@ -23,7 +23,7 @@ def yellow_ciphertext() -> Ciphertext:
     return Ciphertext(b'\xd1\xaaOex\x92eB\xfb\xb6\xdd\x87l\xd2\x05\x08`\xfa6p~E\xf4\x99\xdb\xa0\xf2[\x92#\x01\xa5')
 
 
-# Any test cases for Text class that are not covered by the cryptopal challenges
+# Any test cases for Text class that are not covered by the cryptopals challenges
 class TestMiscellaneousText:
 
     def test_repr(self, hello_world: Plaintext) -> None:
@@ -80,7 +80,7 @@ class TestMiscellaneousText:
             hello_world.single_byte_xor(-1, target_class=Ciphertext)
 
     def test_exception_unequal_blocks(self, hello_world: Plaintext) -> None:
-        # Getting blocks from text that is not divisable raises Exception
+        # Getting blocks from text that is not divisible raises Exception
         with pytest.raises(ValueError):
             hello_world.get_blocks()
 

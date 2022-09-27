@@ -22,7 +22,7 @@ def detect_aes_block_mode(oracle: Oracle) -> int:
     # Combine each block with each other block
     combos: Iterable[Tuple[Block, Block]] = pairwise(blocks)
 
-    # Try to find two concecutive blocks which are idencital
-    any_idencital_blocks: bool = any(block_1 == block_2 for block_1, block_2 in combos)
+    # Try to find two consecutive blocks which are identical
+    any_identical_blocks: bool = any(block_1 == block_2 for block_1, block_2 in combos)
 
-    return AES.MODE_ECB if any_idencital_blocks else AES.MODE_CBC
+    return AES.MODE_ECB if any_identical_blocks else AES.MODE_CBC

@@ -29,7 +29,7 @@ def detect_block_size(oracle: Oracle) -> Tuple[int, int]:
     # The block size is equal to the job in cipher length, since we only added a single byte to the plaintext
     block_size: int = current_cipher_length - previous_cipher_length
 
-    # Also calculate the length of the additional string that was appended or preppended to the plaintext
+    # Also calculate the length of the additional string that was appended or prepended to the plaintext
     # The plaintext plus additional string fit exactly in a cipher of the previous length, since the current length
     # needed an extra block of padding
     additional_string_length: int = previous_cipher_length - plaintext_length

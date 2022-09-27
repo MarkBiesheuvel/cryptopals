@@ -14,7 +14,7 @@ LETTER_FREQUENCY: Dict[str, float] = {
 }
 
 
-# Function to score a character with the likelyhood of it being part of the plaintext
+# Function to score a character with the likelihood of it being part of the plaintext
 def score(byte: int) -> float:
     character: str = chr(byte)
 
