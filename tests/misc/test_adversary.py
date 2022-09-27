@@ -1,9 +1,29 @@
 import pytest
-from cryptopals.adversary import find_aes_ecb_cipher, brute_force_single_byte_xor
-from cryptopals import Ciphertext
+from cryptopals.adversary import (
+    find_aes_ecb_cipher,
+    brute_force_single_byte_xor,
+    brute_force_ecb_unknown_string,
+)
+from cryptopals.oracle import Oracle
+from cryptopals import Ciphertext, Plaintext
 
 
-# Any test cases for adversary functions that are not covered by the cryptopal challenges
+class FakeOracle(Oracle):
+
+    suffix = Plaintext.from_ascii('Hello, World!')
+
+    def encrypt(self, plaintext: Plaintext) -> Ciphertext:
+        # Append something at the end, so the brute_force_ecb_unknown_string adversary will try to find it.
+        plaintext = (plaintext + self.suffix).pkcs7_pad()
+
+        # Instead of encrypting data, return random data. (Meaning the suffix can not be brute forced)
+        return Ciphertext.random_bytes(
+            length=plaintext.length,
+            block_size=plaintext.block_size
+        )
+
+
+# Any test cases for adversary functions that are not covered by the cryptopals challenges
 class TestMiscellaneousAdversary:
 
     def test_exception_short_text(self) -> None:
@@ -19,3 +39,11 @@ class TestMiscellaneousAdversary:
 
         with pytest.raises(ValueError):
             brute_force_single_byte_xor([ciphertext])
+
+    def test_exception_fake_oracle(self) -> None:
+        # Creating an oracle that can not be brute forced (since it returns random data)
+        oracle: FakeOracle = FakeOracle()
+
+        # Encrypting with forbidden characters raises Exception
+        with pytest.raises(IndexError):
+            brute_force_ecb_unknown_string(oracle)
