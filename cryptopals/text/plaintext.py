@@ -16,6 +16,9 @@ if TYPE_CHECKING:  # pragma: no cover
 #       However, here are two separate classes to provide better type hints throughout the code base.
 class Plaintext(Text):
 
+    # Save space
+    __slots__: tuple[()] = ()
+
     def encrypt_ecb_mode(self, key: Text) -> 'Ciphertext':
         # Import Ciphertext class later to avoid circular dependencies
         from . import Ciphertext

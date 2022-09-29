@@ -8,6 +8,9 @@ from .parent import Text
 #       However, here are two separate classes to provide better type hints throughout the code base.
 class Block(Text):
 
+    # Save space
+    __slots__: tuple[()] = ()
+
     def __init__(self, value: bytes, /, *, block_size: int) -> None:
         length: int = len(value)
 

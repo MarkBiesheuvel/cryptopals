@@ -11,6 +11,9 @@ UNKNOWN_STRING: Plaintext = Plaintext.from_base64(
 
 class EcbUnknownStringOracle(Oracle):
 
+    # Save space
+    __slots__: tuple[str, str] = ('unknown_string', 'random_prefix')
+
     def __init__(self, *, prefix_size: int = 0) -> None:
         super(EcbUnknownStringOracle, self).__init__()
         self.unknown_string: Plaintext = UNKNOWN_STRING

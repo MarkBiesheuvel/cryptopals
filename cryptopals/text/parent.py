@@ -37,7 +37,10 @@ T = TypeVar('T', bound='Text')
 
 
 # Class to represent either a plaintext or ciphertext
-class Text(object):
+class Text:
+
+    # Save space
+    __slots__: tuple[str, str, str] = ('value', 'length', 'block_size')
 
     # ============ #
     # CONSTRUCTORS #

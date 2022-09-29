@@ -6,6 +6,9 @@ from .. import Block, Ciphertext, Plaintext
 
 class RandomBlockModeOracle(Oracle):
 
+    # Save space
+    __slots__: tuple[str, str, str] = ('mode', 'prefix', 'postfix')
+
     def __init__(self) -> None:
         super(RandomBlockModeOracle, self).__init__()
 

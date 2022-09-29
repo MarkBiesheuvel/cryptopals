@@ -13,6 +13,9 @@ ESCAPED_CHARACTERS: dict[str, str] = {
 
 class CommentsOracle(Oracle):
 
+    # Save space
+    __slots__: tuple[str] = ('iv',)
+
     def __init__(self) -> None:
         super(CommentsOracle, self).__init__()
 

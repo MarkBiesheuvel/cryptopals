@@ -5,6 +5,9 @@ from .. import Block, Ciphertext, Plaintext
 # Parent class for oracles
 class Oracle:
 
+    # Save space
+    __slots__: tuple[str] = ('key',)
+
     def __init__(self) -> None:
         # Pick a random 128-bit key (16 bytes)
         self.key: Block = Block.random_bytes(
