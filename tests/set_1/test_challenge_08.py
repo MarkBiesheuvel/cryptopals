@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable
 from cryptopals import Ciphertext
 from cryptopals.adversary import find_aes_ecb_cipher
 from ..helpers import file_iterator

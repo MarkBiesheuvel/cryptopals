@@ -1,4 +1,3 @@
-from typing import List
 from ..oracle import Oracle
 from .. import Ciphertext, Plaintext
 
@@ -19,7 +18,7 @@ def forge_admin_comment(oracle: Oracle) -> Ciphertext:
     byte_index: int = (32 - 16)
 
     # Bit flip the ciphertext in the correct places
-    ciphertext_bytes: List[int] = list(ciphertext.to_bytes())
+    ciphertext_bytes: list[int] = list(ciphertext.to_bytes())
     ciphertext_bytes[byte_index + 0] ^= MASK
     ciphertext_bytes[byte_index + 6] ^= MASK
 

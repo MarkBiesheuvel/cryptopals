@@ -1,11 +1,11 @@
-from typing import Iterable, List, Dict
+from collections.abc import Iterable
 from .oracle import Oracle
 from .. import Block, Ciphertext, Plaintext
 
 CHARACTER_SEPARATOR: str = ';'
 CHARACTER_EQUALS: str = '='
 
-ESCAPED_CHARACTERS: Dict[str, str] = {
+ESCAPED_CHARACTERS: dict[str, str] = {
     CHARACTER_SEPARATOR: '%3B',
     CHARACTER_EQUALS: '%3D',
 }
@@ -31,7 +31,7 @@ class CommentsOracle(Oracle):
                 data = data.replace(character, replacement)
 
         # Build a dictionary with all values
-        properties: Dict[str, str] = {
+        properties: dict[str, str] = {
             'comment1': 'cooking%20MCs',
             'userdata': data,
             'comment2': '%20like%20a%20pound%20of%20bacon'
@@ -47,13 +47,13 @@ class CommentsOracle(Oracle):
 
         return plaintext.encrypt_cbc_mode(self.key, self.iv)
 
-    def decrypt(self, ciphertext: Ciphertext) -> Dict[str, str]:
+    def decrypt(self, ciphertext: Ciphertext) -> dict[str, str]:
         properties: Plaintext = ciphertext.decrypt_cbc_mode(self.key, self.iv)
 
         # NOTE: Disable the is_printable verification to allow a bit-flip attack to work
         data_string: str = properties.to_ascii(safe_mode=False)
 
-        pairs: Iterable[List[str]] = (
+        pairs: Iterable[list[str]] = (
             pair.split(CHARACTER_EQUALS) if CHARACTER_EQUALS in pair else [pair, '']
             for pair in data_string.split(CHARACTER_SEPARATOR)
         )

@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable
 from cryptopals import Ciphertext, Plaintext
 from cryptopals.adversary import brute_force_single_byte_xor
 from ..helpers import file_iterator

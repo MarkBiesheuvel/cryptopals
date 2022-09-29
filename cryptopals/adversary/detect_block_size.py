@@ -1,4 +1,3 @@
-from typing import List, Tuple
 from ..oracle import Oracle
 from .. import Ciphertext, Plaintext
 
@@ -10,7 +9,7 @@ def ciphertext_length(oracle: Oracle, plaintext_length: int) -> int:
 
 
 # Function that determines the block size of an encryption oracle by detecting when the padding jumps to the next block
-def detect_block_size(oracle: Oracle) -> Tuple[int, int]:
+def detect_block_size(oracle: Oracle) -> tuple[int, int]:
     # Initialize all variables before entering the while loop
     plaintext_length: int = 0
     previous_cipher_length: int

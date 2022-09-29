@@ -1,8 +1,7 @@
 import pytest
-from typing import List, Tuple
 from cryptopals import Plaintext
 
-TEST_CASES: List[Tuple[int, bytes]] = [
+TEST_CASES: list[tuple[int, bytes]] = [
     (20, b'YELLOW SUBMARINE\x04\x04\x04\x04'),
     (31, b'YELLOW SUBMARINE\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f'),
     (16, b'YELLOW SUBMARINE\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10'),

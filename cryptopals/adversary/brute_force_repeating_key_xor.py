@@ -1,4 +1,4 @@
-from typing import Iterable, List
+from collections.abc import Iterable
 from .average_hamming_distance import average_hamming_distance
 from .brute_force_single_byte_xor import brute_force_single_byte_xor
 from .. import Ciphertext, Plaintext
@@ -23,7 +23,7 @@ def brute_force_repeating_key_xor(ciphertext: Ciphertext, max_key_length: int) -
     )
 
     # Brute force each chunk as a single byte XOR cipher
-    plaintext_chunks: List[Plaintext] = [
+    plaintext_chunks: list[Plaintext] = [
         brute_force_single_byte_xor([chunk])
         for chunk in ciphertext_chunks
     ]

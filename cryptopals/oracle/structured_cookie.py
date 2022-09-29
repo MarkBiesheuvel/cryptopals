@@ -1,4 +1,4 @@
-from typing import Iterable, List, Dict
+from collections.abc import Iterable
 from .oracle import Oracle
 from .. import Ciphertext, Plaintext
 
@@ -34,10 +34,10 @@ class StructuredCookieOracle(Oracle):
         profile: Plaintext = self.profile_for(email)
         return profile.encrypt_ecb_mode(self.key)
 
-    def decrypt(self, ciphertext: Ciphertext) -> Dict[str, str]:
+    def decrypt(self, ciphertext: Ciphertext) -> dict[str, str]:
         profile: Plaintext = ciphertext.decrypt_ecb_mode(self.key)
 
-        pairs: Iterable[List[str]] = (
+        pairs: Iterable[list[str]] = (
             pair.split(CHARACTER_EQUALS_SIGN)
             for pair in profile.to_ascii().split(CHARACTER_AMPERSAND)
         )

@@ -1,5 +1,5 @@
 import pytest
-from typing import Iterable
+from collections.abc import Iterable
 from cryptopals import Plaintext
 
 

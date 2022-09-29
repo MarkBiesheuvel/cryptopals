@@ -1,4 +1,4 @@
-from typing import Iterable, List, Tuple
+from collections.abc import Iterable
 from itertools import combinations
 from .. import Text, Block
 
@@ -20,7 +20,7 @@ def average_hamming_distance(text: Text) -> float:
     )
 
     # Combine each block with each other block
-    combos: List[Tuple[Block, Block]] = list(combinations(blocks, 2))
+    combos: list[tuple[Block, Block]] = list(combinations(blocks, 2))
 
     # Calculate the average hamming distance between blocks
     return sum(

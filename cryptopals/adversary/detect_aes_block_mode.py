@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterable, Tuple
+from collections.abc import Iterable
 from Crypto.Cipher import AES
 from more_itertools import pairwise
 from ..oracle import Oracle
@@ -20,7 +20,7 @@ def detect_aes_block_mode(oracle: Oracle) -> int:
     blocks: Iterable[Block] = ciphertext.get_blocks()
 
     # Combine each block with each other block
-    combos: Iterable[Tuple[Block, Block]] = pairwise(blocks)
+    combos: Iterable[tuple[Block, Block]] = pairwise(blocks)
 
     # Try to find two consecutive blocks which are identical
     any_identical_blocks: bool = any(block_1 == block_2 for block_1, block_2 in combos)

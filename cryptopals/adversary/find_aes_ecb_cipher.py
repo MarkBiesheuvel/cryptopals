@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable
 from Crypto.Cipher import AES
 from .average_hamming_distance import average_hamming_distance
 from .. import Ciphertext

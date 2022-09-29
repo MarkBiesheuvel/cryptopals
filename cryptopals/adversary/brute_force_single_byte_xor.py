@@ -1,4 +1,4 @@
-from typing import Iterable, Dict
+from collections.abc import Iterable
 from more_itertools import peekable
 from string import ascii_lowercase, printable
 from .. import Ciphertext, Plaintext
@@ -7,7 +7,7 @@ from .. import Ciphertext, Plaintext
 # Since the dataset contained roughly 743 B words, I added 743 B spaces to the set and recalculated all frequencies
 # For example, the frequency of the space itself becomes 743.8 B / (3,563 B + 743 B) = 17.27%
 # And the frequency of the letter A becomes 286.5 B / (3,563 B + 743 B) = 6.65%
-LETTER_FREQUENCY: Dict[str, float] = {
+LETTER_FREQUENCY: dict[str, float] = {
     ' ': 0.1727, 'e': 0.1034, 't': 0.0768, 'a': 0.0665, 'o': 0.0632, 'i': 0.0626, 'n': 0.0599, 's': 0.0539, 'r': 0.0520,
     'h': 0.0418, 'l': 0.0337, 'd': 0.0316, 'c': 0.0277, 'u': 0.0226, 'm': 0.0208, 'f': 0.0199, 'p': 0.0177, 'g': 0.0155,
     'w': 0.0139, 'y': 0.0138, 'b': 0.0123, 'v': 0.0087, 'k': 0.0045, 'x': 0.0020, 'j': 0.0013, 'q': 0.0010, 'z': 0.0007,
