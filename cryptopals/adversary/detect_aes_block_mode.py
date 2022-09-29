@@ -1,4 +1,3 @@
-from __future__ import annotations
 from collections.abc import Iterable
 from Crypto.Cipher import AES
 from more_itertools import pairwise

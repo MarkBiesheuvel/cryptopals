@@ -1,6 +1,5 @@
-from __future__ import annotations
 from collections.abc import Iterable
-from typing import Type, TypeVar, Any
+from typing import Type, TypeVar, TypeAlias, Any, TYPE_CHECKING
 from Crypto.Cipher import AES
 from random import randrange
 from itertools import cycle
@@ -13,8 +12,9 @@ from .conversion import (
     bytes_to_hexadecimal
 )
 
-# NOTE: cannot load Plaintext using "from . import" as it would cause a circular dependency
-import cryptopals
+# Only import early if type checking is active
+if TYPE_CHECKING:  # pragma: no cover
+    from . import Block
 
 # The byte value of an arbitrary character to be used in building nonrandom/fixed plaintext.
 # Using a NULL byte (0x00) might be raise suspicion in an oracle, so let's use an alphanumeric character instead.
@@ -37,7 +37,7 @@ T = TypeVar('T', bound='Text')
 
 
 # Class to represent either a plaintext or ciphertext
-class Text:
+class Text(object):
 
     # ============ #
     # CONSTRUCTORS #
@@ -51,7 +51,7 @@ class Text:
 
     # Initialize a new Text from an existing Text (either to change class or change block_size)
     @classmethod
-    def from_text(cls: Type[T], value: Text, /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> T:
+    def from_text(cls: Type[T], value: 'Text', /, *, block_size: int = DEFAULT_BLOCK_SIZE) -> T:
         return cls(value.to_bytes(), block_size=block_size)
 
     # Initialize a new Text from a ASCII encoded string
@@ -98,16 +98,22 @@ class Text:
         return self.value[start_index:end_index]
 
     # Return the block at the {block_index}
-    def get_block(self, block_index: int) -> cryptopals.Block:
+    def get_block(self, block_index: int) -> 'Block':
+        # Import Block class later to avoid circular dependencies
+        from . import Block
+
+        # Calculate index of bytes based on the block index
         start_index: int = self.block_size * block_index
         end_index: int = self.block_size * (block_index + 1)
-        return cryptopals.Block(
+
+        # Slice the current Text and create a Block
+        return Block(
             self.get_byte_range(start_index, end_index),
             block_size=self.block_size
         )
 
     # Return all blocks of this Text
-    def get_blocks(self) -> Iterable[cryptopals.Block]:
+    def get_blocks(self) -> Iterable['Block']:
         if (self.length % self.block_size != 0):
             raise ValueError('Text can not be divided into blocks')
 
@@ -123,7 +129,7 @@ class Text:
     # =============== #
 
     # Xor operation between two Texts
-    def fixed_xor(self, other: Text, /, *, target_class: Type[T]) -> T:
+    def fixed_xor(self, other: 'Text', /, *, target_class: Type[T]) -> T:
         # Input validation
         if self.length != other.length:
             raise ValueError('Invalid operation')
@@ -159,7 +165,7 @@ class Text:
     # ===================== #
 
     # Returns Hamming distance between two Texts
-    def hamming_distance(self, other: Text) -> int:
+    def hamming_distance(self, other: 'Text') -> int:
         # By computing the XOR, all bits that were different are 1, all bits that were the same are zero
         difference: Text = self.fixed_xor(other, target_class=Text)
 
