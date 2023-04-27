@@ -1,0 +1,9 @@
+test:
+  cargo test -- --nocapture
+
+fmt:
+  cargo fmt --all
+
+all:
+  just fmt
+  just test
