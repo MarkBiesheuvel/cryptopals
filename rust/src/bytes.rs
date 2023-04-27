@@ -34,7 +34,7 @@ impl Bytes {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
-        // Return
+        // Return Bytes struct
         Ok(Bytes(bytes))
     }
 
@@ -58,23 +58,47 @@ impl Bytes {
                 // Convert characters into 6-bit numbers
                 let first_6_bit_number = base64(first_character)?;
                 let second_6_bit_number = base64(second_character)?;
-                let third_6_bit_number = base64(third_character)?;
-                let fourth_6_bit_number = base64(fourth_character)?;
 
-                // TODO: handle padding by returning a Vec instead of [u8; 3]
+                // Use bit-shift and OR-operation to construct first 8-bit numbers
+                let first_byte = first_6_bit_number << 2 | second_6_bit_number >> 4;
 
-                // Use bit-shift and OR-operation to construct three 8-bit numbers
-                Ok([
-                    first_6_bit_number << 2 | second_6_bit_number >> 4,
-                    second_6_bit_number << 4 | third_6_bit_number >> 2,
-                    third_6_bit_number << 6 | fourth_6_bit_number,
-                ])
+                if third_character == '=' {
+                    // If the third character is padding, only return one byte
+                    Ok(vec![first_byte])
+                } else {
+                    // Convert characters into 6-bit numbers
+                    let third_6_bit_number = base64(third_character)?;
+
+                    // Use bit-shift and OR-operation to construct second 8-bit numbers
+                    let second_byte = second_6_bit_number << 4 | third_6_bit_number >> 2;
+
+                    if fourth_character == '=' {
+                        // If the third character is padding, only return two bytes
+                        Ok(vec![first_byte, second_byte])
+                    } else {
+                        // Convert characters into 6-bit numbers
+                        let fourth_6_bit_number = base64(fourth_character)?;
+
+                        // Use bit-shift and OR-operation to construct third 8-bit number
+                        let third_byte = third_6_bit_number << 6 | fourth_6_bit_number;
+
+                        // Return three bytes
+                        Ok(vec![first_byte, second_byte, third_byte])
+                    }
+                }
             })
             .collect::<Result<Vec<_>, _>>()?;
 
         let bytes = chunks.into_iter().flatten().collect();
 
+        // Return Bytes struct
         Ok(Bytes(bytes))
+    }
+}
+
+impl From<&str> for Bytes {
+    fn from(value: &str) -> Self {
+        Bytes(value.bytes().collect())
     }
 }
 
@@ -94,5 +118,26 @@ impl fmt::Debug for Bytes {
         };
 
         tuple.finish()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn base64_padding_1() {
+        let value = Bytes::try_from_base64("bGlnaHQgd29yay4=").unwrap();
+        let expected = Bytes::from("light work.");
+
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn base64_padding_2() {
+        let value = Bytes::try_from_base64("bGlnaHQgd29yaw==").unwrap();
+        let expected = Bytes::from("light work");
+
+        assert_eq!(value, expected);
     }
 }

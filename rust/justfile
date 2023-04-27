@@ -1,9 +1,13 @@
 test:
   cargo test -- --nocapture
 
+clippy:
+  cargo clippy
+
 fmt:
   cargo fmt --all
 
 all:
   just fmt
+  just clippy
   just test
