@@ -4,12 +4,20 @@ use std::vec::Vec;
 
 use crate::CryptopalsError;
 
-/// Plaintext or ciphertext without any guarantees regarding block size
+/// Collection of bytes
 #[derive(Eq, PartialEq)]
 pub struct Bytes(Vec<u8>);
 
 impl Bytes {
-    /// XOR two equally length Bytes with eachother
+    pub fn raw(&self) -> &Vec<u8> {
+        &self.0
+    }
+
+    pub fn length(&self) -> usize {
+        self.0.len()
+    }
+
+    /// XOR two equally length Bytes with each other
     ///
     /// ## Examples
     /// ```
@@ -56,7 +64,7 @@ impl<V> From<V> for Bytes
 where
     V: Into<Vec<u8>>,
 {
-    /// Construct a Bytes struct from antyhing that can be turned into a
+    /// Construct a Bytes struct from anything that can be turned into a
     /// `Vec<u8>`, like for example a &str
     ///
     /// ## Examples

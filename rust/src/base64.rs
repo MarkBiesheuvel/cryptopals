@@ -3,7 +3,7 @@ use std::vec::Vec;
 
 use super::{Bytes, CryptopalsError};
 
-/// A base64 encoded string
+/// Base64 encoded string
 #[derive(Debug)]
 pub struct Base64<'a>(&'a str);
 

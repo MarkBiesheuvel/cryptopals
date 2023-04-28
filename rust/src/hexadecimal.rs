@@ -3,7 +3,7 @@ use std::vec::Vec;
 
 use super::{Bytes, CryptopalsError};
 
-/// A hexadecimal encoded string
+/// Hexadecimal encoded string
 #[derive(Debug)]
 pub struct Hexadecimal<'a>(&'a str);
 
