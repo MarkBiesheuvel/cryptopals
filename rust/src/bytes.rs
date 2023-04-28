@@ -9,6 +9,18 @@ use crate::CryptopalsError;
 pub struct Bytes(Vec<u8>);
 
 impl Bytes {
+    /// XOR two equally length Bytes with eachother
+    ///
+    /// ## Examples
+    /// ```
+    /// use cryptopals::Bytes;
+    ///
+    /// let value_1 = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
+    /// let value_2 = Bytes::from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    /// let expected = Bytes::from([98, 112, 122, 116, 113, 105, 119, 105, 101, 121]);
+    ///
+    /// assert_eq!(value_1.fixed_xor(&value_2).unwrap(), expected);
+    /// ```
     pub fn fixed_xor(&self, other: &Bytes) -> Result<Bytes, CryptopalsError> {
         if self.0.len() != other.0.len() {
             return Err(CryptopalsError::UnequalLength);
@@ -22,6 +34,17 @@ impl Bytes {
         Ok(Bytes(bytes))
     }
 
+    /// XOR all the bytes with a single other byte
+    ///
+    /// ## Examples
+    /// ```
+    /// use cryptopals::Bytes;
+    ///
+    /// let value = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
+    /// let expected = Bytes::from([73, 88, 83, 90, 94, 69, 90, 75, 70, 89]);
+    ///
+    /// assert_eq!(value.single_byte_xor(42), expected);
+    /// ```
     pub fn single_byte_xor(&self, rhs: u8) -> Bytes {
         let bytes = self.0.iter().map(|lhs| lhs ^ rhs).collect();
 
@@ -33,7 +56,18 @@ impl<V> From<V> for Bytes
 where
     V: Into<Vec<u8>>,
 {
-    /// Construct a Bytes struct from antyhing that can be turned into a `Vec<u8>`, like for example a &str
+    /// Construct a Bytes struct from antyhing that can be turned into a
+    /// `Vec<u8>`, like for example a &str
+    ///
+    /// ## Examples
+    /// ```
+    /// use cryptopals::Bytes;
+    ///
+    /// let value_1 = Bytes::from("cryptopals");
+    /// let value_2 = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
+    ///
+    /// assert_eq!(value_1, value_2);
+    /// ```
     fn from(value: V) -> Self {
         Bytes(value.into())
     }
