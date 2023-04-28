@@ -13,3 +13,19 @@ fn challenge_1() {
     // Both values should be equal
     assert_eq!(value_1, value_2);
 }
+
+#[test]
+fn challenge_2() {
+    // Two input values
+    let input_1 = "1c0111001f010100061a024b53535009181c";
+    let input_2 = "686974207468652062756c6c277320657965";
+    let exptected = "746865206b696420646f6e277420706c6179";
+
+    // Convert as hexadecimal
+    let input_1 = Bytes::try_from_hexadecimal(input_1).unwrap();
+    let input_2 = Bytes::try_from_hexadecimal(input_2).unwrap();
+    let exptected = Bytes::try_from_hexadecimal(exptected).unwrap();
+
+    // Fixed XOR should lead to expected value
+    assert_eq!(input_1.fixed_xor(&input_2), exptected);
+}

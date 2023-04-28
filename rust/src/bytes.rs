@@ -94,6 +94,15 @@ impl Bytes {
         // Return Bytes struct
         Ok(Bytes(bytes))
     }
+
+    pub fn fixed_xor(&self, other: &Bytes) -> Bytes {
+        let bytes = (self.0.iter())
+            .zip(other.0.iter())
+            .map(|(lhs, rhs)| lhs ^ rhs)
+            .collect::<Vec<_>>();
+
+        Bytes(bytes)
+    }
 }
 
 impl From<&str> for Bytes {
