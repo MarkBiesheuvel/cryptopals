@@ -1,4 +1,5 @@
 use std::convert::TryFrom;
+use std::vec::Vec;
 
 use super::{Bytes, CryptopalsError};
 

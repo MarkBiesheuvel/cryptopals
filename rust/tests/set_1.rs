@@ -27,5 +27,5 @@ fn challenge_2() {
     let exptected = Bytes::try_from(exptected).unwrap();
 
     // Fixed XOR should lead to expected value
-    assert_eq!(input_1.fixed_xor(&input_2), exptected);
+    assert_eq!(input_1.fixed_xor(&input_2).unwrap(), exptected);
 }

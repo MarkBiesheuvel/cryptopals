@@ -2,4 +2,5 @@
 pub enum CryptopalsError {
     InvalidHexadecimal,
     InvalidBase64,
+    UnequalLength,
 }
