@@ -17,21 +17,25 @@ impl Bytes {
         let bytes = (self.0.iter())
             .zip(other.0.iter())
             .map(|(lhs, rhs)| lhs ^ rhs)
-            .collect::<Vec<_>>();
+            .collect();
 
         Ok(Bytes(bytes))
     }
-}
 
-impl From<Vec<u8>> for Bytes {
-    fn from(value: Vec<u8>) -> Self {
-        Bytes(value)
+    pub fn single_byte_xor(&self, rhs: u8) -> Bytes {
+        let bytes = self.0.iter().map(|lhs| lhs ^ rhs).collect();
+
+        Bytes(bytes)
     }
 }
 
-impl From<&str> for Bytes {
-    fn from(value: &str) -> Self {
-        Bytes(value.bytes().collect())
+impl<V> From<V> for Bytes
+where
+    V: Into<Vec<u8>>,
+{
+    /// Construct a Bytes struct from antyhing that can be turned into a `Vec<u8>`, like for example a &str
+    fn from(value: V) -> Self {
+        Bytes(value.into())
     }
 }
 
@@ -74,5 +78,13 @@ mod tests {
         let expected = CryptopalsError::UnequalLength;
 
         assert_eq!(error, expected);
+    }
+
+    #[test]
+    fn single_byte_xor() {
+        let value = Bytes::from("Hello, World");
+        let expected = Bytes::from([98, 79, 70, 70, 69, 6, 10, 125, 69, 88, 70, 78]);
+
+        assert_eq!(value.single_byte_xor(42), expected);
     }
 }

@@ -40,9 +40,9 @@ impl TryFrom<Base64<'_>> for Bytes {
                 // Use bit-shift and OR-operation to construct first 8-bit numbers
                 let first_byte = first_6_bit_number << 2 | second_6_bit_number >> 4;
 
-                if third_character == '=' {
+                let bytes = if third_character == '=' {
                     // If the third character is padding, only return one byte
-                    Ok(vec![first_byte])
+                    Vec::from([first_byte])
                 } else {
                     // Convert characters into 6-bit numbers
                     let third_6_bit_number = char_to_u8(third_character)?;
@@ -52,7 +52,7 @@ impl TryFrom<Base64<'_>> for Bytes {
 
                     if fourth_character == '=' {
                         // If the third character is padding, only return two bytes
-                        Ok(vec![first_byte, second_byte])
+                        Vec::from([first_byte, second_byte])
                     } else {
                         // Convert characters into 6-bit numbers
                         let fourth_6_bit_number = char_to_u8(fourth_character)?;
@@ -61,9 +61,11 @@ impl TryFrom<Base64<'_>> for Bytes {
                         let third_byte = third_6_bit_number << 6 | fourth_6_bit_number;
 
                         // Return three bytes
-                        Ok(vec![first_byte, second_byte, third_byte])
+                        Vec::from([first_byte, second_byte, third_byte])
                     }
-                }
+                };
+
+                Ok(bytes)
             })
             .collect::<Result<Vec<_>, _>>()?;
 
