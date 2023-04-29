@@ -9,15 +9,21 @@ const CHARACTER_FREQUENCY: [f32; 26] = [
 ];
 
 // Inspiration: https://crypto.stackexchange.com/a/30259/103927
-fn chi_squared(value: &Bytes) -> f32 {
-    // Get length of input
-    let length = value.length() as f32;
+fn chi_squared(candidate: &Bytes) -> f32 {
+    // Get length of input and convert to floating point for future calculation
+    let length = candidate.length() as f32;
+
+    // If length is zero, the chi-squared will be inf due to divide by zero
+    if length == 0.0 {
+        return f32::INFINITY;
+    }
 
     // Start with all zeroes
-    let mut counter = [0usize; 26];
+    // Since the size is known (26), we can use an array instead of a HashMap
+    let mut letter_counts = [0usize; 26];
 
-    // TODO: implement IntoIter Trait for Bytes
-    for byte in value.raw().iter() {
+    // Iterate over individual bytes
+    for byte in candidate.iter() {
         // Turn byte value into a letter index
         let letter_index = match byte {
             // Convert uppercase character to index
@@ -35,16 +41,23 @@ fn chi_squared(value: &Bytes) -> f32 {
             }
         } as usize;
 
+        // Letter index is within bounds of the array
+        assert!(letter_index < 26);
+
         // Increment count for letter
-        counter[letter_index] += 1;
+        letter_counts[letter_index] += 1;
     }
 
-    counter
-        .into_iter()
-        .enumerate()
-        .map(|(letter_index, letter_count)| {
-            let observed = letter_count as f32;
+    // Sum over each letter
+    (0..26)
+        .map(|letter_index| {
+            // Observed count as floating point number
+            let observed = letter_counts[letter_index] as f32;
+
+            // Calculate the expected count based on the "string" length
             let expected = CHARACTER_FREQUENCY[letter_index] * length;
+
+            // Compute the difference sqaured divived by expected
             let difference = observed - expected;
             difference * difference / expected
         })

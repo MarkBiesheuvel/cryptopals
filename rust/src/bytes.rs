@@ -9,10 +9,34 @@ use crate::CryptopalsError;
 pub struct Bytes(Vec<u8>);
 
 impl Bytes {
-    pub fn raw(&self) -> &Vec<u8> {
-        &self.0
+    /// Iterate over references to each byte
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let value = Bytes::from([102, 111, 111]);
+    /// let mut iter = value.iter();
+    ///
+    /// assert_eq!(iter.next(), Some(&102));
+    /// assert_eq!(iter.next(), Some(&111));
+    /// assert_eq!(iter.next(), Some(&111));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn iter(&self) -> impl Iterator<Item = &u8> {
+        self.0.iter()
     }
 
+    /// Number of bytes stored
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let value = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
+    ///
+    /// assert_eq!(value.length(), 10);
+    /// ```
     pub fn length(&self) -> usize {
         self.0.len()
     }
@@ -21,8 +45,8 @@ impl Bytes {
     ///
     /// ## Examples
     /// ```
-    /// use cryptopals::Bytes;
-    ///
+    /// # use cryptopals::Bytes;
+    /// #
     /// let value_1 = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
     /// let value_2 = Bytes::from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     /// let expected = Bytes::from([98, 112, 122, 116, 113, 105, 119, 105, 101, 121]);
@@ -46,8 +70,8 @@ impl Bytes {
     ///
     /// ## Examples
     /// ```
-    /// use cryptopals::Bytes;
-    ///
+    /// # use cryptopals::Bytes;
+    /// #
     /// let value = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
     /// let expected = Bytes::from([73, 88, 83, 90, 94, 69, 90, 75, 70, 89]);
     ///
@@ -69,8 +93,8 @@ where
     ///
     /// ## Examples
     /// ```
-    /// use cryptopals::Bytes;
-    ///
+    /// # use cryptopals::Bytes;
+    /// #
     /// let value_1 = Bytes::from("cryptopals");
     /// let value_2 = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
     ///
@@ -83,6 +107,15 @@ where
 
 impl fmt::Debug for Bytes {
     /// Custom debug function which displays Bytes as a human readable string
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let value = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
+    ///
+    /// dbg!(value);
+    /// ```
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Open
         writeln!(f, "Bytes {{")?;
