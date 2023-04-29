@@ -26,6 +26,6 @@ class TestChallenge10:
         assert ciphertext.decrypt_cbc_mode(key, iv) == plaintext
 
     def test_aes_decrypt_in_cbc_mode(self, key: Block, iv: Block, funky_music: Plaintext) -> None:
-        ciphertext: Ciphertext = Ciphertext.from_base64(file_as_string('tests/data/10.txt'))
+        ciphertext: Ciphertext = Ciphertext.from_base64(file_as_string('../data/10.txt'))
 
         assert ciphertext.decrypt_cbc_mode(key, iv) == funky_music

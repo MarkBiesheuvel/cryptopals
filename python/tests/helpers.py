@@ -23,4 +23,4 @@ def file_as_string(filename: str) -> str:
 # The song can be found on YouTube: https://youtu.be/n2Ubq9XII8c
 @pytest.fixture
 def funky_music() -> Plaintext:
-    return Plaintext.from_hexadecimal(file_as_string('tests/data/n2Ubq9XII8c.txt'))
+    return Plaintext.from_hexadecimal(file_as_string('../data/n2Ubq9XII8c.txt'))

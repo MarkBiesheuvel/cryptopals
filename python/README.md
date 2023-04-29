@@ -4,15 +4,15 @@ Since the challenges share a lot of common functionality, such as byte conversio
 
 To test all the challenges:
 ```sh
-commands/test
+just test
 ```
 
 To verify code styling and type hints
 ```sh
-commands/lint
+just lint
 ```
 
 To verify test coverage
 ```sh
-commands/coverage
+just coverage
 ```

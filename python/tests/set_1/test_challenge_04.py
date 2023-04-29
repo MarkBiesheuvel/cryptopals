@@ -9,7 +9,7 @@ class TestChallenge04:
     def test_detect_single_byte_xor_cipher(self) -> None:
         ciphertexts: Iterable[Ciphertext] = (
             Ciphertext.from_hexadecimal(line)
-            for line in file_iterator('tests/data/4.txt')
+            for line in file_iterator('../data/4.txt')
         )
         plaintext: Plaintext = Plaintext.from_ascii('Now that the party is jumping\n')
 

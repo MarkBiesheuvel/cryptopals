@@ -1,0 +1,12 @@
+test:
+  py.test --numprocesses=auto --dist=load -r fEP
+
+lint:
+  pycodestyle
+  mypy -p cryptopals -p tests
+
+coverage:
+  py.test --numprocesses=auto --dist=load --cov=cryptopals --cov-report=html --cov-fail-under=100
+
+clean:
+  find . -regex '^.*\(__pycache__\|\.py[co]\)$' -delete

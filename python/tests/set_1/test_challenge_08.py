@@ -9,7 +9,7 @@ class TestChallenge08:
     def test_detect_aes_in_ecb_mode(self) -> None:
         ciphertexts: Iterable[Ciphertext] = (
             Ciphertext.from_hexadecimal(line)
-            for line in file_iterator('tests/data/8.txt')
+            for line in file_iterator('../data/8.txt')
         )
         ecb_ciphertext: Ciphertext = Ciphertext.from_hexadecimal(
             'd880619740a8a19b7840a8a31c810a3d08649af70dc06f4fd5d2d69c744cd283e2dd052f6b641dbf'
