@@ -4,13 +4,9 @@ use cryptopals::{adversary, file, Base64, Bytes, Hexadecimal};
 fn challenge_1() {
     // Two input values
     let value_1 = Hexadecimal::from(
-        "
-49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d",
+        "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"
     );
-    let value_2 = Base64::from(
-        "
-SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t",
-    );
+    let value_2 = Base64::from("SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t");
 
     // Convert as hexadecimal and base64 respectively
     let value_1 = Bytes::try_from(value_1).unwrap();
