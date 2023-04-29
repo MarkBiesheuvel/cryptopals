@@ -7,6 +7,12 @@ use super::{Bytes, CryptopalsError};
 #[derive(Debug)]
 pub struct Base64<'a>(&'a str);
 
+impl<'a> From<&'a String> for Base64<'a> {
+    fn from(value: &'a String) -> Self {
+        Base64(value)
+    }
+}
+
 impl<'a> From<&'a str> for Base64<'a> {
     fn from(value: &'a str) -> Self {
         Base64(value)

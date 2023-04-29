@@ -7,6 +7,12 @@ use super::{Bytes, CryptopalsError};
 #[derive(Debug)]
 pub struct Hexadecimal<'a>(&'a str);
 
+impl<'a> From<&'a String> for Hexadecimal<'a> {
+    fn from(value: &'a String) -> Self {
+        Hexadecimal(value)
+    }
+}
+
 impl<'a> From<&'a str> for Hexadecimal<'a> {
     fn from(value: &'a str) -> Self {
         Hexadecimal(value)
