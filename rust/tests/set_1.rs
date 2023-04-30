@@ -35,10 +35,9 @@ fn challenge_2() {
 #[test]
 fn challenge_3() {
     // Ciphertext as hexadecimal
-    let ciphertext = Bytes::try_from(Hexadecimal::from(
-        "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736",
-    ))
-    .unwrap();
+    let ciphertext =
+        Hexadecimal::from("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736");
+    let ciphertext = Bytes::try_from(ciphertext).unwrap();
 
     // Expected plaintext
     let expected = Bytes::from("Cooking MC's like a pound of bacon");

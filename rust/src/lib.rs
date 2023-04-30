@@ -1,5 +1,6 @@
+#![doc = include_str!("../README.md")]
 #![feature(iter_array_chunks)]
-//! the cryptopals crypto challenges
+#![warn(missing_docs)]
 
 pub use base64::Base64;
 pub use bytes::Bytes;

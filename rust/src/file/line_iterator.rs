@@ -1,10 +1,12 @@
 use std::{fs, io, io::BufRead};
 
+/// Iterator over the lines of a file
 pub struct LineIterator {
     reader: io::BufReader<fs::File>,
 }
 
 impl LineIterator {
+    /// Constructor
     pub fn new(path: &str) -> io::Result<LineIterator> {
         let file = fs::File::open(path)?;
         let reader = io::BufReader::new(file);
