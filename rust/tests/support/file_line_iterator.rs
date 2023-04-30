@@ -1,21 +1,23 @@
+use std::convert::From;
+use std::iter::Iterator;
 use std::{fs, io, io::BufRead};
 
 /// Iterator over the lines of a file
-pub struct LineIterator {
+pub struct FileLineIterator {
     reader: io::BufReader<fs::File>,
 }
 
-impl LineIterator {
+impl FileLineIterator {
     /// Constructor
-    pub fn new(path: &str) -> io::Result<LineIterator> {
+    pub fn new(path: &str) -> io::Result<FileLineIterator> {
         let file = fs::File::open(path)?;
         let reader = io::BufReader::new(file);
 
-        Ok(LineIterator { reader })
+        Ok(FileLineIterator { reader })
     }
 }
 
-impl Iterator for LineIterator {
+impl Iterator for FileLineIterator {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -46,5 +48,14 @@ impl Iterator for LineIterator {
             // IO error
             Err(_) => None,
         }
+    }
+}
+
+impl From<FileLineIterator> for String {
+    fn from(value: FileLineIterator) -> Self {
+        value.fold(String::new(), |mut acc, line| {
+            acc.push_str(&line);
+            acc
+        })
     }
 }

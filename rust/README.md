@@ -10,7 +10,7 @@ use cryptopals::{Base64, Bytes};
 fn main() -> Result<(), Box<dyn Error>> {
     let key = 42;
     let plaintext = Bytes::from("cryptopals");
-    let ciphertext = Bytes::try_from(Base64("SVhTWl5FWktGWQ=="))?;
+    let ciphertext = Bytes::try_from(Base64::from("SVhTWl5FWktGWQ=="))?;
 
     assert_eq!(plaintext.single_byte_xor(key), ciphertext);
 

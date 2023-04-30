@@ -5,12 +5,21 @@ use super::{Bytes, CryptopalsError};
 
 /// Base64 encoded string
 #[derive(Debug)]
-pub struct Base64<'a>(pub &'a str);
+pub struct Base64(String);
 
-impl TryFrom<Base64<'_>> for Bytes {
+impl<S> From<S> for Base64
+where
+    S: Into<String>,
+{
+    fn from(value: S) -> Base64 {
+        Base64(value.into())
+    }
+}
+
+impl TryFrom<Base64> for Bytes {
     type Error = CryptopalsError;
 
-    fn try_from(value: Base64<'_>) -> Result<Self, Self::Error> {
+    fn try_from(value: Base64) -> Result<Self, Self::Error> {
         // Get the length of the string
         let length = value.0.len();
 
@@ -152,7 +161,7 @@ mod tests {
 
     #[test]
     fn invalid_length() {
-        let error = Bytes::try_from(Base64("bGlnaHQgd29yay4")).unwrap_err();
+        let error = Bytes::try_from(Base64::from("bGlnaHQgd29yay4")).unwrap_err();
         let expected = CryptopalsError::InvalidBase64;
 
         assert_eq!(error, expected);
@@ -160,7 +169,7 @@ mod tests {
 
     #[test]
     fn padding_1() {
-        let value = Bytes::try_from(Base64("bGlnaHQgd29yay4=")).unwrap();
+        let value = Bytes::try_from(Base64::from("bGlnaHQgd29yay4=")).unwrap();
         let expected = Bytes::from("light work.");
 
         assert_eq!(value, expected);
@@ -168,7 +177,7 @@ mod tests {
 
     #[test]
     fn padding_2() {
-        let value = Bytes::try_from(Base64("bGlnaHQgd29yaw==")).unwrap();
+        let value = Bytes::try_from(Base64::from("bGlnaHQgd29yaw==")).unwrap();
         let expected = Bytes::from("light work");
 
         assert_eq!(value, expected);

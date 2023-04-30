@@ -11,5 +11,4 @@ pub mod adversary;
 mod base64;
 mod bytes;
 mod error;
-pub mod file;
 mod hexadecimal;

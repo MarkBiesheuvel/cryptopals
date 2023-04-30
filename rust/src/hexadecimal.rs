@@ -5,12 +5,21 @@ use super::{Bytes, CryptopalsError};
 
 /// Hexadecimal encoded string
 #[derive(Debug)]
-pub struct Hexadecimal<'a>(pub &'a str);
+pub struct Hexadecimal(String);
 
-impl TryFrom<Hexadecimal<'_>> for Bytes {
+impl<S> From<S> for Hexadecimal
+where
+    S: Into<String>,
+{
+    fn from(value: S) -> Hexadecimal {
+        Hexadecimal(value.into())
+    }
+}
+
+impl TryFrom<Hexadecimal> for Bytes {
     type Error = CryptopalsError;
 
-    fn try_from(value: Hexadecimal<'_>) -> Result<Self, Self::Error> {
+    fn try_from(value: Hexadecimal) -> Result<Self, Self::Error> {
         // Get the length of the string
         let length = value.0.len();
 
@@ -74,7 +83,7 @@ mod tests {
 
     #[test]
     fn invalid_length() {
-        let error = Bytes::try_from(Hexadecimal("48656c6c6f2c20576f726c642")).unwrap_err();
+        let error = Bytes::try_from(Hexadecimal::from("48656c6c6f2c20576f726c642")).unwrap_err();
         let expected = CryptopalsError::InvalidHexadecimal;
 
         assert_eq!(error, expected);
@@ -82,7 +91,7 @@ mod tests {
 
     #[test]
     fn lowercase() {
-        let value = Bytes::try_from(Hexadecimal("48656c6c6f2c20576f726c6421")).unwrap();
+        let value = Bytes::try_from(Hexadecimal::from("48656c6c6f2c20576f726c6421")).unwrap();
         let expected = Bytes::from("Hello, World!");
 
         assert_eq!(value, expected);
@@ -90,7 +99,7 @@ mod tests {
 
     #[test]
     fn uppercase() {
-        let value = Bytes::try_from(Hexadecimal("48656C6C6f2C20576F726C6421")).unwrap();
+        let value = Bytes::try_from(Hexadecimal::from("48656C6C6f2C20576F726C6421")).unwrap();
         let expected = Bytes::from("Hello, World!");
 
         assert_eq!(value, expected);

@@ -6,7 +6,7 @@ use std::vec::Vec;
 use crate::CryptopalsError;
 
 /// Collection of bytes
-#[derive(Eq, PartialEq)]
+#[derive(Default, Eq, PartialEq)]
 pub struct Bytes(Vec<u8>);
 
 impl Bytes {
