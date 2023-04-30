@@ -4,13 +4,10 @@ use cryptopals::{adversary, file, Base64, Bytes, Hexadecimal};
 fn challenge_1() {
     // Convert as hexadecimal and base64 respectively
     let value_1 = Bytes::try_from(Hexadecimal(
-        "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"
+        "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d",
     ))
     .unwrap();
-    let value_2 = Bytes::try_from(Base64(
-        "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t",
-    ))
-    .unwrap();
+    let value_2 = Bytes::try_from(Base64("SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t")).unwrap();
 
     // Both values should be equal
     assert_eq!(value_1, value_2);
@@ -30,18 +27,13 @@ fn challenge_2() {
 #[test]
 fn challenge_3() {
     // Ciphertext as hexadecimal
-    let ciphertext = Bytes::try_from(Hexadecimal(
-        "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736",
-    ))
-    .unwrap();
+    let ciphertext =
+        Bytes::try_from(Hexadecimal("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")).unwrap();
 
     // Expected plaintext
     let expected = Bytes::from("Cooking MC's like a pound of bacon");
 
-    assert_eq!(
-        adversary::attack_single_byte_xor(ciphertext).unwrap(),
-        expected
-    );
+    assert_eq!(adversary::attack_single_byte_xor(ciphertext).unwrap(), expected);
 }
 
 #[test]
@@ -61,8 +53,14 @@ fn challenge_4() {
 
     let expected = Bytes::from("Now that the party is jumping\n");
 
-    assert_eq!(
-        adversary::detect_english_text(candidates).unwrap(),
-        expected
-    );
+    assert_eq!(adversary::detect_english_text(candidates).unwrap(), expected);
+}
+
+#[test]
+fn challenge_5() {
+    let key = Bytes::from("ICE");
+    let plaintext = Bytes::from("Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal");
+    let ciphertext = Bytes::try_from(Hexadecimal("0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f")).unwrap();
+
+    assert_eq!(plaintext.repeated_key_xor(&key), ciphertext);
 }

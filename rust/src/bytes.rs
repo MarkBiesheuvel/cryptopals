@@ -47,11 +47,11 @@ impl Bytes {
     /// ```
     /// # use cryptopals::Bytes;
     /// #
-    /// let value_1 = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
-    /// let value_2 = Bytes::from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    /// let expected = Bytes::from([98, 112, 122, 116, 113, 105, 119, 105, 101, 121]);
+    /// let plaintext = Bytes::from("cryptopals");
+    /// let key = Bytes::from([12, 34, 56, 78, 90, 123, 45, 67, 89, 10]);
+    /// let ciphertext = Bytes::from([111, 80, 65, 62, 46, 20, 93, 34, 53, 121]);
     ///
-    /// assert_eq!(value_1.fixed_xor(&value_2).unwrap(), expected);
+    /// assert_eq!(plaintext.fixed_xor(&key).unwrap(), ciphertext);
     /// ```
     pub fn fixed_xor(&self, other: &Bytes) -> Result<Bytes, CryptopalsError> {
         if self.0.len() != other.0.len() {
@@ -72,13 +72,35 @@ impl Bytes {
     /// ```
     /// # use cryptopals::Bytes;
     /// #
-    /// let value = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
-    /// let expected = Bytes::from([73, 88, 83, 90, 94, 69, 90, 75, 70, 89]);
+    /// let key = 42;
+    /// let plaintext = Bytes::from("cryptopals");
+    /// let ciphertext = Bytes::from([73, 88, 83, 90, 94, 69, 90, 75, 70, 89]);
     ///
-    /// assert_eq!(value.single_byte_xor(42), expected);
+    /// assert_eq!(plaintext.single_byte_xor(key), ciphertext);
     /// ```
     pub fn single_byte_xor(&self, rhs: u8) -> Bytes {
         let bytes = self.0.iter().map(|lhs| lhs ^ rhs).collect();
+
+        Bytes(bytes)
+    }
+
+    /// XOR all bytes with a repeated key
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let key = Bytes::from([123, 45, 67]);
+    /// let plaintext = Bytes::from("cryptopals");
+    /// let ciphertext = Bytes::from([24, 95, 58, 11, 89, 44, 11, 76, 47, 8]);
+    ///
+    /// assert_eq!(plaintext.repeated_key_xor(&key), ciphertext);
+    /// ```
+    pub fn repeated_key_xor(&self, other: &Bytes) -> Bytes {
+        let bytes = (self.0.iter())
+            .zip(other.0.iter().cycle())
+            .map(|(lhs, rhs)| lhs ^ rhs)
+            .collect();
 
         Bytes(bytes)
     }
@@ -112,7 +134,7 @@ impl fmt::Debug for Bytes {
     /// ```
     /// # use cryptopals::Bytes;
     /// #
-    /// let value = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
+    /// let value = Bytes::from("cryptopals");
     ///
     /// dbg!(value);
     /// ```
@@ -153,13 +175,5 @@ mod tests {
         let expected = CryptopalsError::UnequalLength;
 
         assert_eq!(error, expected);
-    }
-
-    #[test]
-    fn single_byte_xor() {
-        let value = Bytes::from("Hello, World");
-        let expected = Bytes::from([98, 79, 70, 70, 69, 6, 10, 125, 69, 88, 70, 78]);
-
-        assert_eq!(value.single_byte_xor(42), expected);
     }
 }
