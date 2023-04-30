@@ -1,5 +1,6 @@
 use std::convert::From;
 use std::fmt;
+use std::slice::Iter;
 use std::vec::Vec;
 
 use crate::CryptopalsError;
@@ -23,7 +24,7 @@ impl Bytes {
     /// assert_eq!(iter.next(), Some(&111));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn iter(&self) -> impl Iterator<Item = &u8> {
+    pub fn iter(&self) -> Iter<u8> {
         self.0.iter()
     }
 
@@ -54,12 +55,12 @@ impl Bytes {
     /// assert_eq!(plaintext.fixed_xor(&key).unwrap(), ciphertext);
     /// ```
     pub fn fixed_xor(&self, other: &Bytes) -> Result<Bytes, CryptopalsError> {
-        if self.0.len() != other.0.len() {
+        if self.length() != other.length() {
             return Err(CryptopalsError::UnequalLength);
         }
 
-        let bytes = (self.0.iter())
-            .zip(other.0.iter())
+        let bytes = (self.iter())
+            .zip(other.iter())
             .map(|(lhs, rhs)| lhs ^ rhs)
             .collect();
 
@@ -79,7 +80,7 @@ impl Bytes {
     /// assert_eq!(plaintext.single_byte_xor(key), ciphertext);
     /// ```
     pub fn single_byte_xor(&self, rhs: u8) -> Bytes {
-        let bytes = self.0.iter().map(|lhs| lhs ^ rhs).collect();
+        let bytes = self.iter().map(|lhs| lhs ^ rhs).collect();
 
         Bytes(bytes)
     }
@@ -97,12 +98,43 @@ impl Bytes {
     /// assert_eq!(plaintext.repeated_key_xor(&key), ciphertext);
     /// ```
     pub fn repeated_key_xor(&self, other: &Bytes) -> Bytes {
-        let bytes = (self.0.iter())
-            .zip(other.0.iter().cycle())
+        let bytes = (self.iter())
+            .zip(other.iter().cycle())
             .map(|(lhs, rhs)| lhs ^ rhs)
             .collect();
 
         Bytes(bytes)
+    }
+
+    /// Hamming distance between two Bytes structs
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let text_1 = Bytes::from("this is a test");
+    /// let text_2 = Bytes::from("wokka wokka!!!");
+
+    ///
+    /// assert_eq!(text_1.hamming_distance(&text_2).unwrap(), 37);
+    /// ```
+    pub fn hamming_distance(&self, other: &Bytes) -> Result<u32, CryptopalsError> {
+        let difference = self.fixed_xor(other)?;
+
+        // Iterate over each byte
+        let distance = difference
+            .iter()
+            .map(|byte| {
+                // Iterate over each bit
+                let number_of_bites: u8 = (0..8).map(|i: u8| (byte >> i) & 1).sum();
+
+                // For an individual byte the number of bits different is at most 8,
+                // but when summing up a long array, the total might exceed the u8 primitive
+                number_of_bites as u32
+            })
+            .sum();
+
+        Ok(distance)
     }
 }
 
