@@ -51,8 +51,9 @@ fn challenge_4() {
             Bytes::try_from(Hexadecimal::from(line)).unwrap()
         })
         .filter_map(|ciphertext| {
-            // Try to find the most likely candidate and skip if it is None
-            adversary::attack_single_byte_xor(&ciphertext)
+            // Try to find the most likely candidate and skip any ciphertext for which no
+            // valid answer was found
+            adversary::attack_single_byte_xor(&ciphertext).ok()
         })
         .collect::<Vec<_>>();
 

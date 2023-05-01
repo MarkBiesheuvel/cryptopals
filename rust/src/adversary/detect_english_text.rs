@@ -1,4 +1,4 @@
-use crate::Bytes;
+use crate::{Bytes, CryptopalsError};
 
 // 26 letters plus 4 categories (whitespace, numbers, punctuation, symbols)
 const SIZE: usize = 30;
@@ -116,22 +116,15 @@ fn chi_squared(candidate: &Bytes) -> f32 {
 
 /// Adversary which takes a list of candidates and returns the one which is most
 /// likely to be English text
-pub fn detect_english_text(candidates: Vec<Bytes>) -> Option<Bytes> {
+pub fn detect_english_text(candidates: Vec<Bytes>) -> Result<Bytes, CryptopalsError> {
     candidates
         .into_iter()
-        .map(|candidate| {
-            // Calculate chi squared score for each candidate
-            let score = chi_squared(&candidate);
-
-            // Return as tuple, so we can min by the score and return the candidate
-            (candidate, score)
-        })
-        .min_by(|(_, score_lhs), (_, score_rhs)| {
-            // Compare the scores of two candidates
-            score_lhs.total_cmp(score_rhs)
-        })
-        .map(|(candidate, _)| {
-            // Return the candidate (and drop the score)
-            candidate
-        })
+        // Calculate chi squared score for each candidate
+        .map(|candidate| (chi_squared(&candidate), candidate))
+        // Compare the scores of two candidates
+        .min_by(|(score_lhs, _), (score_rhs, _)| score_lhs.total_cmp(score_rhs))
+        // Return the candidate (and drop the score)
+        .map(|(_, candidate)| candidate)
+        // Map Option<_> to Result<_, _>
+        .ok_or(CryptopalsError::UnableToDetectEnglishText)
 }

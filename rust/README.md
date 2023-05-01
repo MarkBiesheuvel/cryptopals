@@ -18,6 +18,20 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 ```
 
+## Dependencies of adversaries
+
+```text
+attack_repeating_key_xor
+  |
+  |-> detect_block_size_repeating_key
+  |     |
+  |     |-> average_hamming_distance
+  |
+  |-> attack_single_byte_xor
+        |
+        |-> detect_english_text
+```
+
 ## Commands for local development
 
 ```sh
