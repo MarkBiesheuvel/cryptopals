@@ -3,7 +3,7 @@ use std::fmt;
 use std::slice::Iter;
 use std::vec::Vec;
 
-use crate::CryptopalsError;
+use crate::{BlockIterator, CryptopalsError};
 
 /// Collection of bytes
 #[derive(Default, Eq, PartialEq)]
@@ -34,12 +34,47 @@ impl Bytes {
     /// ```
     /// # use cryptopals::Bytes;
     /// #
-    /// let value = Bytes::from([99, 114, 121, 112, 116, 111, 112, 97, 108, 115]);
+    /// let value = Bytes::from("cryptopals");
     ///
     /// assert_eq!(value.length(), 10);
     /// ```
     pub fn length(&self) -> usize {
         self.0.len()
+    }
+
+    /// Return a range within Bytes as a new Bytes
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let value = Bytes::from("cryptopals");
+    /// let expected = Bytes::from([112, 116, 111, 112]);
+    ///
+    /// assert_eq!(value.range(3, 7), Some(expected));
+    /// ```
+    pub fn range(&self, start_index: usize, end_index: usize) -> Option<Bytes> {
+        // Get a slice and convert it to Bytes struct
+        self.0.get(start_index..end_index).map(Bytes::from)
+    }
+
+    /// Return an iterator of blocks of this Bytes struct
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let value = Bytes::from("cryptopals");
+    /// let mut iter = value.block_iterator(3);
+    ///
+    /// assert_eq!(iter.next(), Some(Bytes::from([99, 114, 121])));
+    /// assert_eq!(iter.next(), Some(Bytes::from([112, 116, 111])));
+    /// assert_eq!(iter.next(), Some(Bytes::from([112, 97, 108])));
+    /// assert_eq!(iter.next(), Some(Bytes::from([115])));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn block_iterator(&self, block_size: usize) -> BlockIterator {
+        BlockIterator::new(self, block_size)
     }
 
     /// XOR two equally length Bytes with each other
