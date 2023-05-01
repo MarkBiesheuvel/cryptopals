@@ -38,7 +38,7 @@ fn challenge_3() {
     // Expected plaintext
     let expected = Bytes::from("Cooking MC's like a pound of bacon");
 
-    assert_eq!(adversary::attack_single_byte_xor(ciphertext).unwrap(), expected);
+    assert_eq!(adversary::attack_single_byte_xor(&ciphertext).unwrap(), expected);
 }
 
 #[test]
@@ -52,7 +52,7 @@ fn challenge_4() {
         })
         .filter_map(|ciphertext| {
             // Try to find the most likely candidate and skip if it is None
-            adversary::attack_single_byte_xor(ciphertext)
+            adversary::attack_single_byte_xor(&ciphertext)
         })
         .collect::<Vec<_>>();
 
@@ -63,8 +63,11 @@ fn challenge_4() {
 
 #[test]
 fn challenge_5() {
+    // Input
     let key = Bytes::from("ICE");
     let plaintext = Bytes::from("Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal");
+
+    // Expected output
     let ciphertext = Bytes::try_from(Hexadecimal::from("0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f")).unwrap();
 
     assert_eq!(plaintext.repeated_key_xor(&key), ciphertext);
@@ -72,14 +75,12 @@ fn challenge_5() {
 
 #[test]
 fn challenge_6() {
-    // Load content from file and remove all line endings
+    // Input
     let file = FileLineIterator::new("../data/6.txt").unwrap();
     let ciphertext = Bytes::try_from(Base64::from(file)).unwrap();
 
-    // Detect block size
-    let block_size = adversary::detect_block_size(&ciphertext).unwrap();
+    // Expected output
+    let plaintext = funky_music().unwrap();
 
-    assert_eq!(block_size, 29);
-
-    let _plaintext = funky_music().unwrap();
+    assert_eq!(adversary::attack_repeating_key_xor(&ciphertext).unwrap(), plaintext);
 }

@@ -1,9 +1,13 @@
 use super::average_hamming_distance;
 use crate::Bytes;
 
-/// Detect block size of a repeating XOR ciphertext
-pub fn detect_block_size(ciphertext: &Bytes) -> Option<usize> {
-    (2..40)
+const MIN_BLOCK_SIZE: usize = 2;
+const MAX_BLOCK_SIZE: usize = 40;
+
+/// Detect block size of a repeating XOR ciphertext by looking for the block
+/// size which leads to the lowest normalized hamming distance between blocks
+pub fn detect_block_size_repeating_key(ciphertext: &Bytes) -> Option<usize> {
+    (MIN_BLOCK_SIZE..=MAX_BLOCK_SIZE)
         .map(|block_size| {
             // Create block iterator for specific block size
             let block_iterator = ciphertext.block_iterator(block_size);

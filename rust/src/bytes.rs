@@ -42,6 +42,20 @@ impl Bytes {
         self.0.len()
     }
 
+    /// Return a single byte at an index
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let value = Bytes::from("cryptopals");
+    ///
+    /// assert_eq!(value.get(4), Some(116));
+    /// ```
+    pub fn get(&self, index: usize) -> Option<u8> {
+        self.0.get(index).copied()
+    }
+
     /// Return a range within Bytes as a new Bytes
     ///
     /// ## Examples
@@ -49,9 +63,8 @@ impl Bytes {
     /// # use cryptopals::Bytes;
     /// #
     /// let value = Bytes::from("cryptopals");
-    /// let expected = Bytes::from([112, 116, 111, 112]);
     ///
-    /// assert_eq!(value.range(3, 7), Some(expected));
+    /// assert_eq!(value.range(3, 7), Some(Bytes::from([112, 116, 111, 112])));
     /// ```
     pub fn range(&self, start_index: usize, end_index: usize) -> Option<Bytes> {
         // Get a slice and convert it to Bytes struct

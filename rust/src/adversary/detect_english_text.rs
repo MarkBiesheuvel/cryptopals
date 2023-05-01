@@ -1,6 +1,6 @@
 use crate::Bytes;
 
-// 26 letters plus 4 categories (whitespaces, numbers, punctuation, symbols)
+// 26 letters plus 4 categories (whitespace, numbers, punctuation, symbols)
 const SIZE: usize = 30;
 
 // Most frequency analysis only focusses on letters.
@@ -35,9 +35,9 @@ const EXPECTED_FREQUENCY: [f32; SIZE] = [
     0.0014, // X
     0.0169, // Y
     0.0004, // Z
-    0.1805, // whitespaces
+    0.1805, // whitespace
     0.0003, // numbers
-    0.0214, // puntuation
+    0.0214, // punctuation
     0.0036, // symbols
 ];
 
@@ -51,7 +51,7 @@ fn index(code_point: &u8) -> Option<usize> {
         // Lowercase characters
         97..=122 => Some(*code_point as usize - 97),
 
-        // Whitespaces
+        // Whitespace
         9 | 10 | 13 | 32 => Some(26),
 
         // Numbers
@@ -60,7 +60,7 @@ fn index(code_point: &u8) -> Option<usize> {
         // Punctuation
         33 | 44 | 46 | 63 => Some(28),
 
-        // Symbols (everyting else)
+        // Symbols (everything else)
         34..=126 => Some(29),
 
         // Unprintable characters
@@ -107,7 +107,7 @@ fn chi_squared(candidate: &Bytes) -> f32 {
             // Calculate the expected count based on the candidate length
             let expected = EXPECTED_FREQUENCY[index] * length;
 
-            // Compute the difference sqaured divived by expected
+            // Compute the difference squared divided by expected
             let difference = observed - expected;
             difference * difference / expected
         })
