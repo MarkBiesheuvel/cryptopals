@@ -74,7 +74,12 @@ fn challenge_5() {
 fn challenge_6() {
     // Load content from file and remove all line endings
     let file = FileLineIterator::new("../data/6.txt").unwrap();
-    let _ciphertext = Bytes::try_from(Base64::from(file)).unwrap();
+    let ciphertext = Bytes::try_from(Base64::from(file)).unwrap();
+
+    // Detect block size
+    let block_size = adversary::detect_block_size(&ciphertext).unwrap();
+
+    assert_eq!(block_size, 29);
 
     let _plaintext = funky_music().unwrap();
 }

@@ -23,6 +23,16 @@ impl<'a> BlockIterator<'a> {
     }
 
     // TODO: implement constructors with padding
+
+    /// Return block size of BlockIterator
+    pub fn block_size(&self) -> usize {
+        self.block_size
+    }
+
+    /// Return  Bytes within BlockIterator
+    pub fn bytes(&self) -> &Bytes {
+        self.bytes
+    }
 }
 
 impl<'a> Iterator for BlockIterator<'a> {
