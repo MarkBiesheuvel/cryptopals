@@ -1,4 +1,4 @@
-use crate::{Bytes, CryptopalsError};
+use crate::{Bytes, CryptopalsError, ScoredBox};
 
 // 26 letters plus 4 categories (whitespace, numbers, punctuation, symbols)
 const SIZE: usize = 30;
@@ -120,11 +120,11 @@ pub fn detect_english_text(candidates: Vec<Bytes>) -> Result<Bytes, CryptopalsEr
     candidates
         .into_iter()
         // Calculate chi squared score for each candidate
-        .map(|candidate| (chi_squared(&candidate), candidate))
-        // Compare the scores of two candidates
-        .min_by(|(score_lhs, _), (score_rhs, _)| score_lhs.total_cmp(score_rhs))
-        // Return the candidate (and drop the score)
-        .map(|(_, candidate)| candidate)
+        .map(|candidate| ScoredBox::new(chi_squared(&candidate), candidate))
+        // Find the candidate with the lowest chi squared score
+        .min()
+        // Return the candidate
+        .map(ScoredBox::unbox)
         // Map Option<_> to Result<_, _>
         .ok_or(CryptopalsError::UnableToDetectEnglishText)
 }

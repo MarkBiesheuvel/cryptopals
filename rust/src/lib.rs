@@ -7,6 +7,7 @@ pub use block_iterator::BlockIterator;
 pub use bytes::Bytes;
 pub use error::CryptopalsError;
 pub use hexadecimal::Hexadecimal;
+use scored_box::ScoredBox;
 
 pub mod adversary;
 mod base64;
@@ -14,3 +15,4 @@ mod block_iterator;
 mod bytes;
 mod error;
 mod hexadecimal;
+mod scored_box;

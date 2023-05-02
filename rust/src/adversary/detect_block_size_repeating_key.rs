@@ -1,5 +1,5 @@
 use super::average_hamming_distance;
-use crate::{Bytes, CryptopalsError};
+use crate::{Bytes, CryptopalsError, ScoredBox};
 
 const MIN_BLOCK_SIZE: usize = 2;
 const MAX_BLOCK_SIZE: usize = 40;
@@ -13,18 +13,16 @@ pub fn detect_block_size_repeating_key(ciphertext: &Bytes) -> Result<usize, Cryp
             let block_iterator = ciphertext.block_iterator(block_size);
 
             // Calculate average hamming distance between first few blocks
-            match average_hamming_distance(block_iterator) {
-                // Return as tuple
-                Ok(distance) => Some((block_size, distance)),
-
+            let distance = average_hamming_distance(block_iterator)
                 // Filter out any block size that lead to an error
-                Err(_) => None,
-            }
+                .ok()?;
+
+            Some(ScoredBox::new(distance, block_size))
         })
-        // Compare the distances of two bocks
-        .min_by(|(_, distance_1), (_, distance_2)| distance_1.total_cmp(distance_2))
-        // Return the block_size (and drop the distance)
-        .map(|(block_size, _)| block_size)
+        // Find the block size with the lowest average hamming distance
+        .min()
+        // Return the block_size
+        .map(ScoredBox::unbox)
         // Map Option<_> to Result<_, _>
         .ok_or(CryptopalsError::UnableToDetectBlockSize)
 }
