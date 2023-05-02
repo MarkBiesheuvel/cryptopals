@@ -43,7 +43,7 @@ const EXPECTED_FREQUENCY: [f32; SIZE] = [
 
 /// Code points are grouped into categories.
 /// Return the index of the category of the code point.
-fn index(code_point: &u8) -> Option<usize> {
+fn char_index(code_point: &u8) -> Option<usize> {
     match code_point {
         // Uppercase characters
         65..=90 => Some(*code_point as usize - 65),
@@ -78,12 +78,13 @@ fn chi_squared(candidate: &Bytes) -> f32 {
 
     // Iterate over individual bytes
     for byte in candidate.iter() {
-        // Turn ASCII code points into an index
-        let index = match index(byte) {
+        // Turn ASCII code points into a character index
+        let index = match char_index(byte) {
             Some(index) => index,
             None => {
-                // Expected frequency is 0
-                // Dividing by zero leads to chi-squared of infinity
+                // If byte does not map to a printable charachter, the expected frequency is 0.
+                // Therefore, when calculating chi sqaured, dividing by 0 will lead to a score
+                // of infinity.
                 return f32::INFINITY;
             }
         };
@@ -99,17 +100,15 @@ fn chi_squared(candidate: &Bytes) -> f32 {
     let length = candidate.length() as f32;
 
     // Sum over each letter
-    (0..SIZE)
-        .map(|index| {
-            // Observed count as floating point number
-            let observed = counts[index] as f32;
-
+    (counts.into_iter())
+        .zip(EXPECTED_FREQUENCY.into_iter())
+        .map(|(observed_count, expected_frequency)| {
             // Calculate the expected count based on the candidate length
-            let expected = EXPECTED_FREQUENCY[index] * length;
+            let expected_count = expected_frequency * length;
 
-            // Compute the difference squared divided by expected
-            let difference = observed - expected;
-            difference * difference / expected
+            // Compute the difference squared divided by expected count
+            let difference = (observed_count as f32) - expected_count;
+            difference * difference / expected_count
         })
         .sum()
 }
