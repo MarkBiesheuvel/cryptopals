@@ -3,7 +3,7 @@ use std::fmt;
 use std::slice::Iter;
 use std::vec::Vec;
 
-use crate::{BlockIterator, CryptopalsError};
+use crate::{BlockIterator, CryptopalsError, Hexadecimal};
 
 /// Collection of bytes
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -224,16 +224,19 @@ impl fmt::Debug for Bytes {
 
         // If it is possible to express as a string, add it as a "field"
         if let Ok(value) = String::from_utf8(self.0.clone()) {
-            writeln!(f, "    string_repr: {:?}", value)?;
+            writeln!(f, "    string_repr: {:?},", value)?;
         };
+
+        // Include hexadecimal representation
+        writeln!(f, "    hexadecimal: {:?},", Hexadecimal::from(self))?;
 
         // Single line list of raw bytes
         // NOTE: fmt::DebugStruct will print each number in vector on a new lines, hence
         // a custom implementation
-        writeln!(f, "    raw_bytes: {:?}", self.0)?;
+        writeln!(f, "    bytes: {:?},", self.0)?;
 
         // Calculated length
-        writeln!(f, "    length: {:?}", self.0.len())?;
+        writeln!(f, "    length: {:?},", self.0.len())?;
 
         // Close
         writeln!(f, "}}")?;

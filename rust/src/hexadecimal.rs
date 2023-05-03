@@ -50,8 +50,25 @@ impl TryFrom<Hexadecimal> for Bytes {
     }
 }
 
+impl From<&Bytes> for Hexadecimal {
+    fn from(value: &Bytes) -> Self {
+        let value = value
+            .iter()
+            .map(|number| {
+                let second_character = u8_to_char(number & 0b00001111).unwrap();
+                let first_character = u8_to_char(number >> 4).unwrap();
+
+                format!("{first_character}{second_character}")
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+
+        Hexadecimal(value)
+    }
+}
+
 // Convert single hexadecimal char to a 4-bit number
-pub fn char_to_u8(character: char) -> Result<u8, CryptopalsError> {
+fn char_to_u8(character: char) -> Result<u8, CryptopalsError> {
     let number = match character {
         '0' => 0,
         '1' => 1,
@@ -75,6 +92,33 @@ pub fn char_to_u8(character: char) -> Result<u8, CryptopalsError> {
     };
 
     Ok(number)
+}
+
+/// Convert single 4 bit number into hexadecimal char
+fn u8_to_char(number: u8) -> Result<char, CryptopalsError> {
+    let character = match number {
+        0 => '0',
+        1 => '1',
+        2 => '2',
+        3 => '3',
+        4 => '4',
+        5 => '5',
+        6 => '6',
+        7 => '7',
+        8 => '8',
+        9 => '9',
+        10 => 'A',
+        11 => 'B',
+        12 => 'C',
+        13 => 'D',
+        14 => 'E',
+        15 => 'F',
+        _ => {
+            return Err(CryptopalsError::InvalidHexadecimal);
+        }
+    };
+
+    Ok(character)
 }
 
 #[cfg(test)]

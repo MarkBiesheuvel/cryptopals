@@ -81,7 +81,7 @@ impl TryFrom<Base64> for Bytes {
 }
 
 // Convert single base64 char to a 6-bit number
-pub fn char_to_u8(character: char) -> Result<u8, CryptopalsError> {
+fn char_to_u8(character: char) -> Result<u8, CryptopalsError> {
     let number = match character {
         'A' => 0,
         'B' => 1,
