@@ -19,7 +19,10 @@ where
 impl TryFrom<Hexadecimal> for Bytes {
     type Error = CryptopalsError;
 
-    fn try_from(value: Hexadecimal) -> Result<Self, Self::Error> {
+    fn try_from(mut value: Hexadecimal) -> Result<Self, Self::Error> {
+        // Remove whitespaces for ease of use
+        value.0.retain(|c| !c.is_whitespace());
+
         // Get the length of the string
         let length = value.0.len();
 
