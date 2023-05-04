@@ -9,5 +9,6 @@
         "plaintexts",
         "unpad",
         "userdata"
-    ]
+    ],
+    "rust-analyzer.showUnlinkedFileNotification": false
 }

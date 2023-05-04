@@ -10,6 +10,7 @@ pub use hexadecimal::Hexadecimal;
 use scored_box::ScoredBox;
 
 pub mod adversary;
+pub mod aes;
 mod base64;
 mod block_iterator;
 mod bytes;
