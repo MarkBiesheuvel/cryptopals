@@ -1,14 +1,10 @@
-use super::sub_byte;
-use crate::{Bytes, CryptopalsError};
+use std::convert::TryFrom;
 
-// Number of bytes in 128 bits (e.g. 16 bytes)
-const LENGTH: usize = 16;
+use super::{sub_byte, Block};
+use crate::{Bytes, CryptopalsError};
 
 // Round constants
 const ROUND_CONSTANT: [u8; 11] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54];
-
-// Type alias
-type Key = [u8; LENGTH];
 
 /// Iterator over the AES128 key schedule
 ///
@@ -22,13 +18,14 @@ type Key = [u8; LENGTH];
 /// // Initial key plus 10 rounds
 /// assert_eq!(roundkey.count(), 11);
 /// ```
+#[derive(Default)]
 pub struct Roundkey {
-    previous_key: Key,
+    previous_key: Block,
     round_number: usize,
 }
 
 impl Roundkey {
-    fn new(initial_key: Key) -> Roundkey {
+    fn new(initial_key: Block) -> Roundkey {
         // Start at round 0 with the initial key
         Roundkey {
             previous_key: initial_key,
@@ -40,16 +37,8 @@ impl Roundkey {
 impl TryFrom<&str> for Roundkey {
     type Error = CryptopalsError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        if value.len() != LENGTH {
-            return Err(CryptopalsError::InvalidLength);
-        }
-
-        let mut initial_key = Key::default();
-
-        for (k, v) in initial_key.iter_mut().zip(value.as_bytes().iter()) {
-            *k = *v;
-        }
+    fn try_from(string: &str) -> Result<Self, Self::Error> {
+        let initial_key = Block::try_from(string.as_bytes())?;
 
         Ok(Roundkey::new(initial_key))
     }
@@ -60,7 +49,7 @@ impl Iterator for Roundkey {
 
     fn next(&mut self) -> Option<Self::Item> {
         // Store in local variable for shorter code
-        let prev = self.previous_key;
+        let prev = &self.previous_key;
 
         // Early returns
         match self.round_number {
@@ -81,7 +70,7 @@ impl Iterator for Roundkey {
         }
 
         // Start with a blank slate
-        let mut next = Key::default();
+        let mut next = Block::default();
 
         // Round constant
         let constant = ROUND_CONSTANT[self.round_number];
@@ -110,11 +99,14 @@ impl Iterator for Roundkey {
         next[14] = prev[14] ^ next[10];
         next[15] = prev[15] ^ next[11];
 
+        // Create Bytes struct
+        let roundkey = Bytes::from(&next);
+
         // Prepare for next round
         self.round_number += 1;
         self.previous_key = next;
 
         // Return
-        Some(Bytes::from(next))
+        Some(roundkey)
     }
 }
