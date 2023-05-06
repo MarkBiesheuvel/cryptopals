@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use super::{sub_byte, Block};
-use crate::{Bytes, CryptopalsError};
+use crate::CryptopalsError;
 
 // Round constants
 const ROUND_CONSTANT: [u8; 11] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54];
@@ -38,14 +38,12 @@ impl TryFrom<&str> for Roundkey {
     type Error = CryptopalsError;
 
     fn try_from(string: &str) -> Result<Self, Self::Error> {
-        let initial_key = Block::try_from(string.as_bytes())?;
-
-        Ok(Roundkey::new(initial_key))
+        Block::try_from(string).map(Roundkey::new)
     }
 }
 
 impl Iterator for Roundkey {
-    type Item = Bytes;
+    type Item = Block;
 
     fn next(&mut self) -> Option<Self::Item> {
         // Store in local variable for shorter code
@@ -58,7 +56,7 @@ impl Iterator for Roundkey {
                 self.round_number += 1;
 
                 // Return initial key
-                return Some(Bytes::from(prev));
+                return Some(prev.clone());
             }
             11 => {
                 // No more rounds
@@ -99,8 +97,8 @@ impl Iterator for Roundkey {
         next[14] = prev[14] ^ next[10];
         next[15] = prev[15] ^ next[11];
 
-        // Create Bytes struct
-        let roundkey = Bytes::from(&next);
+        // Create reference before moving
+        let roundkey = next.clone();
 
         // Prepare for next round
         self.round_number += 1;

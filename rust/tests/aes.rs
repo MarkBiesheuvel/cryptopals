@@ -20,7 +20,8 @@ fn roundkey() {
         "28 FD DE F8 6D A4 24 4A CC C0 A4 FE 3B 31 6F 26",
     ]
     .map(|string| Hexadecimal::from(string))
-    .map(|hexadecimal| Bytes::try_from(hexadecimal).unwrap());
+    .map(|hexadecimal| Bytes::try_from(hexadecimal).unwrap())
+    .map(|bytes| aes::Block::try_from(&bytes).unwrap());
 
     // Verify each roundkey aginst expected value
     for (roundkey, expected) in key.zip(expected_roundkeys) {
@@ -30,6 +31,28 @@ fn roundkey() {
 
 #[test]
 fn cipher() {
-    let _key = aes::Roundkey::try_from("Thats my Kung Fu").unwrap();
-    let _plaintext = Bytes::from("Two One Nine Two");
+    let mut key = aes::Roundkey::try_from("Thats my Kung Fu").unwrap();
+    let plaintext = aes::Block::try_from("Two One Nine Two").unwrap();
+
+    // Round 0
+    let roundkey0 = key.next().unwrap();
+    let state0 = roundkey0 ^ plaintext;
+
+    // Round 1 - Substitution Bytes
+    let state1a = state0.sub_bytes();
+
+    // TODO: shift row
+    // TODO: mix column
+
+    // Expected state after round 0
+    let expected_states = [
+        "00 1F 0E 54 3C 4E 08 59 6E 22 1B 0B 47 74 31 1A",
+        "63 C0 AB 20 EB 2F 30 CB 9F 93 AF 2B A0 92 C7 A2",
+    ]
+    .map(|string| Hexadecimal::from(string))
+    .map(|hexadecimal| Bytes::try_from(hexadecimal).unwrap())
+    .map(|bytes| aes::Block::try_from(&bytes).unwrap());
+
+    assert_eq!(state0, expected_states[0].clone());
+    assert_eq!(state1a, expected_states[1].clone());
 }

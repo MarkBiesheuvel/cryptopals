@@ -1,8 +1,8 @@
 //! AES encryption
 pub use block::{Block, BLOCK_LENGTH};
 pub use roundkey::Roundkey;
-use sub::sub_byte;
+use sub_byte::sub_byte;
 
 mod block;
 mod roundkey;
-mod sub;
+mod sub_byte;

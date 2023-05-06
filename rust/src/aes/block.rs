@@ -1,33 +1,47 @@
-use std::convert::{From, TryFrom};
+use std::convert::TryFrom;
+use std::ops::BitXor;
 use std::ops::{Index, IndexMut};
 
-use crate::CryptopalsError;
+use super::sub_byte;
+use crate::{Bytes, CryptopalsError};
 
 /// Number of bytes in 128 bits (e.g. 16 bytes)
 pub const BLOCK_LENGTH: usize = 16;
 
 /// A block of 16 bytes used in AES encryption
-#[derive(Default)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Block([u8; BLOCK_LENGTH]);
 
-impl TryFrom<&[u8]> for Block {
-    type Error = CryptopalsError;
-
-    fn try_from(slice: &[u8]) -> Result<Self, Self::Error> {
-        if slice.len() != BLOCK_LENGTH {
-            return Err(CryptopalsError::InvalidLength);
-        }
-
+impl Block {
+    /// Apply Rijndael S-box to all bytes of the block
+    pub fn sub_bytes(&self) -> Block {
         // Initialize default block
-        let mut block = Block::default();
+        let mut result = Block::default();
 
-        // Copy over each item from slice
-        for (k, v) in block.0.iter_mut().zip(slice.iter()) {
-            *k = *v;
+        // Sub each byte
+        for i in 0..BLOCK_LENGTH {
+            result[i] = sub_byte(self.0[i]);
         }
 
-        // Return block
-        Ok(block)
+        // Return new Block
+        result
+    }
+}
+
+impl BitXor for Block {
+    type Output = Self;
+
+    fn bitxor(self, other: Self) -> Self::Output {
+        // Initialize default block
+        let mut result = Block::default();
+
+        // XOR each byte
+        for i in 0..BLOCK_LENGTH {
+            result[i] = self.0[i] ^ other.0[i];
+        }
+
+        // Return new Block
+        result
     }
 }
 
@@ -45,8 +59,44 @@ impl IndexMut<usize> for Block {
     }
 }
 
-impl From<&Block> for Vec<u8> {
-    fn from(value: &Block) -> Self {
-        value.0.into()
+impl TryFrom<&str> for Block {
+    type Error = CryptopalsError;
+
+    fn try_from(slice: &str) -> Result<Self, Self::Error> {
+        if slice.len() != BLOCK_LENGTH {
+            return Err(CryptopalsError::InvalidLength);
+        }
+
+        // Initialize default block
+        let mut block = Block::default();
+
+        // Copy over each item from slice
+        for (k, v) in block.0.iter_mut().zip(slice.as_bytes().iter()) {
+            *k = *v;
+        }
+
+        // Return block
+        Ok(block)
+    }
+}
+
+impl TryFrom<&Bytes> for Block {
+    type Error = CryptopalsError;
+
+    fn try_from(bytes: &Bytes) -> Result<Self, Self::Error> {
+        if bytes.length() != BLOCK_LENGTH {
+            return Err(CryptopalsError::InvalidLength);
+        }
+
+        // Initialize default block
+        let mut block = Block::default();
+
+        // Copy over each item from slice
+        for (k, v) in block.0.iter_mut().zip(bytes.iter()) {
+            *k = *v;
+        }
+
+        // Return block
+        Ok(block)
     }
 }
