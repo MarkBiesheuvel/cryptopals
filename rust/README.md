@@ -45,7 +45,7 @@ just clippy
 just doc
 
 # Run all tests
-just test
+just test-all
 
 # All of the above
 just all

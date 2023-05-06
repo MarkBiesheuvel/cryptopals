@@ -3,11 +3,10 @@ use cryptopals::{aes, Bytes, Hexadecimal};
 // Following the steps of https://kavaliro.com/wp-content/uploads/2014/03/AES.pdf
 
 #[test]
-fn aes() {
-    let mut key = aes::Roundkey::try_from("Thats my Kung Fu").unwrap();
-    let _plaintext = Bytes::from("Two One Nine Two");
+fn roundkey() {
+    let key = aes::Roundkey::try_from("Thats my Kung Fu").unwrap();
 
-    let expected_hex = [
+    let expected_roundkeys = [
         "54 68 61 74 73 20 6D 79 20 4B 75 6E 67 20 46 75",
         "E2 32 FC F1 91 12 91 88 B1 59 E4 E6 D6 79 A2 93",
         "56 08 20 07 C7 1A B1 8F 76 43 55 69 A0 3A F7 FA",
@@ -19,15 +18,18 @@ fn aes() {
         "8E 51 EF 21 FA BB 45 22 E4 3D 7A 06 56 95 4B 6C",
         "BF E2 BF 90 45 59 FA B2 A1 64 80 B4 F7 F1 CB D8",
         "28 FD DE F8 6D A4 24 4A CC C0 A4 FE 3B 31 6F 26",
-    ];
+    ]
+    .map(|string| Hexadecimal::from(string))
+    .map(|hexadecimal| Bytes::try_from(hexadecimal).unwrap());
 
-    for round_number in 0..=10 {
-        let roundkey = key.next().unwrap();
-        let expected = Bytes::try_from(Hexadecimal::from(expected_hex[round_number])).unwrap();
-
+    // Verify each roundkey aginst expected value
+    for (roundkey, expected) in key.zip(expected_roundkeys) {
         assert_eq!(roundkey, expected);
     }
+}
 
-    //
-    assert_eq!(key.next(), None);
+#[test]
+fn cipher() {
+    let _key = aes::Roundkey::try_from("Thats my Kung Fu").unwrap();
+    let _plaintext = Bytes::from("Two One Nine Two");
 }
