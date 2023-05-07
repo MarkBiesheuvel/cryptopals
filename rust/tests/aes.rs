@@ -39,6 +39,7 @@ fn cipher() {
         "00 1F 0E 54 3C 4E 08 59 6E 22 1B 0B 47 74 31 1A",
         "63 C0 AB 20 EB 2F 30 CB 9F 93 AF 2B A0 92 C7 A2",
         "63 2F AF A2 EB 93 C7 20 9F 92 AB CB A0 C0 30 2B",
+        "BA 75 F4 7A 84 A4 8D 32 E8 8D 06 0E 1B 40 7D 5D",
     ]
     .into_iter()
     .map(|string| Hexadecimal::from(string))
@@ -52,7 +53,7 @@ fn cipher() {
     state ^= key.next().unwrap();
     assert_eq!(state, expected_states.next().unwrap());
 
-    // Round 1 - Substitution Bytes
+    // Round 1 - Substitution bytes
     state.sub_bytes();
     assert_eq!(state, expected_states.next().unwrap());
 
@@ -60,5 +61,7 @@ fn cipher() {
     state.shift_rows();
     assert_eq!(state, expected_states.next().unwrap());
 
-    // TODO: mix column
+    // Round 1 - Mix columns
+    state.mix_columns();
+    assert_eq!(state, expected_states.next().unwrap());
 }
