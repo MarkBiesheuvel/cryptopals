@@ -1,5 +1,5 @@
 use std::convert::TryFrom;
-use std::ops::BitXor;
+use std::ops::BitXorAssign;
 use std::ops::{Index, IndexMut};
 
 use super::sub_byte;
@@ -14,34 +14,34 @@ pub struct Block([u8; BLOCK_LENGTH]);
 
 impl Block {
     /// Apply Rijndael S-box to all bytes of the block
-    pub fn sub_bytes(&self) -> Block {
-        // Initialize default block
-        let mut result = Block::default();
-
+    pub fn sub_bytes(&mut self) {
         // Sub each byte
         for i in 0..BLOCK_LENGTH {
-            result[i] = sub_byte(self.0[i]);
+            self[i] = sub_byte(self[i]);
         }
+    }
 
-        // Return new Block
-        result
+    /// Cyclically shifts the bytes in each row by a certain offset
+    pub fn shift_rows(&mut self) {
+        // Shift first row by 0
+
+        // Shift second row by 1
+        (self[1], self[5], self[9], self[13]) = (self[5], self[9], self[13], self[1]);
+
+        // Shift third row by 2
+        (self[2], self[6], self[10], self[14]) = (self[10], self[14], self[2], self[6]);
+
+        // Shift fourth row by 3
+        (self[3], self[7], self[11], self[15]) = (self[15], self[3], self[7], self[11]);
     }
 }
 
-impl BitXor for Block {
-    type Output = Self;
-
-    fn bitxor(self, other: Self) -> Self::Output {
-        // Initialize default block
-        let mut result = Block::default();
-
+impl BitXorAssign for Block {
+    fn bitxor_assign(&mut self, other: Self) {
         // XOR each byte
         for i in 0..BLOCK_LENGTH {
-            result[i] = self.0[i] ^ other.0[i];
+            self[i] ^= other[i];
         }
-
-        // Return new Block
-        result
     }
 }
 

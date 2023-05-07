@@ -34,25 +34,31 @@ fn cipher() {
     let mut key = aes::Roundkey::try_from("Thats my Kung Fu").unwrap();
     let plaintext = aes::Block::try_from("Two One Nine Two").unwrap();
 
-    // Round 0
-    let roundkey0 = key.next().unwrap();
-    let state0 = roundkey0 ^ plaintext;
-
-    // Round 1 - Substitution Bytes
-    let state1a = state0.sub_bytes();
-
-    // TODO: shift row
-    // TODO: mix column
-
-    // Expected state after round 0
-    let expected_states = [
+    // Expected state after each step
+    let mut expected_states = [
         "00 1F 0E 54 3C 4E 08 59 6E 22 1B 0B 47 74 31 1A",
         "63 C0 AB 20 EB 2F 30 CB 9F 93 AF 2B A0 92 C7 A2",
+        "63 2F AF A2 EB 93 C7 20 9F 92 AB CB A0 C0 30 2B",
     ]
+    .into_iter()
     .map(|string| Hexadecimal::from(string))
     .map(|hexadecimal| Bytes::try_from(hexadecimal).unwrap())
     .map(|bytes| aes::Block::try_from(&bytes).unwrap());
 
-    assert_eq!(state0, expected_states[0].clone());
-    assert_eq!(state1a, expected_states[1].clone());
+    // Start with plaintext
+    let mut state = plaintext;
+
+    // Round 0 - Apply roundkey
+    state ^= key.next().unwrap();
+    assert_eq!(state, expected_states.next().unwrap());
+
+    // Round 1 - Substitution Bytes
+    state.sub_bytes();
+    assert_eq!(state, expected_states.next().unwrap());
+
+    // Round 1 - Shift rows
+    state.shift_rows();
+    assert_eq!(state, expected_states.next().unwrap());
+
+    // TODO: mix column
 }
