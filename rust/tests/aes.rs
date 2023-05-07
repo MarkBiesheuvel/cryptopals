@@ -2,6 +2,16 @@ use cryptopals::{aes, Bytes, Hexadecimal};
 
 // Following the steps of https://kavaliro.com/wp-content/uploads/2014/03/AES.pdf
 
+fn bytes_from_hex_string(string: &str) -> Bytes {
+    let hexadecimal = Hexadecimal::from(string);
+    Bytes::try_from(hexadecimal).unwrap()
+}
+
+fn block_from_hex_string(string: &str) -> aes::Block {
+    let bytes = bytes_from_hex_string(string);
+    aes::Block::try_from(&bytes).unwrap()
+}
+
 #[test]
 fn roundkey() {
     let key = aes::Roundkey::try_from("Thats my Kung Fu").unwrap();
@@ -19,9 +29,7 @@ fn roundkey() {
         "BF E2 BF 90 45 59 FA B2 A1 64 80 B4 F7 F1 CB D8",
         "28 FD DE F8 6D A4 24 4A CC C0 A4 FE 3B 31 6F 26",
     ]
-    .map(|string| Hexadecimal::from(string))
-    .map(|hexadecimal| Bytes::try_from(hexadecimal).unwrap())
-    .map(|bytes| aes::Block::try_from(&bytes).unwrap());
+    .map(|string| block_from_hex_string(string));
 
     // Verify each roundkey aginst expected value
     for (roundkey, expected) in key.zip(expected_roundkeys) {
@@ -30,7 +38,7 @@ fn roundkey() {
 }
 
 #[test]
-fn cipher() {
+fn manual_rounds() {
     let mut key = aes::Roundkey::try_from("Thats my Kung Fu").unwrap();
     let plaintext = aes::Block::try_from("Two One Nine Two").unwrap();
 
@@ -47,9 +55,7 @@ fn cipher() {
         "43 C6 A9 62 0E 57 C0 C8 09 08 EB FE 3D F8 7F 37",
     ]
     .into_iter()
-    .map(|string| Hexadecimal::from(string))
-    .map(|hexadecimal| Bytes::try_from(hexadecimal).unwrap())
-    .map(|bytes| aes::Block::try_from(&bytes).unwrap());
+    .map(|string| block_from_hex_string(string));
 
     // Start with plaintext
     let mut state = plaintext;
@@ -89,4 +95,19 @@ fn cipher() {
     // Round 2 - Apply roundkey
     state ^= key.next().unwrap();
     assert_eq!(state, expected_states.next().unwrap());
+}
+
+#[test]
+fn start_to_finish() {
+    let key = Bytes::from("Thats my Kung Fu");
+    let plaintext = Bytes::from("Two One Nine Two");
+
+    // Perform encryption operation from start to finish
+    let ciphertext = aes::ecb::encrypt(&plaintext, &key).unwrap();
+
+    // Expected ciphertext
+    let expected = bytes_from_hex_string("29 C3 50 5F 57 14 20 F6 40 22 99 B3 1A 02 D7 3A");
+
+    // Assertion
+    assert_eq!(ciphertext, expected);
 }

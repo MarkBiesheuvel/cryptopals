@@ -126,6 +126,12 @@ impl IndexMut<usize> for Block {
     }
 }
 
+impl From<Block> for Vec<u8> {
+    fn from(value: Block) -> Self {
+        Self::from(value.0)
+    }
+}
+
 impl TryFrom<&str> for Block {
     type Error = CryptopalsError;
 
