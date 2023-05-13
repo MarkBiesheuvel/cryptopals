@@ -67,15 +67,10 @@ impl Block {
         (self[3], self[7], self[11], self[15]) = (self[15], self[3], self[7], self[11]);
     }
 
-    /// Matrix multiplication with fixed matric
+    /// Matrix multiplication with fixed matrix
     pub fn mix_columns(&mut self) {
         // Create a clone to store original values
         let clone = self.clone();
-
-        // TEMP: remove later
-        for i in 0..BLOCK_LENGTH {
-            self[i] = 0;
-        }
 
         // First column
         self[0] = g_mul(clone[0], 2) ^ g_mul(clone[1], 3) ^ g_mul(clone[2], 1) ^ g_mul(clone[3], 1);
@@ -101,10 +96,35 @@ impl Block {
         self[14] = g_mul(clone[12], 1) ^ g_mul(clone[13], 1) ^ g_mul(clone[14], 2) ^ g_mul(clone[15], 3);
         self[15] = g_mul(clone[12], 3) ^ g_mul(clone[13], 1) ^ g_mul(clone[14], 1) ^ g_mul(clone[15], 2);
     }
+
+    /// Encrypt a single block
+    ///
+    ///
+    /// Roundkeys need to already be calculated to avoid rerunning the Roundkey
+    /// iterator for each block TODO: change the type of roundkeys
+    pub fn encrypt(&mut self, roundkeys: &[Block]) {
+        for (round_number, round_key) in roundkeys.iter().enumerate() {
+            if 0 < round_number {
+                // Perform substitution bytes on every round after round 0
+                self.sub_bytes();
+
+                // Perform shift rows on every round after round 0
+                self.shift_rows();
+
+                if round_number < 10 {
+                    // Perform mix columns on rounds 1 through 9
+                    self.mix_columns();
+                }
+            }
+
+            // Apply round key on every round
+            self.bitxor_assign(round_key)
+        }
+    }
 }
 
-impl BitXorAssign for Block {
-    fn bitxor_assign(&mut self, other: Self) {
+impl BitXorAssign<&Block> for Block {
+    fn bitxor_assign(&mut self, other: &Block) {
         // XOR each byte
         for i in 0..BLOCK_LENGTH {
             self[i] ^= other[i];

@@ -71,6 +71,43 @@ impl Bytes {
         self.0.get(start_index..end_index).map(Bytes::from)
     }
 
+    /// Add additional bytes to reach desired length
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let mut value = Bytes::from("cryptopals");
+    ///
+    /// // In-place operation
+    /// value.pad(16);
+    ///
+    /// // Expected
+    /// let expected = Bytes::from([
+    ///     99, 114, 121, 112, 116, 111, 112, 97, 108, 115, 6, 6, 6, 6, 6, 6,
+    /// ]);
+    ///
+    /// assert_eq!(value, expected);
+    /// ```
+    pub fn pad(&mut self, desired_length: usize) -> Result<(), CryptopalsError> {
+        let current_size = self.length();
+
+        // Calculate the difference in length
+        let difference = desired_length
+            .checked_sub(current_size)
+            .ok_or(CryptopalsError::ExceedsDesiredLength)?;
+
+        // Create that many bytes of that value
+        let mut additional_bytes = (0..difference)
+            .map(|_| difference as u8)
+            .collect::<Vec<_>>();
+
+        // Append to self
+        self.0.append(&mut additional_bytes);
+
+        Ok(())
+    }
+
     /// Return an iterator of blocks of this Bytes struct
     ///
     /// ## Examples

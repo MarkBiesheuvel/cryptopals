@@ -1,37 +1,39 @@
 //! AES encryption using electronic codebook (ECB) mode
-use std::ops::BitXorAssign;
-
-use super::{Block, Roundkey};
+use super::{Block, Roundkey, BLOCK_LENGTH};
 use crate::{Bytes, CryptopalsError};
 
 /// AES encrypt using electronic codebook (ECB) mode
 pub fn encrypt(plaintext: &Bytes, key: &Bytes) -> Result<Bytes, CryptopalsError> {
-    // TODO: split plaintext up into multiple blocks
     // TODO: pad the plaintext first
 
-    // Load the plaintext into the state
-    let mut state = Block::try_from(plaintext)?;
+    // Expand the key into 11 roundkeys once
+    let roundkeys = Roundkey::try_from(key)?.collect::<Vec<_>>();
 
-    // Create an iterator over the round keys
-    let roundkey_iterator = Roundkey::try_from(key)?;
-
-    for (round_number, round_key) in roundkey_iterator.enumerate() {
-        if 0 < round_number {
-            // Perform substitution bytes on every round after round 0
-            state.sub_bytes();
-
-            // Perform shift rows on every round after round 0
-            state.shift_rows();
-
-            if round_number < 10 {
-                // Perform mix columns on rounds 1 through 9
-                state.mix_columns();
+    // Split the plaintext up into "blocks" of 16 bytes
+    // TODO: reimplement Bytes.block_iterator to return references instead
+    let bytes = plaintext
+        .block_iterator(BLOCK_LENGTH)
+        .map(|mut bytes| {
+            // Padding
+            if bytes.length() < BLOCK_LENGTH {
+                bytes.pad(BLOCK_LENGTH)?;
             }
-        }
 
-        // Apply round key on every round
-        state.bitxor_assign(round_key)
-    }
+            // Load the "block" into the Block struct
+            let mut block = Block::try_from(&bytes)?;
 
-    Ok(Bytes::from(state))
+            // Encrypt the block
+            block.encrypt(&roundkeys);
+
+            // Return
+            Ok(block)
+        })
+        .collect::<Result<Vec<_>, CryptopalsError>>()?
+        .into_iter()
+        .fold(Vec::new(), |mut acc, block| {
+            acc.append(&mut block.into());
+            acc
+        });
+
+    Ok(Bytes::from(bytes))
 }

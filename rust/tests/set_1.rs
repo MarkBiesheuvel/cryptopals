@@ -1,4 +1,4 @@
-use cryptopals::{adversary, Base64, Bytes, Hexadecimal};
+use cryptopals::{adversary, aes, Base64, Bytes, Hexadecimal};
 // Test support
 use support::{funky_music, FileLineIterator};
 mod support;
@@ -84,4 +84,18 @@ fn challenge_6() {
     let plaintext = funky_music().unwrap();
 
     assert_eq!(adversary::attack_repeating_key_xor(&ciphertext).unwrap(), plaintext);
+}
+
+// I realize I am doing challenge 7 the other way around (encrypt vs. decrypt)
+#[test]
+fn challenge_7() {
+    // Input
+    let plaintext = funky_music().unwrap();
+    let key = Bytes::from("YELLOW SUBMARINE");
+
+    // Expected output
+    let file = FileLineIterator::new("../data/7.txt").unwrap();
+    let ciphertext = Bytes::try_from(Base64::from(file)).unwrap();
+
+    assert_eq!(aes::ecb::encrypt(&plaintext, &key).unwrap(), ciphertext);
 }

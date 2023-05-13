@@ -61,7 +61,7 @@ fn manual_rounds() {
     let mut state = plaintext;
 
     // Round 0 - Apply roundkey
-    state ^= key.next().unwrap();
+    state ^= &key.next().unwrap();
     assert_eq!(state, expected_states.next().unwrap());
 
     // Round 1 - Substitution bytes
@@ -77,7 +77,7 @@ fn manual_rounds() {
     assert_eq!(state, expected_states.next().unwrap());
 
     // Round 1 - Apply roundkey
-    state ^= key.next().unwrap();
+    state ^= &key.next().unwrap();
     assert_eq!(state, expected_states.next().unwrap());
 
     // Round 2 - Substitution bytes
@@ -93,7 +93,7 @@ fn manual_rounds() {
     assert_eq!(state, expected_states.next().unwrap());
 
     // Round 2 - Apply roundkey
-    state ^= key.next().unwrap();
+    state ^= &key.next().unwrap();
     assert_eq!(state, expected_states.next().unwrap());
 }
 
