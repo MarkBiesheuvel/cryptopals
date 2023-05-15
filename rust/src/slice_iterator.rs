@@ -4,47 +4,45 @@ use super::Bytes;
 
 /// Collection of equal sized blocks of bytes
 #[derive(Debug)]
-pub struct BlockIterator<'a> {
+pub struct SliceIterator<'a> {
     bytes: &'a Bytes,
-    block_size: usize,
+    slice_length: usize,
     block_number: usize,
 }
 
-impl<'a> BlockIterator<'a> {
+impl<'a> SliceIterator<'a> {
     /// Constructor
     ///
     /// Only allow this to be created directly from the Bytes struct
-    pub(super) fn new(bytes: &'a Bytes, block_size: usize) -> BlockIterator<'a> {
-        BlockIterator {
+    pub(super) fn new(bytes: &'a Bytes, slice_length: usize) -> SliceIterator<'a> {
+        SliceIterator {
             bytes,
-            block_size,
+            slice_length,
             block_number: 0,
         }
     }
 
-    // TODO: implement constructors with padding
-
-    /// Return block size of BlockIterator
-    pub fn block_size(&self) -> usize {
-        self.block_size
+    /// Return slice length of SliceIterator
+    pub fn slice_length(&self) -> usize {
+        self.slice_length
     }
 
-    /// Return  Bytes within BlockIterator
+    /// Return Bytes reference within SliceIterator
     pub fn bytes(&self) -> &Bytes {
         self.bytes
     }
 }
 
-impl<'a> Iterator for BlockIterator<'a> {
-    type Item = Bytes;
+impl<'a> Iterator for SliceIterator<'a> {
+    type Item = &'a [u8];
 
     fn next(&mut self) -> Option<Self::Item> {
         // Get length
         let length = self.bytes.length();
 
         // Calculate start and end index
-        let start_index = self.block_number * self.block_size;
-        let mut end_index = (self.block_number + 1) * self.block_size;
+        let start_index = self.block_number * self.slice_length;
+        let mut end_index = (self.block_number + 1) * self.slice_length;
 
         // Early return if start index exceeds length
         if start_index >= length {
