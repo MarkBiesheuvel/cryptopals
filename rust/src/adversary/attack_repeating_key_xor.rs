@@ -1,5 +1,5 @@
 use super::{attack_single_byte_xor, detect_block_size_repeating_key};
-use crate::{Bytes, CryptopalsError};
+use crate::{ByteIterable, Bytes, CryptopalsError};
 
 /// Adversary which takes a ciphertext which has been encrypted using a single
 /// byte XOR and tries to reverse it
