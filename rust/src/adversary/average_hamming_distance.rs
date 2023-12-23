@@ -1,4 +1,4 @@
-use crate::{BlockIterator, CryptopalsError};
+use crate::{Bytes, CryptopalsError};
 
 // Number of blocks to sample and compare to each other to find the most likely
 // key length Higher number will be more accurate, but break on shorter
@@ -11,12 +11,12 @@ const NUMBER_OF_COMBINATIONS: f32 = 15.0;
 
 /// Not an adversary by itself, but used by both
 /// `attack_force_repeating_key_xor` and `detect_aes_ecb_cipher`
-pub fn average_hamming_distance(iterator: BlockIterator) -> Result<f32, crate::CryptopalsError> {
-    // Store block size before consuming iterator
-    let block_size = iterator.block_size() as f32;
-
-    // Get the first blocks and store in a Vec
-    let blocks = iterator.take(NUMBER_OF_BLOCKS).collect::<Vec<_>>();
+pub fn average_hamming_distance(bytes: &Bytes, block_size: usize) -> Result<f32, crate::CryptopalsError> {
+    // Get the first N blocks and store in a Vec
+    let blocks = bytes
+        .blocks(block_size)
+        .take(NUMBER_OF_BLOCKS)
+        .collect::<Vec<_>>();
 
     // Create all possible combinations as a Tuple
     let combinations = (0..NUMBER_OF_BLOCKS)
@@ -48,7 +48,7 @@ pub fn average_hamming_distance(iterator: BlockIterator) -> Result<f32, crate::C
         // Sum over all combination
         .sum::<usize>();
 
-    Ok(total_distance as f32 / (block_size * NUMBER_OF_COMBINATIONS))
+    Ok(total_distance as f32 / (block_size as f32 * NUMBER_OF_COMBINATIONS))
 }
 
 #[cfg(test)]
@@ -59,9 +59,8 @@ mod tests {
     #[test]
     fn just_enough_blocks() {
         let value = Bytes::from("Hello, World");
-        let iter = value.block_iterator(2);
 
-        let result = average_hamming_distance(iter).unwrap();
+        let result = average_hamming_distance(&value, 2).unwrap();
 
         assert_eq!(result, 43.0 / 15.0);
     }
@@ -69,9 +68,8 @@ mod tests {
     #[test]
     fn not_enough_blocks() {
         let value = Bytes::from("Hello, World");
-        let iter = value.block_iterator(3);
 
-        let error = average_hamming_distance(iter).unwrap_err();
+        let error = average_hamming_distance(&value, 3).unwrap_err();
         let expected = CryptopalsError::NotEnoughBlocks;
 
         assert_eq!(error, expected);

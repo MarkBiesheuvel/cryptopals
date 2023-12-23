@@ -2,7 +2,7 @@ use std::convert::From;
 use std::fmt;
 use std::vec::Vec;
 
-use crate::{Base64, BlockIterator, CryptopalsError, Hexadecimal};
+use crate::{Base64, CryptopalsError, Hexadecimal};
 
 /// Collection of bytes
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -149,7 +149,7 @@ impl Bytes {
     /// # use cryptopals::Bytes;
     /// #
     /// let value = Bytes::from("cryptopals");
-    /// let mut iter = value.block_iterator(3);
+    /// let mut iter = value.blocks(3);
     ///
     /// assert_eq!(iter.next(), Some(Bytes::from([99, 114, 121])));
     /// assert_eq!(iter.next(), Some(Bytes::from([112, 116, 111])));
@@ -157,8 +157,8 @@ impl Bytes {
     /// assert_eq!(iter.next(), Some(Bytes::from([115])));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn block_iterator(&self, block_size: usize) -> BlockIterator {
-        BlockIterator::new(self, block_size)
+    pub fn blocks(&self, block_size: usize) -> Box<dyn Iterator<Item = Bytes> + '_> {
+        Box::new(self.0.chunks(block_size).map(Bytes::from))
     }
 
     /// XOR two equally length Bytes with each other

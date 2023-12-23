@@ -12,7 +12,7 @@ pub fn encrypt(plaintext: &Bytes, key: &Bytes) -> Result<Bytes, CryptopalsError>
     // Split the plaintext up into "blocks" of 16 bytes
     // TODO: reimplement Bytes.block_iterator to return references instead
     let bytes = plaintext
-        .block_iterator(BLOCK_LENGTH)
+        .blocks(BLOCK_LENGTH)
         .map(|mut bytes| {
             // Padding
             if bytes.length() < BLOCK_LENGTH {
