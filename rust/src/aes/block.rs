@@ -45,32 +45,6 @@ fn g_mul(mut lhs: u8, mut rhs: u8) -> u8 {
 pub struct Block([u8; BLOCK_LENGTH]);
 
 impl Block {
-    /// Create a new block of 16 bytes.
-    /// If the input value is too short, apply some padding
-    pub fn with_padding(value: &[u8]) -> Block {
-        // Length
-        let current_length = value.len();
-
-        // Initialize default block
-        let mut block = Block::default();
-
-        // Copy over each item from slice
-        for i in 0..current_length {
-            block[i] = value[i];
-        }
-
-        // Calculate the difference in length
-        if let Some(difference) = BLOCK_LENGTH.checked_sub(current_length) {
-            // Append that many bytes of that value
-            for i in current_length..BLOCK_LENGTH {
-                block[i] = difference as u8;
-            }
-        }
-
-        // Return block
-        block
-    }
-
     /// Apply Rijndael S-box to all bytes of the block
     pub fn sub_bytes(&mut self) {
         // Sub each byte
@@ -125,8 +99,9 @@ impl Block {
 
     /// Encrypt a single block
     ///
+    ///
     /// Roundkeys need to already be calculated to avoid rerunning the Roundkey
-    /// iterator for each block
+    /// iterator for each block TODO: change the type of roundkeys
     pub fn encrypt(&mut self, roundkeys: &[Block]) {
         for (round_number, round_key) in roundkeys.iter().enumerate() {
             if 0 < round_number {

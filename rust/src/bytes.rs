@@ -3,7 +3,7 @@ use std::fmt;
 use std::slice::Iter;
 use std::vec::Vec;
 
-use crate::{CryptopalsError, Hexadecimal, SliceIterator};
+use crate::{BlockIterator, CryptopalsError, Hexadecimal};
 
 /// Collection of bytes
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -64,11 +64,48 @@ impl Bytes {
     /// #
     /// let value = Bytes::from("cryptopals");
     ///
-    /// assert!(value.range(3, 7) == Some(&[112, 116, 111, 112]));
+    /// assert_eq!(value.range(3, 7), Some(Bytes::from([112, 116, 111, 112])));
     /// ```
-    pub fn range(&self, start_index: usize, end_index: usize) -> Option<&[u8]> {
+    pub fn range(&self, start_index: usize, end_index: usize) -> Option<Bytes> {
         // Get a slice and convert it to Bytes struct
-        self.0.get(start_index..end_index)
+        self.0.get(start_index..end_index).map(Bytes::from)
+    }
+
+    /// Add additional bytes to reach desired length
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let mut value = Bytes::from("cryptopals");
+    ///
+    /// // In-place operation
+    /// value.pad(16);
+    ///
+    /// // Expected
+    /// let expected = Bytes::from([
+    ///     99, 114, 121, 112, 116, 111, 112, 97, 108, 115, 6, 6, 6, 6, 6, 6,
+    /// ]);
+    ///
+    /// assert_eq!(value, expected);
+    /// ```
+    pub fn pad(&mut self, desired_length: usize) -> Result<(), CryptopalsError> {
+        let current_size = self.length();
+
+        // Calculate the difference in length
+        let difference = desired_length
+            .checked_sub(current_size)
+            .ok_or(CryptopalsError::ExceedsDesiredLength)?;
+
+        // Create that many bytes of that value
+        let mut additional_bytes = (0..difference)
+            .map(|_| difference as u8)
+            .collect::<Vec<_>>();
+
+        // Append to self
+        self.0.append(&mut additional_bytes);
+
+        Ok(())
     }
 
     /// Return an iterator of blocks of this Bytes struct
@@ -78,16 +115,16 @@ impl Bytes {
     /// # use cryptopals::Bytes;
     /// #
     /// let value = Bytes::from("cryptopals");
-    /// let mut iter = value.slices(3);
+    /// let mut iter = value.block_iterator(3);
     ///
-    /// assert!(iter.next() == Some(&[99, 114, 121]));
-    /// assert!(iter.next() == Some(&[112, 116, 111]));
-    /// assert!(iter.next() == Some(&[112, 97, 108]));
-    /// assert!(iter.next() == Some(&[115]));
-    /// assert!(iter.next() == None);
+    /// assert_eq!(iter.next(), Some(Bytes::from([99, 114, 121])));
+    /// assert_eq!(iter.next(), Some(Bytes::from([112, 116, 111])));
+    /// assert_eq!(iter.next(), Some(Bytes::from([112, 97, 108])));
+    /// assert_eq!(iter.next(), Some(Bytes::from([115])));
+    /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn slices(&self, slice_length: usize) -> SliceIterator {
-        SliceIterator::new(self, slice_length)
+    pub fn block_iterator(&self, block_size: usize) -> BlockIterator {
+        BlockIterator::new(self, block_size)
     }
 
     /// XOR two equally length Bytes with each other

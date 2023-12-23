@@ -9,11 +9,11 @@ const MAX_BLOCK_SIZE: usize = 40;
 pub fn detect_block_size_repeating_key(ciphertext: &Bytes) -> Result<usize, CryptopalsError> {
     (MIN_BLOCK_SIZE..=MAX_BLOCK_SIZE)
         .filter_map(|block_size| {
-            // Create slice iterator for specific block size
-            let slice_iterator = ciphertext.slices(block_size);
+            // Create block iterator for specific block size
+            let block_iterator = ciphertext.block_iterator(block_size);
 
             // Calculate average hamming distance between first few blocks
-            let distance = average_hamming_distance(slice_iterator)
+            let distance = average_hamming_distance(block_iterator)
                 // Filter out any block size that lead to an error
                 .ok()?;
 
