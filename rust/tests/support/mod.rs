@@ -1,17 +1,13 @@
 use std::error::Error;
 
-use cryptopals::{Bytes, Hexadecimal};
 pub use file_line_iterator::FileLineIterator;
 
 mod file_line_iterator;
 
-pub fn funky_music() -> Result<Bytes, Box<dyn Error>> {
-    // Load content from file
-    let file = FileLineIterator::new("../data/n2Ubq9XII8c.txt")?;
+/// Type alias for return type of test
+pub type TestResult = Result<(), Box<dyn Error>>;
 
-    // Parse as hexadecimal
-    let bytes = Bytes::try_from(Hexadecimal::from(file))?;
-
-    // Return result
-    Ok(bytes)
+/// Returns Ok with the correct type
+pub fn ok() -> TestResult {
+    Ok::<(), Box<dyn Error>>(())
 }

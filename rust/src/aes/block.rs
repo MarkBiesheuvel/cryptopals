@@ -45,6 +45,25 @@ fn g_mul(mut lhs: u8, mut rhs: u8) -> u8 {
 pub struct Block([u8; BLOCK_LENGTH]);
 
 impl Block {
+    /// Short-hand function for creating Block struct from hexadecimal encoded
+    /// string
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::aes;
+    /// # use std::ops::Index;
+    /// #
+    /// let block = aes::Block::try_from_hexadecimal("5468617473206D79204B756E67204675")?;
+    ///
+    /// assert_eq!(block.index(4), &115);
+    /// #
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn try_from_hexadecimal<S: Into<String>>(value: S) -> Result<Block, CryptopalsError> {
+        let bytes = Bytes::try_from_hexadecimal(value)?;
+        Block::try_from(&bytes)
+    }
+
     /// Apply Rijndael S-box to all bytes of the block
     pub fn sub_bytes(&mut self) {
         // Sub each byte

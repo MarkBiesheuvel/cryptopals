@@ -1,15 +1,49 @@
 use std::convert::From;
 use std::fmt;
-use std::slice::Iter;
 use std::vec::Vec;
 
-use crate::{BlockIterator, CryptopalsError, Hexadecimal};
+use crate::{Base64, BlockIterator, CryptopalsError, Hexadecimal};
 
 /// Collection of bytes
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct Bytes(Vec<u8>);
 
 impl Bytes {
+    /// Short-hand function for creating Bytes struct from base64 encoded string
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::{Bytes};
+    /// #
+    /// let value = Bytes::try_from_base64("Y3J5cHRvcGFscw==")?;
+    /// let expected = Bytes::from("cryptopals");
+    ///
+    /// assert_eq!(value, expected);
+    /// #
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn try_from_base64<S: Into<String>>(value: S) -> Result<Bytes, CryptopalsError> {
+        Bytes::try_from(Base64::from(value))
+    }
+
+    /// Short-hand function for creating Bytes struct from hexadecimal encoded
+    /// string
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let value = Bytes::try_from_hexadecimal("63727970746F70616C73")?;
+    /// let expected = Bytes::from("cryptopals");
+    ///
+    /// assert_eq!(value, expected);
+    /// #
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn try_from_hexadecimal<S: Into<String>>(value: S) -> Result<Bytes, CryptopalsError> {
+        Bytes::try_from(Hexadecimal::from(value))
+    }
+
     /// Iterate over references to each byte
     ///
     /// ## Examples
@@ -24,8 +58,8 @@ impl Bytes {
     /// assert_eq!(iter.next(), Some(&111));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn iter(&self) -> Iter<u8> {
-        self.0.iter()
+    pub fn iter(&self) -> Box<dyn Iterator<Item = &u8> + '_> {
+        Box::new(self.0.iter())
     }
 
     /// Number of bytes stored
@@ -137,7 +171,9 @@ impl Bytes {
     /// let key = Bytes::from([12, 34, 56, 78, 90, 123, 45, 67, 89, 10]);
     /// let ciphertext = Bytes::from([111, 80, 65, 62, 46, 20, 93, 34, 53, 121]);
     ///
-    /// assert_eq!(plaintext.fixed_xor(&key).unwrap(), ciphertext);
+    /// assert_eq!(plaintext.fixed_xor(&key)?, ciphertext);
+    /// #
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn fixed_xor(&self, other: &Bytes) -> Result<Bytes, CryptopalsError> {
         if self.length() != other.length() {
@@ -182,9 +218,16 @@ impl Bytes {
     ///
     /// assert_eq!(plaintext.repeated_key_xor(&key), ciphertext);
     /// ```
-    pub fn repeated_key_xor(&self, other: &Bytes) -> Bytes {
-        let bytes = (self.iter())
-            .zip(other.iter().cycle())
+    pub fn repeated_key_xor(&self, key: &Bytes) -> Bytes {
+        // Collect all references in a Vec
+        let key = key.iter().collect::<Vec<_>>();
+
+        // Cycle the Vec
+        let repeated_key = key.into_iter().cycle();
+
+        let bytes = self
+            .iter()
+            .zip(repeated_key)
             .map(|(lhs, rhs)| lhs ^ rhs)
             .collect();
 
@@ -201,21 +244,23 @@ impl Bytes {
     /// let text_2 = Bytes::from("wokka wokka!!!");
 
     ///
-    /// assert_eq!(text_1.hamming_distance(&text_2).unwrap(), 37);
+    /// assert_eq!(text_1.hamming_distance(&text_2)?, 37);
+    /// #
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn hamming_distance(&self, other: &Bytes) -> Result<u32, CryptopalsError> {
+    pub fn hamming_distance(&self, other: &Bytes) -> Result<usize, CryptopalsError> {
         let difference = self.fixed_xor(other)?;
 
         // Iterate over each byte
         let distance = difference
             .iter()
             .map(|byte| {
-                // Iterate over each bit
-                let number_of_bites: u8 = (0..8).map(|i: u8| (byte >> i) & 1).sum();
+                // Iterate over each bit and sum the bits that are 1
+                let number_of_bits = (0..8).map(|i: u8| (byte >> i) & 1).sum::<u8>();
 
                 // For an individual byte the number of bits different is at most 8,
                 // but when summing up a long array, the total might exceed the u8 primitive
-                number_of_bites as u32
+                number_of_bits as usize
             })
             .sum();
 

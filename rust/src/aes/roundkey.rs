@@ -13,10 +13,12 @@ const ROUND_CONSTANT: [u8; 11] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54];
 /// use cryptopals::aes::Roundkey;
 ///
 /// // Use a 16 letter word as a key
-/// let roundkey = Roundkey::try_from("counteroffensive").unwrap();
+/// let roundkey = Roundkey::try_from("counteroffensive")?;
 ///
 /// // Initial key plus 10 rounds
 /// assert_eq!(roundkey.count(), 11);
+/// #
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Default)]
 pub struct Roundkey {

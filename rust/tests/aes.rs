@@ -1,20 +1,13 @@
-use cryptopals::{aes, Bytes, Hexadecimal};
+use cryptopals::{aes, Bytes};
+// Test support
+use support::{ok, TestResult};
+mod support;
 
 // Following the steps of https://kavaliro.com/wp-content/uploads/2014/03/AES.pdf
 
-fn bytes_from_hex_string(string: &str) -> Bytes {
-    let hexadecimal = Hexadecimal::from(string);
-    Bytes::try_from(hexadecimal).unwrap()
-}
-
-fn block_from_hex_string(string: &str) -> aes::Block {
-    let bytes = bytes_from_hex_string(string);
-    aes::Block::try_from(&bytes).unwrap()
-}
-
 #[test]
-fn roundkey() {
-    let key = aes::Roundkey::try_from("Thats my Kung Fu").unwrap();
+fn roundkey() -> TestResult {
+    let key = aes::Roundkey::try_from("Thats my Kung Fu")?;
 
     let expected_roundkeys = [
         "54 68 61 74 73 20 6D 79 20 4B 75 6E 67 20 46 75",
@@ -29,18 +22,22 @@ fn roundkey() {
         "BF E2 BF 90 45 59 FA B2 A1 64 80 B4 F7 F1 CB D8",
         "28 FD DE F8 6D A4 24 4A CC C0 A4 FE 3B 31 6F 26",
     ]
-    .map(|string| block_from_hex_string(string));
+    .into_iter()
+    .map(|string| aes::Block::try_from_hexadecimal(string))
+    .collect::<Result<Vec<_>, _>>()?;
 
     // Verify each roundkey aginst expected value
-    for (roundkey, expected) in key.zip(expected_roundkeys) {
+    for (roundkey, expected) in key.into_iter().zip(expected_roundkeys) {
         assert_eq!(roundkey, expected);
     }
+
+    ok()
 }
 
 #[test]
-fn manual_rounds() {
-    let mut key = aes::Roundkey::try_from("Thats my Kung Fu").unwrap();
-    let plaintext = aes::Block::try_from("Two One Nine Two").unwrap();
+fn manual_rounds() -> TestResult {
+    let mut key = aes::Roundkey::try_from("Thats my Kung Fu")?;
+    let plaintext = aes::Block::try_from("Two One Nine Two")?;
 
     // Expected state after each step
     let mut expected_states = [
@@ -55,59 +52,68 @@ fn manual_rounds() {
         "43 C6 A9 62 0E 57 C0 C8 09 08 EB FE 3D F8 7F 37",
     ]
     .into_iter()
-    .map(|string| block_from_hex_string(string));
+    .map(|string| aes::Block::try_from_hexadecimal(string))
+    .collect::<Result<Vec<_>, _>>()?
+    .into_iter();
+
+    // Function to be used in Option::ok_or_else
+    let err = || "unexpected end of iterator";
 
     // Start with plaintext
     let mut state = plaintext;
 
     // Round 0 - Apply roundkey
-    state ^= &key.next().unwrap();
-    assert_eq!(state, expected_states.next().unwrap());
+    state ^= &key.next().ok_or_else(err)?;
+    assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 1 - Substitution bytes
     state.sub_bytes();
-    assert_eq!(state, expected_states.next().unwrap());
+    assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 1 - Shift rows
     state.shift_rows();
-    assert_eq!(state, expected_states.next().unwrap());
+    assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 1 - Mix columns
     state.mix_columns();
-    assert_eq!(state, expected_states.next().unwrap());
+    assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 1 - Apply roundkey
-    state ^= &key.next().unwrap();
-    assert_eq!(state, expected_states.next().unwrap());
+    state ^= &key.next().ok_or_else(err)?;
+    assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 2 - Substitution bytes
     state.sub_bytes();
-    assert_eq!(state, expected_states.next().unwrap());
+    assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 2 - Shift rows
     state.shift_rows();
-    assert_eq!(state, expected_states.next().unwrap());
+    assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 2 - Mix columns
     state.mix_columns();
-    assert_eq!(state, expected_states.next().unwrap());
+    assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 2 - Apply roundkey
-    state ^= &key.next().unwrap();
-    assert_eq!(state, expected_states.next().unwrap());
+    state ^= &key.next().ok_or_else(err)?;
+    assert_eq!(state, expected_states.next().ok_or_else(err)?);
+
+    ok()
 }
 
 #[test]
-fn start_to_finish() {
+fn start_to_finish() -> TestResult {
     let key = Bytes::from("Thats my Kung Fu");
     let plaintext = Bytes::from("Two One Nine Two");
 
     // Perform encryption operation from start to finish
-    let ciphertext = aes::ecb::encrypt(&plaintext, &key).unwrap();
+    let ciphertext = aes::ecb::encrypt(&plaintext, &key)?;
 
     // Expected ciphertext
-    let expected = bytes_from_hex_string("29 C3 50 5F 57 14 20 F6 40 22 99 B3 1A 02 D7 3A");
+    let expected = Bytes::try_from_hexadecimal("29 C3 50 5F 57 14 20 F6 40 22 99 B3 1A 02 D7 3A")?;
 
     // Assertion
     assert_eq!(ciphertext, expected);
+
+    ok()
 }

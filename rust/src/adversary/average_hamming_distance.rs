@@ -46,7 +46,7 @@ pub fn average_hamming_distance(iterator: BlockIterator) -> Result<f32, crate::C
         // Turn back into iterator
         .into_iter()
         // Sum over all combination
-        .sum::<u32>();
+        .sum::<usize>();
 
     Ok(total_distance as f32 / (block_size * NUMBER_OF_COMBINATIONS))
 }
