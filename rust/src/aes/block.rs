@@ -3,7 +3,7 @@ use std::ops::BitXorAssign;
 use std::ops::{Index, IndexMut};
 
 use super::sub_byte;
-use crate::{ByteIterable, Bytes, CryptopalsError};
+use crate::{Bytes, CryptopalsError};
 
 /// Number of bytes in 128 bits (e.g. 16 bytes)
 pub const BLOCK_LENGTH: usize = 16;

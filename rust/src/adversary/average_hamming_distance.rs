@@ -1,4 +1,4 @@
-use crate::{ByteIterable, Bytes, CryptopalsError, SliceIterator};
+use crate::{Bytes, CryptopalsError, SliceIterator};
 
 // Number of blocks to sample and compare to each other to find the most likely
 // key length Higher number will be more accurate, but break on shorter
@@ -44,8 +44,12 @@ pub fn average_hamming_distance(iterator: SliceIterator) -> Result<f32, crate::C
         .into_iter()
         // Calculate hamming distance for each combination
         .map(|(block_1, block_2)| block_1.hamming_distance(block_2))
+        // Propagate Result::Err if any combination had unequal lengths
+        .collect::<Result<Vec<_>, CryptopalsError>>()?
+        // Turn back into iterator
+        .into_iter()
         // Sum over all combination
-        .sum::<usize>();
+        .sum::<u32>();
 
     Ok(total_distance as f32 / (block_size * NUMBER_OF_COMBINATIONS))
 }

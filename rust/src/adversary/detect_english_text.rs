@@ -1,4 +1,4 @@
-use crate::{ByteIterable, Bytes, CryptopalsError, ScoredBox};
+use crate::{Bytes, CryptopalsError, ScoredBox};
 
 // 26 letters plus 4 categories (whitespace, numbers, punctuation, symbols)
 const SIZE: usize = 30;

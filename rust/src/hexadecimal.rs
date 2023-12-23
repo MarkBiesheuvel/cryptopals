@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::vec::Vec;
 
-use super::{ByteIterable, Bytes, CryptopalsError};
+use super::{Bytes, CryptopalsError};
 
 /// Hexadecimal encoded string
 #[derive(Debug)]

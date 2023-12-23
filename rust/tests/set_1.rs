@@ -1,4 +1,4 @@
-use cryptopals::{adversary, aes, Base64, ByteIterable, Bytes, Hexadecimal};
+use cryptopals::{adversary, aes, Base64, Bytes, Hexadecimal};
 // Test support
 use support::{funky_music, FileLineIterator};
 mod support;
@@ -25,7 +25,7 @@ fn challenge_2() {
     let expected = Bytes::try_from(Hexadecimal::from("746865206b696420646f6e277420706c6179")).unwrap();
 
     // Fixed XOR should lead to expected value
-    assert_eq!(input_1.fixed_xor(&input_2), expected);
+    assert_eq!(input_1.fixed_xor(&input_2).unwrap(), expected);
 }
 
 #[test]

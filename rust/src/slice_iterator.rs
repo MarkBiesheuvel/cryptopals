@@ -1,6 +1,6 @@
 use std::iter::Iterator;
 
-use super::{ByteIterable, Bytes};
+use super::Bytes;
 
 /// Collection of equal sized blocks of bytes
 #[derive(Debug)]

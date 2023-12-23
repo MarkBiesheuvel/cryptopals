@@ -1,19 +1,20 @@
 use std::convert::From;
 use std::fmt;
+use std::slice::Iter;
 use std::vec::Vec;
 
-use crate::{ByteIterable, Hexadecimal, SliceIterator};
+use crate::{CryptopalsError, Hexadecimal, SliceIterator};
 
 /// Collection of bytes
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct Bytes(Vec<u8>);
 
-impl ByteIterable for Bytes {
+impl Bytes {
     /// Iterate over references to each byte
     ///
     /// ## Examples
     /// ```
-    /// # use cryptopals::{ByteIterable, Bytes};
+    /// # use cryptopals::Bytes;
     /// #
     /// let value = Bytes::from([102, 111, 111]);
     /// let mut iter = value.iter();
@@ -23,26 +24,24 @@ impl ByteIterable for Bytes {
     /// assert_eq!(iter.next(), Some(&111));
     /// assert_eq!(iter.next(), None);
     /// ```
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = &'a u8> + 'a> {
-        Box::new(self.0.iter())
+    pub fn iter(&self) -> Iter<u8> {
+        self.0.iter()
     }
 
     /// Number of bytes stored
     ///
     /// ## Examples
     /// ```
-    /// # use cryptopals::{ByteIterable, Bytes};
+    /// # use cryptopals::Bytes;
     /// #
     /// let value = Bytes::from("cryptopals");
     ///
     /// assert_eq!(value.length(), 10);
     /// ```
-    fn length(&self) -> usize {
+    pub fn length(&self) -> usize {
         self.0.len()
     }
-}
 
-impl Bytes {
     /// Return a single byte at an index
     ///
     /// ## Examples
@@ -91,6 +90,31 @@ impl Bytes {
         SliceIterator::new(self, slice_length)
     }
 
+    /// XOR two equally length Bytes with each other
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let plaintext = Bytes::from("cryptopals");
+    /// let key = Bytes::from([12, 34, 56, 78, 90, 123, 45, 67, 89, 10]);
+    /// let ciphertext = Bytes::from([111, 80, 65, 62, 46, 20, 93, 34, 53, 121]);
+    ///
+    /// assert_eq!(plaintext.fixed_xor(&key).unwrap(), ciphertext);
+    /// ```
+    pub fn fixed_xor(&self, other: &Bytes) -> Result<Bytes, CryptopalsError> {
+        if self.length() != other.length() {
+            return Err(CryptopalsError::UnequalLength);
+        }
+
+        let bytes = (self.iter())
+            .zip(other.iter())
+            .map(|(lhs, rhs)| lhs ^ rhs)
+            .collect();
+
+        Ok(Bytes(bytes))
+    }
+
     /// XOR all the bytes with a single other byte
     ///
     /// ## Examples
@@ -123,11 +147,42 @@ impl Bytes {
     /// ```
     pub fn repeated_key_xor(&self, other: &Bytes) -> Bytes {
         let bytes = (self.iter())
-            .zip(other.0.iter().cycle()) // HACK
+            .zip(other.iter().cycle())
             .map(|(lhs, rhs)| lhs ^ rhs)
             .collect();
 
         Bytes(bytes)
+    }
+
+    /// Hamming distance between two Bytes structs
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let text_1 = Bytes::from("this is a test");
+    /// let text_2 = Bytes::from("wokka wokka!!!");
+
+    ///
+    /// assert_eq!(text_1.hamming_distance(&text_2).unwrap(), 37);
+    /// ```
+    pub fn hamming_distance(&self, other: &Bytes) -> Result<u32, CryptopalsError> {
+        let difference = self.fixed_xor(other)?;
+
+        // Iterate over each byte
+        let distance = difference
+            .iter()
+            .map(|byte| {
+                // Iterate over each bit
+                let number_of_bites: u8 = (0..8).map(|i: u8| (byte >> i) & 1).sum();
+
+                // For an individual byte the number of bits different is at most 8,
+                // but when summing up a long array, the total might exceed the u8 primitive
+                number_of_bites as u32
+            })
+            .sum();
+
+        Ok(distance)
     }
 }
 
@@ -199,10 +254,9 @@ mod tests {
         let value_1 = Bytes::from("Hello, World");
         let value_2 = Bytes::from("foo");
 
-        // Instead of an Result<>, let's return the XOR using the shortest input
-        let output = value_1.fixed_xor(&value_2);
-        let expected = Bytes::from([46, 10, 3]);
+        let error = value_1.fixed_xor(&value_2).unwrap_err();
+        let expected = CryptopalsError::UnequalLength;
 
-        assert_eq!(output, expected);
+        assert_eq!(error, expected);
     }
 }
