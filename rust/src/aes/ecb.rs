@@ -16,7 +16,7 @@ pub fn encrypt(plaintext: &Bytes, key: &Bytes) -> Result<Bytes, CryptopalsError>
         .map(|mut bytes| {
             // Padding
             if bytes.length() < BLOCK_LENGTH {
-                bytes.pad(BLOCK_LENGTH)?;
+                bytes.pad(BLOCK_LENGTH);
             }
 
             // Load the "block" into the Block struct

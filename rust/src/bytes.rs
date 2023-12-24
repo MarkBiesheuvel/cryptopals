@@ -123,13 +123,11 @@ impl Bytes {
     ///
     /// assert_eq!(value, expected);
     /// ```
-    pub fn pad(&mut self, desired_length: usize) -> Result<(), CryptopalsError> {
+    pub fn pad(&mut self, desired_length: usize) {
         let current_size = self.length();
 
         // Calculate the difference in length
-        let difference = desired_length
-            .checked_sub(current_size)
-            .ok_or(CryptopalsError::ExceedsDesiredLength)?;
+        let difference = desired_length - (current_size % desired_length);
 
         // Create that many bytes of that value
         let mut additional_bytes = (0..difference)
@@ -137,9 +135,8 @@ impl Bytes {
             .collect::<Vec<_>>();
 
         // Append to self
+        // TODO: replace in-place padding. instead return new struct
         self.0.append(&mut additional_bytes);
-
-        Ok(())
     }
 
     /// Return an iterator of blocks of this Bytes struct
