@@ -1,4 +1,4 @@
-use super::detect_english_text;
+use super::find_english_text;
 use crate::{Bytes, CryptopalsError};
 
 /// Adversary which takes a ciphertext which has been encrypted using a single
@@ -10,5 +10,5 @@ pub fn attack_single_byte_xor(ciphertext: &Bytes) -> Result<Bytes, CryptopalsErr
         .collect::<Vec<_>>();
 
     // Use other adversary to detect the most likely English text
-    detect_english_text(candidates)
+    find_english_text(candidates)
 }

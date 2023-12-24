@@ -62,7 +62,7 @@ fn challenge_3() -> TestResult {
 fn challenge_4() -> TestResult {
     let lines = FileLineIterator::new("../data/4.txt")?;
 
-    // Convert each line from hexadecimal encoded string to blob
+    // Convert each line from hexadecimal encoded string to Bytes
     let lines = lines
         .map(|line| Bytes::try_from_hexadecimal(line))
         .collect::<Result<Vec<_>, _>>()?;
@@ -76,7 +76,7 @@ fn challenge_4() -> TestResult {
 
     let expected = Bytes::from("Now that the party is jumping\n");
 
-    assert_eq!(adversary::detect_english_text(candidates)?, expected);
+    assert_eq!(adversary::find_english_text(candidates)?, expected);
 
     ok()
 }
@@ -121,6 +121,31 @@ fn challenge_7() -> TestResult {
     let ciphertext = Bytes::try_from_base64(file)?;
 
     assert_eq!(aes::ecb::encrypt(&plaintext, &key)?, ciphertext);
+
+    ok()
+}
+
+#[test]
+fn challenge_8() -> TestResult {
+    let lines = FileLineIterator::new("../data/8.txt")?;
+
+    // Convert each line from hexadecimal encoded string to Bytes
+    let candidates = lines
+        .map(|line| Bytes::try_from_hexadecimal(line))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    // Expected output
+    let expected = Bytes::from([
+        216, 128, 97, 151, 64, 168, 161, 155, 120, 64, 168, 163, 28, 129, 10, 61, 8, 100, 154, 247, 13, 192, 111, 79,
+        213, 210, 214, 156, 116, 76, 210, 131, 226, 221, 5, 47, 107, 100, 29, 191, 157, 17, 176, 52, 133, 66, 187, 87,
+        8, 100, 154, 247, 13, 192, 111, 79, 213, 210, 214, 156, 116, 76, 210, 131, 148, 117, 201, 223, 219, 193, 212,
+        101, 151, 148, 157, 156, 126, 130, 191, 90, 8, 100, 154, 247, 13, 192, 111, 79, 213, 210, 214, 156, 116, 76,
+        210, 131, 151, 169, 62, 171, 141, 106, 236, 213, 102, 72, 145, 84, 120, 154, 107, 3, 8, 100, 154, 247, 13, 192,
+        111, 79, 213, 210, 214, 156, 116, 76, 210, 131, 212, 3, 24, 12, 152, 200, 246, 219, 31, 42, 63, 156, 64, 64,
+        222, 176, 171, 81, 178, 153, 51, 242, 193, 35, 197, 131, 134, 176, 111, 186, 24, 106,
+    ]);
+
+    assert_eq!(adversary::find_aes_ecb_ciphertext(candidates)?, expected);
 
     ok()
 }

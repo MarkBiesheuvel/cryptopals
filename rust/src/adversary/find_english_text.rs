@@ -115,7 +115,7 @@ fn chi_squared(candidate: &Bytes) -> f32 {
 
 /// Adversary which takes a list of candidates and returns the one which is most
 /// likely to be English text
-pub fn detect_english_text(candidates: Vec<Bytes>) -> Result<Bytes, CryptopalsError> {
+pub fn find_english_text(candidates: Vec<Bytes>) -> Result<Bytes, CryptopalsError> {
     candidates
         .into_iter()
         // Calculate chi squared score for each candidate
@@ -125,5 +125,5 @@ pub fn detect_english_text(candidates: Vec<Bytes>) -> Result<Bytes, CryptopalsEr
         // Return the candidate
         .map(ScoredBox::unbox)
         // Map Option<_> to Result<_, _>
-        .ok_or(CryptopalsError::UnableToDetectEnglishText)
+        .ok_or(CryptopalsError::UnableToFindLikelyCandidate)
 }

@@ -14,8 +14,8 @@ pub enum CryptopalsError {
     UnequalLength,
     /// The input does not have enough blocks to perform operation
     NotEnoughBlocks,
-    /// Unable to detect English text
-    UnableToDetectEnglishText,
+    /// Unable to find likely candidate
+    UnableToFindLikelyCandidate,
     /// Unable to detect block size
     UnableToDetectBlockSize,
     /// Index out of bounds
@@ -32,7 +32,7 @@ impl fmt::Display for CryptopalsError {
             Self::InvalidBase64 => write!(f, "The input is not valid base64"),
             Self::UnequalLength => write!(f, "The inputs are of unequal length"),
             Self::NotEnoughBlocks => write!(f, "The input does not have enough blocks to perform operation"),
-            Self::UnableToDetectEnglishText => write!(f, "Unable to detect English text"),
+            Self::UnableToFindLikelyCandidate => write!(f, "Unable to find likely candidate"),
             Self::UnableToDetectBlockSize => write!(f, "Unable to detect block size"),
             Self::IndexOutOfBounds => write!(f, "Index out of bounds"),
             Self::ExceedsDesiredLength => {

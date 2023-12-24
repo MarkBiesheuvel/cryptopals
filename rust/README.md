@@ -29,7 +29,11 @@ attack_repeating_key_xor
   |
   |-> attack_single_byte_xor
         |
-        |-> detect_english_text
+        |-> find_english_text
+
+find_aes_ecb_ciphertext
+  |
+  |-> average_hamming_distance
 ```
 
 ## Commands for local development

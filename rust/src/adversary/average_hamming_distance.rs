@@ -10,7 +10,7 @@ const NUMBER_OF_BLOCKS: usize = 6;
 const NUMBER_OF_COMBINATIONS: f32 = 15.0;
 
 /// Not an adversary by itself, but used by both
-/// `attack_force_repeating_key_xor` and `detect_aes_ecb_cipher`
+/// `attack_repeating_key_xor` and `find_aes_ecb_ciphertext`
 pub fn average_hamming_distance(bytes: &Bytes, block_size: usize) -> Result<f32, crate::CryptopalsError> {
     // Get the first N blocks and store in a Vec
     let blocks = bytes
