@@ -1,21 +1,7 @@
-use std::error::Error;
-
 use cryptopals::{adversary, aes, Bytes};
 // Test support
-use support::{ok, FileLineIterator, TestResult};
+use support::{funky_music, ok, FileLineIterator, TestResult};
 mod support;
-
-/// Returns the lyrics to Funky Music as a Bytes struct
-pub fn funky_music() -> Result<Bytes, Box<dyn Error>> {
-    // Load content from file
-    let file = FileLineIterator::new("../data/n2Ubq9XII8c.txt")?;
-
-    // Parse as hexadecimal
-    let bytes = Bytes::try_from_hexadecimal(file)?;
-
-    // Return result
-    Ok(bytes)
-}
 
 #[test]
 fn challenge_1() -> TestResult {
@@ -110,6 +96,7 @@ fn challenge_6() -> TestResult {
 }
 
 // I realize I am doing challenge 7 the other way around (encrypt vs. decrypt)
+// However, for future challanges, it is more useful to implement encrypt
 #[test]
 fn challenge_7() -> TestResult {
     // Input

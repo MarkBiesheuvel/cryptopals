@@ -1,6 +1,6 @@
-use cryptopals::Bytes;
+use cryptopals::{aes, Bytes};
 // Test support
-use support::{ok, TestResult};
+use support::{funky_music, ok, FileLineIterator, TestResult};
 mod support;
 
 #[test]
@@ -12,6 +12,23 @@ fn challenge_9() -> TestResult {
     input.pad(20);
 
     assert_eq!(input, expected);
+
+    ok()
+}
+
+// I realize I am doing challenge 10 the other way around (encrypt vs. decrypt)
+// However, for future challanges, it is more useful to implement encrypt
+#[test]
+fn challenge_10() -> TestResult {
+    // Input
+    let plaintext = funky_music()?;
+    let key = Bytes::from("YELLOW SUBMARINE");
+
+    // Expected output
+    let file = FileLineIterator::new("../data/10.txt")?;
+    let ciphertext = Bytes::try_from_base64(file)?;
+
+    assert_eq!(aes::cbc::encrypt(&plaintext, &key)?, ciphertext);
 
     ok()
 }
