@@ -1,25 +1,17 @@
 //! AES encryption using electronic codebook (ECB) mode
 use super::{Block, Roundkey, BLOCK_LENGTH};
-use crate::{Bytes, CryptopalsError};
+use crate::Bytes;
 
 /// AES encrypt using electronic codebook (ECB) mode
-pub fn encrypt(plaintext: &Bytes, key: &Bytes) -> Result<Bytes, CryptopalsError> {
+pub fn encrypt(plaintext: &Bytes, key: &Bytes) -> Bytes {
     // Expand the key into 11 roundkeys once
-    let roundkeys = Roundkey::try_from(key)?.collect::<Vec<_>>();
+    let roundkeys = Roundkey::from(key).collect::<Vec<_>>();
 
     // Split the plaintext up into blocks of 16 bytes
     let mut blocks = plaintext
         .blocks(BLOCK_LENGTH)
-        .map(|mut bytes| {
-            // Padding
-            if bytes.length() < BLOCK_LENGTH {
-                bytes.pad(BLOCK_LENGTH);
-            }
-
-            // Load the bytes into a Block struct
-            Block::try_from(&bytes)
-        })
-        .collect::<Result<Vec<_>, CryptopalsError>>()?;
+        .map(|bytes| Block::from(&bytes))
+        .collect::<Vec<_>>();
 
     // Encrypt each block
     for block in blocks.iter_mut() {
@@ -32,5 +24,5 @@ pub fn encrypt(plaintext: &Bytes, key: &Bytes) -> Result<Bytes, CryptopalsError>
         acc
     });
 
-    Ok(Bytes::from(bytes))
+    Bytes::from(bytes)
 }

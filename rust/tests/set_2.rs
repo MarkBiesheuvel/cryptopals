@@ -28,7 +28,7 @@ fn challenge_10() -> TestResult {
     let file = FileLineIterator::new("../data/10.txt")?;
     let ciphertext = Bytes::try_from_base64(file)?;
 
-    assert_eq!(aes::cbc::encrypt(&plaintext, &key)?, ciphertext);
+    assert_eq!(aes::cbc::encrypt(&plaintext, &key), ciphertext);
 
     ok()
 }

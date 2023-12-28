@@ -7,7 +7,7 @@ mod support;
 
 #[test]
 fn roundkey() -> TestResult {
-    let key = aes::Roundkey::try_from("Thats my Kung Fu")?;
+    let key = aes::Roundkey::from("Thats my Kung Fu");
 
     let expected_roundkeys = [
         "54 68 61 74 73 20 6D 79 20 4B 75 6E 67 20 46 75",
@@ -36,8 +36,8 @@ fn roundkey() -> TestResult {
 
 #[test]
 fn manual_rounds() -> TestResult {
-    let mut key = aes::Roundkey::try_from("Thats my Kung Fu")?;
-    let plaintext = aes::Block::try_from("Two One Nine Two")?;
+    let mut key = aes::Roundkey::from("Thats my Kung Fu");
+    let plaintext = aes::Block::from("Two One Nine Two");
 
     // Expected state after each step
     let mut expected_states = [
@@ -107,7 +107,7 @@ fn start_to_finish() -> TestResult {
     let plaintext = Bytes::from("Two One Nine Two");
 
     // Perform encryption operation from start to finish
-    let ciphertext = aes::ecb::encrypt(&plaintext, &key)?;
+    let ciphertext = aes::ecb::encrypt(&plaintext, &key);
 
     // Expected ciphertext
     let expected = Bytes::try_from_hexadecimal("29 C3 50 5F 57 14 20 F6 40 22 99 B3 1A 02 D7 3A")?;

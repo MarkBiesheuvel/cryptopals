@@ -107,7 +107,7 @@ fn challenge_7() -> TestResult {
     let file = FileLineIterator::new("../data/7.txt")?;
     let ciphertext = Bytes::try_from_base64(file)?;
 
-    assert_eq!(aes::ecb::encrypt(&plaintext, &key)?, ciphertext);
+    assert_eq!(aes::ecb::encrypt(&plaintext, &key), ciphertext);
 
     ok()
 }

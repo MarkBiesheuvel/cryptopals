@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::convert::From;
 use std::ops::BitXorAssign;
 use std::ops::{Index, IndexMut};
 
@@ -61,7 +61,8 @@ impl Block {
     /// ```
     pub fn try_from_hexadecimal<S: Into<String>>(value: S) -> Result<Block, CryptopalsError> {
         let bytes = Bytes::try_from_hexadecimal(value)?;
-        Block::try_from(&bytes)
+        let block = Block::from(&bytes);
+        Ok(block)
     }
 
     /// Apply Rijndael S-box to all bytes of the block
@@ -171,33 +172,14 @@ impl From<Block> for Vec<u8> {
     }
 }
 
-impl TryFrom<&str> for Block {
-    type Error = CryptopalsError;
+impl From<&Bytes> for Block {
+    fn from(bytes: &Bytes) -> Self {
+        // ALERT: cloning
+        let mut bytes: Bytes = bytes.clone();
 
-    fn try_from(slice: &str) -> Result<Self, Self::Error> {
-        if slice.len() != BLOCK_LENGTH {
-            return Err(CryptopalsError::InvalidLength);
-        }
-
-        // Initialize default block
-        let mut block = Block::default();
-
-        // Copy over each item from slice
-        for (k, v) in block.0.iter_mut().zip(slice.as_bytes().iter()) {
-            *k = *v;
-        }
-
-        // Return block
-        Ok(block)
-    }
-}
-
-impl TryFrom<&Bytes> for Block {
-    type Error = CryptopalsError;
-
-    fn try_from(bytes: &Bytes) -> Result<Self, Self::Error> {
-        if bytes.length() != BLOCK_LENGTH {
-            return Err(CryptopalsError::InvalidLength);
+        // TODO: refactor padding function, so we do not need to clone first
+        if bytes.length() < BLOCK_LENGTH {
+            bytes.pad(BLOCK_LENGTH);
         }
 
         // Initialize default block
@@ -209,6 +191,13 @@ impl TryFrom<&Bytes> for Block {
         }
 
         // Return block
-        Ok(block)
+        block
+    }
+}
+
+impl From<&str> for Block {
+    fn from(string: &str) -> Self {
+        let bytes = Bytes::from(string);
+        Block::from(&bytes)
     }
 }

@@ -1,7 +1,7 @@
-use std::convert::TryFrom;
+use std::convert::From;
 
 use super::{sub_byte, Block};
-use crate::{Bytes, CryptopalsError};
+use crate::Bytes;
 
 // Round constants
 const ROUND_CONSTANT: [u8; 11] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54];
@@ -36,19 +36,16 @@ impl Roundkey {
     }
 }
 
-impl TryFrom<&str> for Roundkey {
-    type Error = CryptopalsError;
-
-    fn try_from(string: &str) -> Result<Self, Self::Error> {
-        Block::try_from(string).map(Roundkey::new)
+impl From<&Bytes> for Roundkey {
+    fn from(bytes: &Bytes) -> Self {
+        Roundkey::new(Block::from(bytes))
     }
 }
 
-impl TryFrom<&Bytes> for Roundkey {
-    type Error = CryptopalsError;
-
-    fn try_from(bytes: &Bytes) -> Result<Self, Self::Error> {
-        Block::try_from(bytes).map(Roundkey::new)
+impl From<&str> for Roundkey {
+    fn from(string: &str) -> Self {
+        let bytes = Bytes::from(string);
+        Roundkey::from(&bytes)
     }
 }
 
