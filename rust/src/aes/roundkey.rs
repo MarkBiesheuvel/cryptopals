@@ -1,7 +1,6 @@
 use std::convert::From;
 
 use super::{sub_byte, Block};
-use crate::Bytes;
 
 // Round constants
 const ROUND_CONSTANT: [u8; 11] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54];
@@ -36,16 +35,12 @@ impl Roundkey {
     }
 }
 
-impl From<&Bytes> for Roundkey {
-    fn from(bytes: &Bytes) -> Self {
-        Roundkey::new(Block::from(bytes))
-    }
-}
-
-impl From<&str> for Roundkey {
-    fn from(string: &str) -> Self {
-        let bytes = Bytes::from(string);
-        Roundkey::from(&bytes)
+impl<B> From<B> for Roundkey
+where
+    B: Into<Block>,
+{
+    fn from(block: B) -> Self {
+        Roundkey::new(block.into())
     }
 }
 
