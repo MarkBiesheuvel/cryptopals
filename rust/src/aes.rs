@@ -12,11 +12,13 @@
 //! assert_eq!(aes::ecb::encrypt(&plaintext, &key), aes::cbc::encrypt(&plaintext, &key));
 //! ```
 pub use block::{Block, BLOCK_LENGTH};
+use g_mul::g_mul;
 pub use roundkey::Roundkey;
 use sub_byte::sub_byte;
 
 mod block;
 pub mod cbc;
 pub mod ecb;
+mod g_mul;
 mod roundkey;
 mod sub_byte;

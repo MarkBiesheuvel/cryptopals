@@ -2,43 +2,11 @@ use std::convert::From;
 use std::ops::BitXorAssign;
 use std::ops::{Index, IndexMut};
 
-use super::sub_byte;
+use super::{g_mul, sub_byte};
 use crate::{Bytes, CryptopalsError};
 
 /// Number of bytes in 128 bits (e.g. 16 bytes)
 pub const BLOCK_LENGTH: usize = 16;
-
-const LOWEST_BIT: u8 = 0b00000001;
-const HIGHEST_BIT: u8 = 0b10000000;
-
-/// Galois Field (256) Multiplication of two Bytes
-fn g_mul(mut lhs: u8, mut rhs: u8) -> u8 {
-    let mut result = 0;
-
-    // Instead of always looping 8 times for 8 bits, the loop can exit once rhs is 0
-    while rhs != 0 {
-        let lowest_bit_set = (rhs & LOWEST_BIT) == LOWEST_BIT;
-        let highest_bit_set = (lhs & HIGHEST_BIT) == HIGHEST_BIT;
-
-        // If the lowest bit of rhs is set, XOR the result with the lhs
-        if lowest_bit_set {
-            result ^= lhs;
-        }
-
-        // Left bitshift lhs
-        lhs <<= 1;
-
-        // If the highest bit of lhs was set before shifting, XOR lhs with constant
-        if highest_bit_set {
-            lhs ^= 0x1B;
-        }
-
-        // Right bitshift rhs
-        rhs >>= 1;
-    }
-
-    result
-}
 
 /// A block of 16 bytes used in AES encryption
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
@@ -118,7 +86,6 @@ impl Block {
     }
 
     /// Encrypt a single block
-    ///
     ///
     /// Roundkeys need to already be calculated to avoid rerunning the Roundkey
     /// iterator for each block TODO: change the type of roundkeys
