@@ -2,7 +2,12 @@
 
 The [cryptopals crypto challenges](https://cryptopals.com/) are a collection of exercises that demonstrate attacks on real-world crypto.
 
+The challanges have been translated to test cases in Rust. The goal is to write a library that will pass all test cases.
+
 ## Examples
+
+Here is an example of how the `cryptopals` library can be used to (weakly) encrypt a simple string.
+
 ```rust
 use std::error::Error;
 use cryptopals::{Base64, Bytes};
@@ -10,7 +15,7 @@ use cryptopals::{Base64, Bytes};
 fn main() -> Result<(), Box<dyn Error>> {
     let key = 42;
     let plaintext = Bytes::from("cryptopals");
-    let ciphertext = Bytes::try_from(Base64::from("SVhTWl5FWktGWQ=="))?;
+    let ciphertext = Bytes::try_from_base64("SVhTWl5FWktGWQ==")?;
 
     assert_eq!(plaintext.single_byte_xor(key), ciphertext);
 

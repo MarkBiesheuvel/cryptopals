@@ -1,4 +1,19 @@
 //! AES encryption using electronic codebook (ECB) mode
+//!
+//! ## Examples
+//! ```
+//! # use cryptopals::{aes, Bytes};
+//! #
+//! let key = Bytes::from("YELLOW SUBMARINE");
+//! let plaintext = Bytes::from("https://cryptopals.com/");
+//!
+//! let expected = Bytes::from([
+//!     147, 213, 116, 241, 131, 50, 159, 45, 146, 150, 13, 146, 29, 242, 88, 90, 241, 7, 54,
+//!     252, 105, 236, 53, 191, 228, 209, 130, 115, 21, 173, 254, 95,
+//! ]);
+//!
+//! assert_eq!(aes::ecb::encrypt(&plaintext, &key), expected);
+//! ```
 use super::{Block, Roundkey, BLOCK_LENGTH};
 use crate::Bytes;
 

@@ -31,7 +31,9 @@ impl fmt::Display for CryptopalsError {
             Self::InvalidHexadecimal => write!(f, "The input is not valid hexadecimal"),
             Self::InvalidBase64 => write!(f, "The input is not valid base64"),
             Self::UnequalLength => write!(f, "The inputs are of unequal length"),
-            Self::NotEnoughBlocks => write!(f, "The input does not have enough blocks to perform operation"),
+            Self::NotEnoughBlocks => {
+                write!(f, "The input does not have enough blocks to perform operation")
+            }
             Self::UnableToFindLikelyCandidate => write!(f, "Unable to find likely candidate"),
             Self::UnableToDetectBlockSize => write!(f, "Unable to detect block size"),
             Self::IndexOutOfBounds => write!(f, "Index out of bounds"),

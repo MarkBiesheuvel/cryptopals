@@ -1,4 +1,19 @@
 //! AES encryption using cipher block chaining (CBC) mode
+//!
+//! ## Examples
+//! ```
+//! # use cryptopals::{aes, Bytes};
+//! #
+//! let key = Bytes::from("YELLOW SUBMARINE");
+//! let plaintext = Bytes::from("https://cryptopals.com/");
+//!
+//! let expected = Bytes::from([
+//!     147, 213, 116, 241, 131, 50, 159, 45, 146, 150, 13, 146, 29, 242, 88, 90, 232, 196,
+//!     246, 36, 93, 32, 2, 180, 64, 12, 116, 236, 193, 5, 120, 27,
+//! ]);
+//!
+//! assert_eq!(aes::cbc::encrypt(&plaintext, &key), expected);
+//! ```
 use super::{Block, Roundkey, BLOCK_LENGTH};
 use crate::Bytes;
 
