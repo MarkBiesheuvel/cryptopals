@@ -19,7 +19,7 @@ fn challenge_9() -> TestResult {
 fn challenge_10() -> TestResult {
     // Input
     let plaintext = funky_music()?;
-    let key = Bytes::from("YELLOW SUBMARINE");
+    let key = aes::Block::from("YELLOW SUBMARINE");
 
     // Expected output
     let file = FileLineIterator::new("../data/10.txt")?;

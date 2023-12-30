@@ -148,6 +148,9 @@ impl From<Block> for Vec<u8> {
 
 impl From<&Bytes> for Block {
     fn from(bytes: &Bytes) -> Self {
+        // TODO: Switch back to TryForm and validate the block length, to avoid errors
+        // due to silent padding
+
         // Create new padded copy of the bytes
         let bytes = bytes.pad(BLOCK_LENGTH);
 

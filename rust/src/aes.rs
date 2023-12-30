@@ -4,7 +4,7 @@
 //! ```
 //! # use cryptopals::{aes, Bytes};
 //! #
-//! let key = Bytes::from("YELLOW SUBMARINE");
+//! let key = aes::Block::from("YELLOW SUBMARINE");
 //! let plaintext = Bytes::from("cryptopals");
 //!
 //! // Since the plaintext is less than 16 bytes (one AES block),

@@ -9,10 +9,15 @@ const ROUND_CONSTANT: [u8; 11] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54];
 ///
 /// ## Examples
 /// ```
-/// use cryptopals::aes::Roundkey;
+/// # use rand::Rng;
+/// # use cryptopals::aes;
+/// #
+/// // Generate a random key
+/// let mut rng = rand::thread_rng();
+/// let key = aes::Block::with_random_values(&mut rng);
 ///
-/// // Use a 16 letter word as a key
-/// let roundkey = Roundkey::try_from("counteroffensive")?;
+/// // Expand round keys
+/// let roundkey = aes::Roundkey::from(key);
 ///
 /// // Initial key plus 10 rounds
 /// assert_eq!(roundkey.count(), 11);

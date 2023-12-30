@@ -103,7 +103,7 @@ fn manual_rounds() -> TestResult {
 
 #[test]
 fn start_to_finish() -> TestResult {
-    let key = Bytes::from("Thats my Kung Fu");
+    let key = aes::Block::from("Thats my Kung Fu");
     let plaintext = Bytes::from("Two One Nine Two");
 
     // Perform encryption operation from start to finish

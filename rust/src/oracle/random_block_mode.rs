@@ -14,7 +14,7 @@ use crate::{aes, Bytes};
 ///  - concatenate the prefix, plaintext, and postfix
 ///  - encrypt everything using the previously selected block mode
 pub struct RandomBlockMode {
-    key: Bytes,
+    key: aes::Block,
     mode: aes::BlockMode,
     prefix: Bytes,
     postfix: Bytes,
@@ -25,7 +25,7 @@ impl Default for RandomBlockMode {
         let mut rng = rand::thread_rng();
 
         // Generate a random key
-        let key = Bytes::with_random_values(aes::BLOCK_LENGTH, &mut rng);
+        let key = aes::Block::with_random_values(&mut rng);
 
         // Generate a random bool in order to pick between the two block modes
         let mode = match rng.gen() {

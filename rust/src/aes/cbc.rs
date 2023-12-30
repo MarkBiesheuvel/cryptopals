@@ -4,7 +4,7 @@
 //! ```
 //! # use cryptopals::{aes, Bytes};
 //! #
-//! let key = Bytes::from("YELLOW SUBMARINE");
+//! let key = aes::Block::from("YELLOW SUBMARINE");
 //! let plaintext = Bytes::from("https://cryptopals.com/");
 //!
 //! let expected = Bytes::from([
@@ -18,7 +18,10 @@ use super::{Block, Roundkey, BLOCK_LENGTH};
 use crate::Bytes;
 
 /// AES encrypt using cipher block chaining (CBC) mode
-pub fn encrypt(plaintext: &Bytes, key: &Bytes) -> Bytes {
+pub fn encrypt(plaintext: &Bytes, key: &Block) -> Bytes {
+    // Clone the key
+    let key = key.clone();
+
     // Expand the key into 11 roundkeys once
     let roundkeys = Roundkey::from(key).collect::<Vec<_>>();
 
