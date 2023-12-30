@@ -2,6 +2,8 @@ use std::convert::From;
 use std::fmt;
 use std::vec::Vec;
 
+use rand::random;
+
 use crate::{Base64, CryptopalsError, Hexadecimal};
 
 /// Collection of bytes
@@ -9,11 +11,44 @@ use crate::{Base64, CryptopalsError, Hexadecimal};
 pub struct Bytes(Vec<u8>);
 
 impl Bytes {
-    /// Short-hand function for creating Bytes struct from base64 encoded string
+    /// Create a new `Bytes` struct of the given `length` which repeats the
+    /// given `character`
     ///
     /// ## Examples
     /// ```
-    /// # use cryptopals::{Bytes};
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let value = Bytes::with_repeated_character(33, 'a');
+    /// let expected = Bytes::from("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    ///
+    /// assert_eq!(value, expected);
+    /// ```
+    pub fn with_repeated_character(length: usize, character: char) -> Bytes {
+        Bytes::from_iter((0..length).map(|_| character as u8))
+    }
+
+    /// Create a new `Bytes` struct of the given `length` containing randoms
+    /// values
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let desired_length = 42;
+    /// let value = Bytes::with_random_values(42);
+    ///
+    /// assert_eq!(value.length(), desired_length);
+    /// ```
+    pub fn with_random_values(length: usize) -> Bytes {
+        Bytes::from_iter((0..length).map(|_| random()))
+    }
+
+    /// Short-hand function for creating `Bytes` struct from base64 encoded
+    /// string
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
     /// #
     /// let value = Bytes::try_from_base64("Y3J5cHRvcGFscw==")?;
     /// let expected = Bytes::from("cryptopals");
@@ -26,7 +61,7 @@ impl Bytes {
         Bytes::try_from(Base64::from(value))
     }
 
-    /// Short-hand function for creating Bytes struct from hexadecimal encoded
+    /// Short-hand function for creating `Bytes` struct from hexadecimal encoded
     /// string
     ///
     /// ## Examples
@@ -269,8 +304,8 @@ impl<V> From<V> for Bytes
 where
     V: Into<Vec<u8>>,
 {
-    /// Construct a Bytes struct from anything that can be turned into a
-    /// `Vec<u8>`, like for example a &str
+    /// Construct a `Bytes` struct from anything that can be turned into a
+    /// `Vec<u8>`; for example a `&str` or `[u8; N]`.
     ///
     /// ## Examples
     /// ```
@@ -283,6 +318,27 @@ where
     /// ```
     fn from(value: V) -> Self {
         Bytes(value.into())
+    }
+}
+
+impl FromIterator<u8> for Bytes {
+    /// Construct a `Bytes` struct from an iterator over `u8` values.
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let value_1 = Bytes::from("abcdefghijklmnopqrstuvwxyz");
+    /// let value_2 = Bytes::from_iter((97..).take(26));
+    ///
+    /// assert_eq!(value_1, value_2);
+    /// ```
+    fn from_iter<I>(iter: I) -> Self
+    where
+        I: IntoIterator<Item = u8>,
+    {
+        let values = iter.into_iter().collect();
+        Bytes(values)
     }
 }
 

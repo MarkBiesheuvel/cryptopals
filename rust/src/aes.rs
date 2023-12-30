@@ -22,3 +22,11 @@ pub mod ecb;
 mod g_mul;
 mod roundkey;
 mod sub_byte;
+
+/// The block cipher mode of operation of AES
+pub enum BlockMode {
+    /// Electronic codebook (ECB) mode
+    Ecb,
+    /// Cipher block chaining (CBC) mode
+    Cbc,
+}
