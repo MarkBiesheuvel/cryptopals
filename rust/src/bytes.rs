@@ -2,8 +2,6 @@ use std::convert::From;
 use std::fmt;
 use std::vec::Vec;
 
-use rand::random;
-
 use crate::{Base64, CryptopalsError, Hexadecimal};
 
 /// Collection of bytes
@@ -33,14 +31,16 @@ impl Bytes {
     /// ## Examples
     /// ```
     /// # use cryptopals::Bytes;
+    /// # use rand::Rng;
     /// #
     /// let desired_length = 42;
-    /// let value = Bytes::with_random_values(42);
+    /// let mut rng = rand::thread_rng();
+    /// let value = Bytes::with_random_values(42, &mut rng);
     ///
     /// assert_eq!(value.length(), desired_length);
     /// ```
-    pub fn with_random_values(length: usize) -> Bytes {
-        Bytes::from_iter((0..length).map(|_| random()))
+    pub fn with_random_values<R: rand::Rng>(length: usize, rng: &mut R) -> Bytes {
+        Bytes::from_iter((0..length).map(|_| rng.gen()))
     }
 
     /// Short-hand function for creating `Bytes` struct from base64 encoded

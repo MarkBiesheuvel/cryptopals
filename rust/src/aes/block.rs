@@ -13,6 +13,13 @@ pub const BLOCK_LENGTH: usize = 16;
 pub struct Block([u8; BLOCK_LENGTH]);
 
 impl Block {
+    /// Generate a `Block` with random values.
+    ///
+    /// Extremly useful for creating encryption keys
+    pub fn with_random_values<R: rand::Rng>(rng: &mut R) -> Block {
+        Block(rng.gen())
+    }
+
     /// Short-hand function for creating Block struct from hexadecimal encoded
     /// string
     ///

@@ -1,4 +1,4 @@
-use cryptopals::{aes, Bytes};
+use cryptopals::{aes, oracle, Bytes};
 // Test support
 use support::{funky_music, ok, FileLineIterator, TestResult};
 mod support;
@@ -29,6 +29,17 @@ fn challenge_10() -> TestResult {
     let ciphertext = Bytes::try_from_base64(file)?;
 
     assert_eq!(aes::cbc::encrypt(&plaintext, &key), ciphertext);
+
+    ok()
+}
+
+#[test]
+fn challenge_11() -> TestResult {
+    let oracle = oracle::RandomBlockMode::default();
+
+    // TODO: implement adversary
+    let plaintext = Bytes::from("Hello, World!");
+    println!("{:?}", oracle.encrypt(plaintext));
 
     ok()
 }

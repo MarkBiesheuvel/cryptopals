@@ -18,6 +18,7 @@ use super::{Block, Roundkey, BLOCK_LENGTH};
 use crate::Bytes;
 
 /// AES encrypt using electronic codebook (ECB) mode
+// TODO: change type of key parameter to &Block
 pub fn encrypt(plaintext: &Bytes, key: &Bytes) -> Bytes {
     // Expand the key into 11 roundkeys once
     let roundkeys = Roundkey::from(key).collect::<Vec<_>>();

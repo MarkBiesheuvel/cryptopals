@@ -14,4 +14,5 @@ mod base64;
 mod bytes;
 mod error;
 mod hexadecimal;
+pub mod oracle;
 mod scored_box;
