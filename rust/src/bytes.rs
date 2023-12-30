@@ -146,32 +146,31 @@ impl Bytes {
     /// ```
     /// # use cryptopals::Bytes;
     /// #
-    /// let mut value = Bytes::from("cryptopals");
-    ///
-    /// // In-place operation
-    /// value.pad(16);
-    ///
-    /// // Expected
+    /// let value = Bytes::from("cryptopals");
     /// let expected = Bytes::from([
     ///     99, 114, 121, 112, 116, 111, 112, 97, 108, 115, 6, 6, 6, 6, 6, 6,
     /// ]);
     ///
-    /// assert_eq!(value, expected);
+    /// assert_eq!(value.pad(16), expected);
     /// ```
-    pub fn pad(&mut self, desired_length: usize) {
-        let current_size = self.length();
+    pub fn pad(&self, desired_block_lenght: usize) -> Bytes {
+        let current_length = self.length();
 
         // Calculate the difference in length
-        let difference = desired_length - (current_size % desired_length);
+        let difference = desired_block_lenght - (current_length % desired_block_lenght);
 
-        // Create that many bytes of that value
-        let mut additional_bytes = (0..difference)
-            .map(|_| difference as u8)
+        // Calculate the desired length
+        let desired_length = current_length + difference;
+
+        // Copy the bytes from `self` and append the `difference`
+        let bytes = (0..desired_length)
+            .map(|i| match self.get(i) {
+                Some(value) => value,
+                None => difference as u8,
+            })
             .collect::<Vec<_>>();
 
-        // Append to self
-        // TODO: replace in-place padding. instead return new struct
-        self.0.append(&mut additional_bytes);
+        Bytes(bytes)
     }
 
     /// Return an iterator of blocks of this Bytes struct

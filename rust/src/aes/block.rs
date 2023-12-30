@@ -30,7 +30,7 @@ impl Block {
     /// #
     /// let block = aes::Block::try_from_hexadecimal("5468617473206D79204B756E67204675")?;
     ///
-    /// assert_eq!(block.index(4), &115);
+    /// assert_eq!(block[4], 115);
     /// #
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -95,7 +95,7 @@ impl Block {
     /// Encrypt a single block
     ///
     /// Roundkeys need to already be calculated to avoid rerunning the Roundkey
-    /// iterator for each block TODO: change the type of roundkeys
+    /// iterator for each block
     pub fn encrypt(&mut self, roundkeys: &[Block]) {
         for (round_number, round_key) in roundkeys.iter().enumerate() {
             if 0 < round_number {
@@ -148,13 +148,8 @@ impl From<Block> for Vec<u8> {
 
 impl From<&Bytes> for Block {
     fn from(bytes: &Bytes) -> Self {
-        // ALERT: cloning
-        let mut bytes: Bytes = bytes.clone();
-
-        // TODO: refactor padding function, so we do not need to clone first
-        if bytes.length() < BLOCK_LENGTH {
-            bytes.pad(BLOCK_LENGTH);
-        }
+        // Create new padded copy of the bytes
+        let bytes = bytes.pad(BLOCK_LENGTH);
 
         // Initialize default block
         let mut block = Block::default();
