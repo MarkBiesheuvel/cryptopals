@@ -1,8 +1,5 @@
 //! Collection of adversaries that can be used to break encryption or detect
 //! hidden properties
-//!
-//! ## Examples
-//! Hi
 pub use attack_repeating_key_xor::attack_repeating_key_xor;
 pub use attack_single_byte_xor::attack_single_byte_xor;
 pub use average_hamming_distance::average_hamming_distance;
