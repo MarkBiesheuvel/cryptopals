@@ -1,4 +1,4 @@
-use std::convert::From;
+use std::convert::TryFrom;
 use std::ops::BitXorAssign;
 use std::ops::{Index, IndexMut};
 
@@ -41,8 +41,7 @@ impl Block {
     /// ```
     pub fn try_from_hexadecimal<S: Into<String>>(value: S) -> Result<Block, CryptopalsError> {
         let bytes = Bytes::try_from_hexadecimal(value)?;
-        let block = Block::from(&bytes);
-        Ok(block)
+        Block::try_from(&bytes)
     }
 
     /// Apply Rijndael S-box to all bytes of the block
@@ -151,13 +150,13 @@ impl From<Block> for Vec<u8> {
     }
 }
 
-impl From<&Bytes> for Block {
-    fn from(bytes: &Bytes) -> Self {
-        // TODO: Switch back to TryForm and validate the block length, to avoid errors
-        // due to silent padding
+impl TryFrom<&Bytes> for Block {
+    type Error = CryptopalsError;
 
-        // Create new padded copy of the bytes
-        let bytes = bytes.pad(BLOCK_LENGTH);
+    fn try_from(bytes: &Bytes) -> Result<Self, Self::Error> {
+        if bytes.length() != BLOCK_LENGTH {
+            return Err(CryptopalsError::InvalidLength);
+        }
 
         // Initialize default block
         let mut block = Block::default();
@@ -168,14 +167,7 @@ impl From<&Bytes> for Block {
         }
 
         // Return block
-        block
-    }
-}
-
-impl From<&str> for Block {
-    fn from(string: &str) -> Self {
-        let bytes = Bytes::from(string);
-        Block::from(&bytes)
+        Ok(block)
     }
 }
 
@@ -192,9 +184,9 @@ impl From<&str> for Block {
 /// # use cryptopals::{aes, aes_block, Bytes};
 /// #
 /// let value_1 = aes_block!("AAAAAAAAAAAAAAAA");
-/// let value_2 = Bytes::with_repeated_character(aes::BLOCK_LENGTH, 'A');
+/// let value_2 = aes::Block::new([b'A'; 16]);
 ///
-/// assert_eq!(value_1, aes::Block::from(&value_2));
+/// assert_eq!(value_1, value_2);
 /// ```
 #[macro_export]
 macro_rules! aes_block {

@@ -2,9 +2,9 @@
 //!
 //! ## Examples
 //! ```
-//! # use cryptopals::{aes, Bytes};
+//! # use cryptopals::{aes, aes_block, Bytes};
 //! #
-//! let key = aes::Block::from("YELLOW SUBMARINE");
+//! let key = aes_block!("YELLOW SUBMARINE");
 //! let plaintext = Bytes::from("https://cryptopals.com/");
 //!
 //! let expected = Bytes::from([
@@ -19,6 +19,9 @@ use crate::Bytes;
 
 /// AES encrypt using cipher block chaining (CBC) mode
 pub fn encrypt(plaintext: &Bytes, key: &Block) -> Bytes {
+    // Pad the plaintext
+    let plaintext = plaintext.pad(BLOCK_LENGTH);
+
     // Clone the key
     let key = key.clone();
 
@@ -31,7 +34,7 @@ pub fn encrypt(plaintext: &Bytes, key: &Block) -> Bytes {
     // Split the plaintext up into blocks of 16 bytes
     let mut blocks = plaintext
         .blocks(BLOCK_LENGTH)
-        .map(|bytes| Block::from(&bytes))
+        .map(|bytes| Block::try_from(&bytes).unwrap())
         .collect::<Vec<_>>();
 
     // Encrypt each block
