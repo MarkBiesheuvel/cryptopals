@@ -1,11 +1,11 @@
 test-all:
-  cargo test -- --nocapture
+  cargo test --
 
 test example:
   cargo test --test {{example}} -- --nocapture
 
 doc:
-  cargo doc
+  cargo doc --no-deps --workspace
 
 clippy:
   cargo clippy
