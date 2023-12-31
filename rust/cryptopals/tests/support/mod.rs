@@ -17,7 +17,7 @@ pub fn ok() -> TestResult {
 #[allow(dead_code)]
 pub fn funky_music() -> Result<Bytes, Box<dyn Error>> {
     // Load content from file
-    let file = FileLineIterator::new("../data/n2Ubq9XII8c.txt")?;
+    let file = FileLineIterator::new("../../data/n2Ubq9XII8c.txt")?;
 
     // Parse as hexadecimal
     let bytes = Bytes::try_from_hexadecimal(file)?;

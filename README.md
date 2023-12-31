@@ -30,7 +30,7 @@ Here is an example of challenge 6 in Rust
 #[test]
 fn challenge_6() -> TestResult {
     // Input
-    let file = FileLineIterator::new("../data/6.txt")?;
+    let file = FileLineIterator::new("../../data/6.txt")?;
     let ciphertext = Bytes::try_from_base64(file)?;
 
     // Expected output

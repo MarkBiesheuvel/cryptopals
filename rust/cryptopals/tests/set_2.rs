@@ -22,7 +22,7 @@ fn challenge_10() -> TestResult {
     let key = aes::Block::from("YELLOW SUBMARINE");
 
     // Expected output
-    let file = FileLineIterator::new("../data/10.txt")?;
+    let file = FileLineIterator::new("../../data/10.txt")?;
     let ciphertext = Bytes::try_from_base64(file)?;
 
     assert_eq!(aes::cbc::encrypt(&plaintext, &key), ciphertext);

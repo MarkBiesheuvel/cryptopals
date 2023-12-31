@@ -46,7 +46,7 @@ fn challenge_3() -> TestResult {
 
 #[test]
 fn challenge_4() -> TestResult {
-    let lines = FileLineIterator::new("../data/4.txt")?;
+    let lines = FileLineIterator::new("../../data/4.txt")?;
 
     // Convert each line from hexadecimal encoded string to Bytes
     let lines = lines
@@ -84,7 +84,7 @@ fn challenge_5() -> TestResult {
 #[test]
 fn challenge_6() -> TestResult {
     // Input
-    let file = FileLineIterator::new("../data/6.txt")?;
+    let file = FileLineIterator::new("../../data/6.txt")?;
     let ciphertext = Bytes::try_from_base64(file)?;
 
     // Expected output
@@ -104,7 +104,7 @@ fn challenge_7() -> TestResult {
     let key = aes::Block::from("YELLOW SUBMARINE");
 
     // Expected output
-    let file = FileLineIterator::new("../data/7.txt")?;
+    let file = FileLineIterator::new("../../data/7.txt")?;
     let ciphertext = Bytes::try_from_base64(file)?;
 
     assert_eq!(aes::ecb::encrypt(&plaintext, &key), ciphertext);
@@ -114,7 +114,7 @@ fn challenge_7() -> TestResult {
 
 #[test]
 fn challenge_8() -> TestResult {
-    let lines = FileLineIterator::new("../data/8.txt")?;
+    let lines = FileLineIterator::new("../../data/8.txt")?;
 
     // Convert each line from hexadecimal encoded string to Bytes
     let candidates = lines

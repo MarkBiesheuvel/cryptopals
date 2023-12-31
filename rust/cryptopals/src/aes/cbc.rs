@@ -43,7 +43,6 @@ pub fn encrypt(plaintext: &Bytes, key: &Block) -> Bytes {
         block.encrypt(&roundkeys);
 
         // Create a copy of the current block in order to use it for the next round
-        // TODO: figure out if there is a better way
         iv = block.clone();
     }
 
