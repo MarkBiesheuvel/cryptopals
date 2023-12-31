@@ -188,7 +188,8 @@ impl Bytes {
     /// assert_eq!(iter.next(), Some(Bytes::from([115])));
     /// assert_eq!(iter.next(), None);
     /// ```
-    // TODO: create two seperate functions `blocks` and `chunks` for fixed and variable length arrays
+    // TODO: create two seperate functions `blocks` and `chunks` for fixed and
+    // variable length arrays
     pub fn blocks(&self, block_size: usize) -> Box<dyn Iterator<Item = Bytes> + '_> {
         Box::new(self.0.chunks(block_size).map(Bytes::from))
     }

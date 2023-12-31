@@ -170,30 +170,3 @@ impl TryFrom<&Bytes> for Block {
         Ok(block)
     }
 }
-
-/// Macro to create an `aes::Block` from a string literal.
-///
-/// This uses a procedural macro under-the-hood to verify the string length at
-/// compile-time.
-///
-/// This will give a compile-time error if the string is not exactly 16 bytes
-/// long.
-///
-/// ## Examples
-/// ```
-/// # use cryptopals::{aes, aes_block, Bytes};
-/// #
-/// let value_1 = aes_block!("AAAAAAAAAAAAAAAA");
-/// let value_2 = aes::Block::new([b'A'; 16]);
-///
-/// assert_eq!(value_1, value_2);
-/// ```
-#[macro_export]
-macro_rules! aes_block {
-    {$str:expr} => {
-        {
-            let bytes = cryptopals_proc_macro::str_to_16_bytes!($str);
-            cryptopals::aes::Block::new(bytes)
-        }
-    };
-}

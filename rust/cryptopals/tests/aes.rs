@@ -1,4 +1,4 @@
-use cryptopals::{aes, aes_block, Bytes};
+use cryptopals::{aes, Bytes};
 // Test support
 use support::{ok, TestResult};
 mod support;
@@ -7,7 +7,7 @@ mod support;
 
 #[test]
 fn roundkey() -> TestResult {
-    let key = aes_block!("Thats my Kung Fu");
+    let key = aes::Block::new(*b"Thats my Kung Fu");
     let roundkey = aes::Roundkey::from(key);
 
     let expected_roundkeys = [
@@ -37,9 +37,9 @@ fn roundkey() -> TestResult {
 
 #[test]
 fn manual_rounds() -> TestResult {
-    let key = aes_block!("Thats my Kung Fu");
+    let key = aes::Block::new(*b"Thats my Kung Fu");
     let mut roundkey = aes::Roundkey::from(key);
-    let plaintext = aes_block!("Two One Nine Two");
+    let plaintext = aes::Block::new(*b"Two One Nine Two");
 
     // Expected state after each step
     let mut expected_states = [
@@ -105,7 +105,7 @@ fn manual_rounds() -> TestResult {
 
 #[test]
 fn start_to_finish() -> TestResult {
-    let key = aes_block!("Thats my Kung Fu");
+    let key = aes::Block::new(*b"Thats my Kung Fu");
     let plaintext = Bytes::from("Two One Nine Two");
 
     // Perform encryption operation from start to finish

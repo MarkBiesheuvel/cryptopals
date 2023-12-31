@@ -5,6 +5,3 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8"
-
-[dependencies.cryptopals_proc_macro]
-path = "../cryptopals_proc_macro"

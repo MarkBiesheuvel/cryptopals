@@ -2,9 +2,9 @@
 //!
 //! ## Examples
 //! ```
-//! # use cryptopals::{aes, aes_block, Bytes};
+//! # use cryptopals::{aes, Bytes};
 //! #
-//! let key = aes_block!("YELLOW SUBMARINE");
+//! let key = aes::Block::new(*b"YELLOW SUBMARINE");
 //! let plaintext = Bytes::from("https://cryptopals.com/");
 //!
 //! let expected = Bytes::from([

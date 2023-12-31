@@ -1,5 +1,4 @@
 [workspace]
 members = [
     "cryptopals",
-    "cryptopals_proc_macro",
 ]

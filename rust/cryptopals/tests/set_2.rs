@@ -1,4 +1,4 @@
-use cryptopals::{aes, aes_block, oracle, Bytes};
+use cryptopals::{aes, oracle, Bytes};
 // Test support
 use support::{funky_music, ok, FileLineIterator, TestResult};
 mod support;
@@ -19,7 +19,7 @@ fn challenge_9() -> TestResult {
 fn challenge_10() -> TestResult {
     // Input
     let plaintext = funky_music()?;
-    let key = aes_block!("YELLOW SUBMARINE");
+    let key = aes::Block::new(*b"YELLOW SUBMARINE");
 
     // Expected output
     let file = FileLineIterator::new("../../data/10.txt")?;
