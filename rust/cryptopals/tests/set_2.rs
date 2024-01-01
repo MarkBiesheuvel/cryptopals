@@ -1,4 +1,4 @@
-use cryptopals::{aes, oracle, Bytes};
+use cryptopals::{adversary, aes, oracle, Bytes};
 // Test support
 use support::{funky_music, ok, FileLineIterator, TestResult};
 mod support;
@@ -31,12 +31,13 @@ fn challenge_10() -> TestResult {
 }
 
 #[test]
-fn challenge_11() -> TestResult {
-    let oracle = oracle::RandomBlockMode::default();
+fn challenge_11() {
+    // Re-run the test multiple times, since the oracle involves randomness
+    for _ in 0..16 {
+        let oracle = oracle::RandomBlockMode::default();
 
-    // TODO: implement adversary
-    let plaintext = Bytes::from("Hello, World!");
-    println!("{:?}", oracle.encrypt(plaintext));
+        let detected_mode = adversary::detect_aes_block_mode(&oracle);
 
-    ok()
+        assert_eq!(&detected_mode, oracle.block_mode());
+    }
 }

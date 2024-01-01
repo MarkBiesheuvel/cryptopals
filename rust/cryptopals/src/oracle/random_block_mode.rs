@@ -20,6 +20,14 @@ pub struct RandomBlockMode {
     postfix: Bytes,
 }
 
+impl RandomBlockMode {
+    /// Return the randomly selected block mode, so it can be verified by the
+    /// test case.
+    pub fn block_mode(&self) -> &aes::BlockMode {
+        &self.mode
+    }
+}
+
 impl Default for RandomBlockMode {
     fn default() -> Self {
         let mut rng = rand::thread_rng();

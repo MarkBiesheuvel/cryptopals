@@ -1,13 +1,10 @@
+use itertools::Itertools;
+
 use crate::{Bytes, CryptopalsError};
 
-// Number of blocks to sample and compare to each other to find the most likely
-// key length Higher number will be more accurate, but break on shorter
-// ciphertexts
+// The maximum number of blocks to sample and compare to each other to calculate
+// the average hamming distance.
 const NUMBER_OF_BLOCKS: usize = 6;
-
-// C(n, r) = n! / [(n−r)! r!]
-// C(6, 2) = 6! / [(6-2)! 2!] = 6 * 5 / 2 = 15
-const NUMBER_OF_COMBINATIONS: f32 = 15.0;
 
 /// Not an adversary by itself, but used by both
 /// `attack_repeating_key_xor` and `find_aes_ecb_ciphertext`
@@ -19,28 +16,16 @@ pub fn average_hamming_distance(bytes: &Bytes, block_size: usize) -> Result<f32,
         .collect::<Vec<_>>();
 
     // Create all possible combinations as a Tuple
-    let combinations = (0..NUMBER_OF_BLOCKS)
-        .flat_map(|i| (i..NUMBER_OF_BLOCKS).map(move |j| (i, j)))
-        // Use indexes to get reference from Vec
-        .map(|(index_1, index_2)| {
-            let block_1 = blocks
-                .get(index_1)
-                .ok_or(CryptopalsError::NotEnoughBlocks)?;
+    let combinations = blocks.into_iter().tuple_combinations().collect::<Vec<_>>();
 
-            let block_2 = blocks
-                .get(index_2)
-                .ok_or(CryptopalsError::NotEnoughBlocks)?;
-
-            Ok((block_1, block_2))
-        })
-        // Propagate Result::Err if there were not enough blocks
-        .collect::<Result<Vec<_>, CryptopalsError>>()?;
+    // Count the actual number of combinations
+    let number_of_combinations = dbg!(combinations.len());
 
     // Calculate total distance
     let total_distance = combinations
         .into_iter()
         // Calculate hamming distance for each combination
-        .map(|(block_1, block_2)| block_1.hamming_distance(block_2))
+        .map(|(block_1, block_2)| block_1.hamming_distance(&block_2))
         // Propagate Result::Err if any combination had unequal lengths
         .collect::<Result<Vec<_>, CryptopalsError>>()?
         // Turn back into iterator
@@ -48,7 +33,7 @@ pub fn average_hamming_distance(bytes: &Bytes, block_size: usize) -> Result<f32,
         // Sum over all combination
         .sum::<usize>();
 
-    Ok(total_distance as f32 / (block_size as f32 * NUMBER_OF_COMBINATIONS))
+    Ok(total_distance as f32 / (block_size as f32 * number_of_combinations as f32))
 }
 
 #[cfg(test)]
@@ -69,9 +54,9 @@ mod tests {
     fn not_enough_blocks() {
         let value = Bytes::from("Hello, World");
 
-        let error = average_hamming_distance(&value, 3).unwrap_err();
-        let expected = CryptopalsError::NotEnoughBlocks;
+        // Due to a change in the implementation
+        let result = average_hamming_distance(&value, 3).unwrap();
 
-        assert_eq!(error, expected);
+        assert_eq!(result, 16.0 / 6.0);
     }
 }

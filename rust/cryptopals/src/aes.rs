@@ -24,6 +24,7 @@ mod roundkey;
 mod sub_byte;
 
 /// The block cipher mode of operation of AES
+#[derive(Debug, PartialEq, Eq)]
 pub enum BlockMode {
     /// Electronic codebook (ECB) mode
     Ecb,
