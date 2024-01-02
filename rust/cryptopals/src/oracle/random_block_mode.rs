@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use super::Oracle;
 use crate::{aes, Bytes};
 
 /// Create a new oracle which will encrypt a plaintext.
@@ -58,15 +59,15 @@ impl Default for RandomBlockMode {
     }
 }
 
-impl RandomBlockMode {
-    /// Perform encrypt operation
-    pub fn encrypt(&self, plaintext: Bytes) -> Bytes {
+impl Oracle for RandomBlockMode {
+    fn encrypt(&self, plaintext: Bytes) -> Bytes {
         // Convert everything to iterators
         let prefix = self.prefix.iter();
         let plaintext = plaintext.iter();
         let postfix = self.postfix.iter();
 
         // Build a payload by chaining all the iterators and copy all the bytes
+        // TODO: implement the Add trait for Bytes
         let payload = Bytes::from_iter(prefix.chain(plaintext).chain(postfix).copied());
 
         // Encrypt using the selected mode

@@ -1,9 +1,9 @@
 use itertools::Itertools;
 
-use crate::{aes, oracle, Bytes};
+use crate::{aes, Bytes, Oracle};
 
 /// Detect whether an oracle is encrypting with ECB or CBC block cipher mode.
-pub fn detect_aes_block_mode(oracle: &oracle::RandomBlockMode) -> aes::BlockMode {
+pub fn detect_aes_block_mode<O: Oracle>(oracle: &O) -> aes::BlockMode {
     // Purposefully choosen string for detecting AES ECB block mode.
     // The string contains an arbitrary character 64 times in a row.
     // After encrypting this plaintext with AES ECB mode, the cipher should have at

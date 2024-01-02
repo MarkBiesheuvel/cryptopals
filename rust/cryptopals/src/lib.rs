@@ -6,6 +6,7 @@ pub use base64::Base64;
 pub use bytes::Bytes;
 pub use error::CryptopalsError;
 pub use hexadecimal::Hexadecimal;
+pub use oracle::Oracle;
 use scored_box::ScoredBox;
 
 pub mod adversary;

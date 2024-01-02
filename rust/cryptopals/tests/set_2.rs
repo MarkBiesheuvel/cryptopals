@@ -41,3 +41,14 @@ fn challenge_11() {
         assert_eq!(&detected_mode, oracle.block_mode());
     }
 }
+
+#[test]
+fn challenge_12() {
+    let oracle = oracle::EcbFixedPostfix::default();
+
+    // It is known that the oracle uses ECB, but verify anyway.
+    let detected_mode = adversary::detect_aes_block_mode(&oracle);
+    assert_eq!(&detected_mode, &aes::BlockMode::Ecb);
+
+    // TODO: write adversary to attack the fixed postfix
+}
