@@ -40,13 +40,8 @@ impl Default for EcbFixedPostfix {
 
 impl Oracle for EcbFixedPostfix {
     fn encrypt(&self, plaintext: Bytes) -> Bytes {
-        // Convert everything to iterators
-        let plaintext = plaintext.iter();
-        let postfix = self.postfix.iter();
-
-        // Build a payload by chaining all the iterators and copy all the bytes
-        // TODO: implement the Add trait for Bytes
-        let payload = Bytes::from_iter(plaintext.chain(postfix).copied());
+        // Build a payload by adding the postfix to the plainttext
+        let payload = &plaintext + &self.postfix;
 
         // Encrypt using AES ECB block cipher mode
         aes::ecb::encrypt(&payload, &self.key)

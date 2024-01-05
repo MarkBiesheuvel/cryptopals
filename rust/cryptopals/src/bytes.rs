@@ -1,5 +1,6 @@
 use std::convert::From;
 use std::fmt;
+use std::ops::{Add, AddAssign};
 use std::vec::Vec;
 
 use crate::{Base64, CryptopalsError, Hexadecimal};
@@ -298,6 +299,40 @@ impl Bytes {
             .sum();
 
         Ok(distance)
+    }
+}
+
+impl Add<&Bytes> for Bytes {
+    type Output = Bytes;
+
+    /// Add a `&Bytes` reference to an owned `Bytes`
+    fn add(mut self, rhs: &Bytes) -> Self::Output {
+        // Clone the rhs and append it to self
+        let mut clone = rhs.0.clone();
+        self.0.append(&mut clone);
+
+        self
+    }
+}
+
+impl Add for &Bytes {
+    type Output = Bytes;
+
+    /// Add two `&Bytes` references together
+    fn add(self, rhs: Self) -> Self::Output {
+        // Create a new iterator which chains the lhs and rhs together and copies the
+        // values
+        let iter = self.iter().chain(rhs.iter()).copied();
+
+        // Create new struct from iterator
+        Bytes::from_iter(iter)
+    }
+}
+
+impl AddAssign<u8> for Bytes {
+    // Add a single byte to the end of a `Bytes` struct
+    fn add_assign(&mut self, rhs: u8) {
+        self.0.push(rhs);
     }
 }
 

@@ -54,5 +54,5 @@ fn challenge_12() {
     // Let the adversary attack the oracle
     let fixed_postfix = adversary::attack_ecb_fixed_postfix(&oracle);
 
-    assert_eq!(&fixed_postfix, oracle.postfix())
+    assert_eq!(&fixed_postfix, oracle.postfix());
 }

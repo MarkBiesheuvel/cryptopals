@@ -61,14 +61,8 @@ impl Default for RandomBlockMode {
 
 impl Oracle for RandomBlockMode {
     fn encrypt(&self, plaintext: Bytes) -> Bytes {
-        // Convert everything to iterators
-        let prefix = self.prefix.iter();
-        let plaintext = plaintext.iter();
-        let postfix = self.postfix.iter();
-
-        // Build a payload by chaining all the iterators and copy all the bytes
-        // TODO: implement the Add trait for Bytes
-        let payload = Bytes::from_iter(prefix.chain(plaintext).chain(postfix).copied());
+        // Build a payload by adding the prefix and postfix to the plainttext
+        let payload = &self.prefix + &plaintext + &self.postfix;
 
         // Encrypt using the selected mode
         match self.mode {

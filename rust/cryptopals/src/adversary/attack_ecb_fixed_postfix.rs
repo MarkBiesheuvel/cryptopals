@@ -51,7 +51,7 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Bytes {
     let postfix_length = previous_ciphertext_length - plaintext_length;
 
     // Starting with no known characters
-    let mut known_characters = Vec::default();
+    let mut known_characters = Bytes::default();
 
     // Brute force each character of the fixed postfix one by one
     #[allow(clippy::never_loop)]
@@ -72,14 +72,12 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Bytes {
             .into_iter()
             .map(|byte_value| {
                 // Create plaintexts from the prefix, followed by all known characters, followed
-                // by each printable byte value TODO: finally implement Add
-                // trait on Bytes
-                let single_byte = Bytes::from([byte_value]);
-                let iter = prefix.iter().chain(single_byte.iter()).copied();
-                let plaintext = Bytes::from_iter(iter);
+                // by byte value
+                let mut plaintext = &prefix + &known_characters;
+                plaintext += byte_value;
 
-                // Store the block of the cipher containing the different bytes values in the
-                // last position
+                // Store the block of the ciphertext containing the different bytes values in
+                // the last position
                 let block = oracle
                     .encrypt(plaintext)
                     .blocks(block_length)
@@ -109,11 +107,13 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Bytes {
         // Add the discovered character to the list of known characters so it can be
         // used in the next step
         let byte_value = block_map.get(&block).unwrap();
-        known_characters.push(*byte_value);
-
-        // TODO: continue solving
-        break;
+        known_characters += *byte_value;
     }
 
-    Bytes::from(known_characters)
+    // TODO: there are only 16 possible prefix lengths, however in the current
+    // implementation the block_map is calculated for each character of the fixed
+    // postfix which is 138 times. Try to build a cache for the block_maps
+
+    // All characters are known, this must be the fixed postfix
+    known_characters
 }

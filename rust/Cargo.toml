@@ -2,3 +2,6 @@
 members = [
     "cryptopals",
 ]
+
+[profile.test]
+opt-level = 3
