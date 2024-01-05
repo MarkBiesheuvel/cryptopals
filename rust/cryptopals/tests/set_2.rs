@@ -36,6 +36,7 @@ fn challenge_11() {
     for _ in 0..16 {
         let oracle = oracle::RandomBlockMode::default();
 
+        // Let the adversary attack the oracle
         let detected_mode = adversary::detect_aes_block_mode(&oracle);
 
         assert_eq!(&detected_mode, oracle.block_mode());
@@ -50,5 +51,8 @@ fn challenge_12() {
     let detected_mode = adversary::detect_aes_block_mode(&oracle);
     assert_eq!(&detected_mode, &aes::BlockMode::Ecb);
 
-    // TODO: write adversary to attack the fixed postfix
+    // Let the adversary attack the oracle
+    let fixed_postfix = adversary::attack_ecb_fixed_postfix(&oracle);
+
+    assert_eq!(&fixed_postfix, oracle.postfix())
 }

@@ -16,6 +16,14 @@ pub struct EcbFixedPostfix {
     postfix: Bytes,
 }
 
+impl EcbFixedPostfix {
+    /// Return the base64 encoded postfix, so it can be verified by the test
+    /// case.
+    pub fn postfix(&self) -> &Bytes {
+        &self.postfix
+    }
+}
+
 impl Default for EcbFixedPostfix {
     fn default() -> Self {
         let mut rng = rand::thread_rng();
