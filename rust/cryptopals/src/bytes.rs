@@ -5,7 +5,7 @@ use std::vec::Vec;
 use crate::{Base64, CryptopalsError, Hexadecimal};
 
 /// Collection of bytes
-#[derive(Clone, Default, Eq, PartialEq)]
+#[derive(Clone, Default, Eq, Hash, PartialEq)]
 pub struct Bytes(Vec<u8>);
 
 impl Bytes {

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{aes, Bytes, Oracle};
 
 const DEFAULT_CHARACTER: char = 'U';
@@ -48,6 +50,9 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Bytes {
     // ciphertext length to determine how many blocks that was.
     let postfix_length = previous_ciphertext_length - plaintext_length;
 
+    // Starting with no known characters
+    let mut known_characters = Vec::default();
+
     // Brute force each character of the fixed postfix one by one
     #[allow(clippy::never_loop)]
     for byte_index in 0..postfix_length {
@@ -61,19 +66,54 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Bytes {
         let prefix_length = (block_index + 1) * block_length - byte_index - 1;
         let prefix = Bytes::with_repeated_character(prefix_length, DEFAULT_CHARACTER);
 
-        let plaintexts = PRINTABLE_CHARACTERS
+        // Build a map of encrypted blocks where the corresponding plaintext block was
+        // our prefix + known characters + a printable byte value
+        let block_map = PRINTABLE_CHARACTERS
             .into_iter()
-            .map(|byte| {
-                // TODO: finally implement Add trait on Bytes
-                let single_byte = Bytes::from([byte]);
+            .map(|byte_value| {
+                // Create plaintexts from the prefix, followed by all known characters, followed
+                // by each printable byte value TODO: finally implement Add
+                // trait on Bytes
+                let single_byte = Bytes::from([byte_value]);
                 let iter = prefix.iter().chain(single_byte.iter()).copied();
-                Bytes::from_iter(iter)
-            })
-            .collect::<Vec<_>>();
+                let plaintext = Bytes::from_iter(iter);
 
-        dbg!(plaintexts);
+                // Store the block of the cipher containing the different bytes values in the
+                // last position
+                let block = oracle
+                    .encrypt(plaintext)
+                    .blocks(block_length)
+                    .nth(block_index)
+                    .unwrap();
+
+                (block, byte_value)
+            })
+            .collect::<HashMap<_, _>>();
+
+        // Encrypt only the prefix and lookup the block in the dictionary
+        //
+        // Visualization:
+        // - block length is 4
+        // - prefix is p
+        // - fixed postfix has 5 characters (2 are known `k` and 3 unknown `u`)
+        // - printable byte value is B
+        //
+        // pppp [pkkB] kkuu u
+        // pppp [pkku] uu
+        let block = oracle
+            .encrypt(prefix)
+            .blocks(block_length)
+            .nth(block_index)
+            .unwrap();
+
+        // Add the discovered character to the list of known characters so it can be
+        // used in the next step
+        let byte_value = block_map.get(&block).unwrap();
+        known_characters.push(*byte_value);
+
+        // TODO: continue solving
         break;
     }
 
-    Bytes::from([])
+    Bytes::from(known_characters)
 }
