@@ -7,7 +7,7 @@ pub use bytes::Bytes;
 pub use error::CryptopalsError;
 pub use hexadecimal::Hexadecimal;
 pub use oracle::Oracle;
-use scored_box::ScoredBox;
+pub use ordered_box::OrderedBox;
 
 pub mod adversary;
 pub mod aes;
@@ -16,4 +16,4 @@ mod bytes;
 mod error;
 mod hexadecimal;
 pub mod oracle;
-mod scored_box;
+mod ordered_box;

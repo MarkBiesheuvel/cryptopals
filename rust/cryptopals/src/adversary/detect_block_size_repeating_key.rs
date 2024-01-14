@@ -1,7 +1,7 @@
 use error_stack::{report, Result};
 
 use super::{average_hamming_distance, AdversaryError};
-use crate::{Bytes, ScoredBox};
+use crate::{Bytes, OrderedBox};
 
 const MIN_BLOCK_SIZE: usize = 2;
 const MAX_BLOCK_SIZE: usize = 40;
@@ -16,12 +16,12 @@ pub fn detect_block_size_repeating_key(ciphertext: &Bytes) -> Result<usize, Adve
                 // Filter out any block size that lead to an error
                 .ok()?;
 
-            Some(ScoredBox::new(distance, block_size))
+            Some(OrderedBox::new(distance, block_size))
         })
         // Find the block size with the lowest average hamming distance
         .min()
         // Return the block_size
-        .map(ScoredBox::unbox)
+        .map(OrderedBox::unbox)
         // Map Option<_> to Result<_, _>
         .ok_or(report!(AdversaryError::UnableToDetectBlockSize))
 }

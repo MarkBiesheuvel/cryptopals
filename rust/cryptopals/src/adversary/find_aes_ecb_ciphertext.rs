@@ -1,7 +1,7 @@
 use error_stack::{report, Result};
 
 use super::{average_hamming_distance, AdversaryError};
-use crate::{aes, Bytes, ScoredBox};
+use crate::{aes, Bytes, OrderedBox};
 
 /// Adversary which takes a list of candidates and returns the one which is most
 /// likely to be an AES ECB-mode encrypted ciphertext
@@ -18,7 +18,7 @@ pub fn find_aes_ecb_ciphertext(candidates: Vec<Bytes>) -> Result<Bytes, Adversar
         .map(|candidate| {
             // Calculate average hamming distance for each candidate
             let score = average_hamming_distance(&candidate, aes::BLOCK_LENGTH)?;
-            let scored_box = ScoredBox::new(score, candidate);
+            let scored_box = OrderedBox::new(score, candidate);
             Ok(scored_box)
         })
         .collect::<Result<Vec<_>, _>>()?;
@@ -27,6 +27,6 @@ pub fn find_aes_ecb_ciphertext(candidates: Vec<Bytes>) -> Result<Bytes, Adversar
     scores
         .into_iter()
         .min()
-        .map(ScoredBox::unbox)
+        .map(OrderedBox::unbox)
         .ok_or(report!(AdversaryError::EmptyCandidateList))
 }

@@ -1,7 +1,7 @@
 use error_stack::{report, Result};
 
 use super::AdversaryError;
-use crate::{Bytes, ScoredBox};
+use crate::{Bytes, OrderedBox};
 
 // 26 letters plus 4 categories (whitespace, numbers, punctuation, symbols)
 const SIZE: usize = 30;
@@ -122,11 +122,11 @@ pub fn find_english_text(candidates: Vec<Bytes>) -> Result<Bytes, AdversaryError
     candidates
         .into_iter()
         // Calculate chi squared score for each candidate
-        .map(|candidate| ScoredBox::new(chi_squared(&candidate), candidate))
+        .map(|candidate| OrderedBox::new(chi_squared(&candidate), candidate))
         // Find the candidate with the lowest chi squared score
         .min()
         // Return the candidate
-        .map(ScoredBox::unbox)
+        .map(OrderedBox::unbox)
         // Map Option<_> to Result<_, _>
         .ok_or(report!(AdversaryError::UnableToFindPrintablePlaintext))
 }
