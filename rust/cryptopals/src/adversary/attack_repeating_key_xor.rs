@@ -1,9 +1,9 @@
-use super::{attack_single_byte_xor, detect_block_size_repeating_key};
-use crate::{Bytes, CryptopalsError};
+use super::{attack_single_byte_xor, detect_block_size_repeating_key, AdversaryError};
+use crate::Bytes;
 
 /// Adversary which takes a ciphertext which has been encrypted using a single
 /// byte XOR and tries to reverse it
-pub fn attack_repeating_key_xor(ciphertext: &Bytes) -> Result<Bytes, CryptopalsError> {
+pub fn attack_repeating_key_xor(ciphertext: &Bytes) -> Result<Bytes, AdversaryError> {
     // Get length
     let length = ciphertext.length();
 
@@ -23,10 +23,9 @@ pub fn attack_repeating_key_xor(ciphertext: &Bytes) -> Result<Bytes, CryptopalsE
                     assert_eq!(i % block_size, chunk_number);
 
                     // Get the number at specified index
-                    ciphertext.get(i).ok_or(CryptopalsError::IndexOutOfBounds)
+                    ciphertext.get(i).unwrap()
                 })
-                // Propagate Result::Err if any bytes were out of bounds
-                .collect::<Result<Vec<_>, _>>()?;
+                .collect::<Vec<_>>();
 
             // Create new Bytes struct
             Ok(Bytes::from(bytes))
@@ -51,16 +50,11 @@ pub fn attack_repeating_key_xor(ciphertext: &Bytes) -> Result<Bytes, CryptopalsE
             let offset = i / block_size;
 
             // Retrieve byte using the inverse logic
-            let byte = chunks
-                .get(chunk_number)
-                .ok_or(CryptopalsError::IndexOutOfBounds)?
-                .get(offset)
-                .ok_or(CryptopalsError::IndexOutOfBounds)?;
+            let byte = chunks.get(chunk_number).unwrap().get(offset).unwrap();
 
-            Ok(byte)
+            byte
         })
-        // Propagate Result::Err if any byte could not be reconstructed
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect::<Vec<_>>();
 
     // Create new Bytes struct
     Ok(Bytes::from(bytes))

@@ -1,4 +1,5 @@
-use crate::{Bytes, CryptopalsError, ScoredBox};
+use super::AdversaryError;
+use crate::{Bytes, ScoredBox};
 
 // 26 letters plus 4 categories (whitespace, numbers, punctuation, symbols)
 const SIZE: usize = 30;
@@ -115,7 +116,7 @@ fn chi_squared(candidate: &Bytes) -> f32 {
 
 /// Adversary which takes a list of candidates and returns the one which is most
 /// likely to be English text
-pub fn find_english_text(candidates: Vec<Bytes>) -> Result<Bytes, CryptopalsError> {
+pub fn find_english_text(candidates: Vec<Bytes>) -> Result<Bytes, AdversaryError> {
     candidates
         .into_iter()
         // Calculate chi squared score for each candidate
@@ -125,5 +126,5 @@ pub fn find_english_text(candidates: Vec<Bytes>) -> Result<Bytes, CryptopalsErro
         // Return the candidate
         .map(ScoredBox::unbox)
         // Map Option<_> to Result<_, _>
-        .ok_or(CryptopalsError::UnableToFindLikelyCandidate)
+        .ok_or(AdversaryError::UnableToFindPrintablePlaintext)
 }

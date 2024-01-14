@@ -1,12 +1,12 @@
-use super::average_hamming_distance;
-use crate::{Bytes, CryptopalsError, ScoredBox};
+use super::{average_hamming_distance, AdversaryError};
+use crate::{Bytes, ScoredBox};
 
 const MIN_BLOCK_SIZE: usize = 2;
 const MAX_BLOCK_SIZE: usize = 40;
 
 /// Detect block size of a repeating XOR ciphertext by looking for the block
 /// size which leads to the lowest normalized hamming distance between blocks
-pub fn detect_block_size_repeating_key(ciphertext: &Bytes) -> Result<usize, CryptopalsError> {
+pub fn detect_block_size_repeating_key(ciphertext: &Bytes) -> Result<usize, AdversaryError> {
     (MIN_BLOCK_SIZE..=MAX_BLOCK_SIZE)
         .filter_map(|block_size| {
             // Calculate average hamming distance between first few blocks
@@ -21,5 +21,5 @@ pub fn detect_block_size_repeating_key(ciphertext: &Bytes) -> Result<usize, Cryp
         // Return the block_size
         .map(ScoredBox::unbox)
         // Map Option<_> to Result<_, _>
-        .ok_or(CryptopalsError::UnableToDetectBlockSize)
+        .ok_or(AdversaryError::UnableToDetectBlockSize)
 }
