@@ -3,17 +3,19 @@ use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 /// A combination of a `Box<T>` with a number value, such that different
 /// instances can be compared and ordered.
 ///
+/// Currently only numeric values of type `f32` or `u8` are supported.
+///
 /// ## Examples
 /// ```
 /// # use cryptopals::OrderedBox;
 /// #
 /// // List of strings in alphabetical order
 /// let mut list = Vec::from([
-///     OrderedBox::new(4.0, "four"),
-///     OrderedBox::new(1.0, "one"),
-///     OrderedBox::new(3.0, "three"),
-///     OrderedBox::new(2.0, "two"),
-///     OrderedBox::new(0.0, "zero"),
+///     OrderedBox::new(4, "four"),
+///     OrderedBox::new(1, "one"),
+///     OrderedBox::new(3, "three"),
+///     OrderedBox::new(2, "two"),
+///     OrderedBox::new(0, "zero"),
 /// ]);
 ///
 /// // Sort into numeric order
@@ -22,18 +24,18 @@ use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 /// // Verify last element
 /// assert_eq!(list.pop().map(OrderedBox::unbox), Some("four"));
 /// ```
-pub struct OrderedBox<T> {
-    score: f32,
+pub struct OrderedBox<S, T> {
+    score: S,
     content: Box<T>,
 }
 
-impl<T> OrderedBox<T> {
+impl<S, T> OrderedBox<S, T> {
     /// Constructor
     ///
     /// Note that `score` is first parameter, so it can be calculated with a
     /// borrowed reference of `content`. This would not be possible if it was
     /// the second parameter, since `content` would already be moved.
-    pub fn new(score: f32, content: T) -> OrderedBox<T> {
+    pub fn new(score: S, content: T) -> OrderedBox<S, T> {
         // Store content in a box
         let content = Box::new(content);
 
@@ -47,22 +49,34 @@ impl<T> OrderedBox<T> {
     }
 }
 
-impl<T> PartialEq for OrderedBox<T> {
+impl<S, T> PartialEq for OrderedBox<S, T>
+where
+    OrderedBox<S, T>: Ord,
+{
     fn eq(&self, other: &Self) -> bool {
         self.cmp(other).is_eq()
     }
 }
 
-impl<T> Eq for OrderedBox<T> {}
+impl<S, T> Eq for OrderedBox<S, T> where OrderedBox<S, T>: Ord {}
 
-impl<T> PartialOrd for OrderedBox<T> {
+impl<S, T> PartialOrd for OrderedBox<S, T>
+where
+    OrderedBox<S, T>: Ord,
+{
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<T> Ord for OrderedBox<T> {
+impl<T> Ord for OrderedBox<f32, T> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.score.total_cmp(&other.score)
+    }
+}
+
+impl<T> Ord for OrderedBox<u8, T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.score.cmp(&other.score)
     }
 }
