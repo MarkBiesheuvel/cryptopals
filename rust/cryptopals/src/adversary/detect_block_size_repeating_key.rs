@@ -1,3 +1,5 @@
+use error_stack::{report, Result};
+
 use super::{average_hamming_distance, AdversaryError};
 use crate::{Bytes, ScoredBox};
 
@@ -21,5 +23,5 @@ pub fn detect_block_size_repeating_key(ciphertext: &Bytes) -> Result<usize, Adve
         // Return the block_size
         .map(ScoredBox::unbox)
         // Map Option<_> to Result<_, _>
-        .ok_or(AdversaryError::UnableToDetectBlockSize)
+        .ok_or(report!(AdversaryError::UnableToDetectBlockSize))
 }

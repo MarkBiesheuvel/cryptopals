@@ -1,3 +1,5 @@
+use error_stack::{report, Result};
+
 use super::AdversaryError;
 use crate::{Bytes, ScoredBox};
 
@@ -126,5 +128,5 @@ pub fn find_english_text(candidates: Vec<Bytes>) -> Result<Bytes, AdversaryError
         // Return the candidate
         .map(ScoredBox::unbox)
         // Map Option<_> to Result<_, _>
-        .ok_or(AdversaryError::UnableToFindPrintablePlaintext)
+        .ok_or(report!(AdversaryError::UnableToFindPrintablePlaintext))
 }

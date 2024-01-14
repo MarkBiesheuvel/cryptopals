@@ -1,3 +1,5 @@
+use error_stack::{report, Result};
+
 use super::{average_hamming_distance, AdversaryError};
 use crate::{aes, Bytes, ScoredBox};
 
@@ -26,5 +28,5 @@ pub fn find_aes_ecb_ciphertext(candidates: Vec<Bytes>) -> Result<Bytes, Adversar
         .into_iter()
         .min()
         .map(ScoredBox::unbox)
-        .ok_or(AdversaryError::EmptyCandidateList)
+        .ok_or(report!(AdversaryError::EmptyCandidateList))
 }

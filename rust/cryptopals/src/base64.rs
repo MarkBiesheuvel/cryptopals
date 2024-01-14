@@ -1,6 +1,8 @@
 use std::convert::TryFrom;
 use std::vec::Vec;
 
+use error_stack::{bail, ensure, Report, Result};
+
 use super::{Bytes, CryptopalsError};
 
 /// Base64 encoded string
@@ -17,16 +19,14 @@ where
 }
 
 impl TryFrom<Base64> for Bytes {
-    type Error = CryptopalsError;
+    type Error = Report<CryptopalsError>;
 
-    fn try_from(value: Base64) -> Result<Self, Self::Error> {
+    fn try_from(value: Base64) -> core::result::Result<Self, Self::Error> {
         // Get the length of the string
         let length = value.0.len();
 
         // Input must be divisible by four
-        if length % 4 != 0 {
-            return Err(CryptopalsError::InvalidBase64);
-        }
+        ensure!(length % 4 == 0, CryptopalsError::InvalidBase64);
 
         // Parse each chunk of 2 characters
         let chunks = (value.0)
@@ -148,7 +148,7 @@ fn char_to_u8(character: char) -> Result<u8, CryptopalsError> {
         '+' => 62,
         '/' => 63,
         _ => {
-            return Err(CryptopalsError::InvalidBase64);
+            bail!(CryptopalsError::InvalidBase64);
         }
     };
 
@@ -161,25 +161,24 @@ mod tests {
 
     #[test]
     fn invalid_length() {
-        let error = Bytes::try_from(Base64::from("bGlnaHQgd29yay4")).unwrap_err();
-        let expected = CryptopalsError::InvalidBase64;
+        let result = Bytes::try_from(Base64::from("bGlnaHQgd29yay4"));
 
-        assert_eq!(error, expected);
+        assert!(result.is_err());
     }
 
     #[test]
     fn padding_1() {
-        let value = Bytes::try_from(Base64::from("bGlnaHQgd29yay4=")).unwrap();
+        let result = Bytes::try_from(Base64::from("bGlnaHQgd29yay4="));
         let expected = Bytes::from("light work.");
 
-        assert_eq!(value, expected);
+        assert_eq!(result.unwrap(), expected);
     }
 
     #[test]
     fn padding_2() {
-        let value = Bytes::try_from(Base64::from("bGlnaHQgd29yaw==")).unwrap();
+        let result = Bytes::try_from(Base64::from("bGlnaHQgd29yaw=="));
         let expected = Bytes::from("light work");
 
-        assert_eq!(value, expected);
+        assert_eq!(result.unwrap(), expected);
     }
 }

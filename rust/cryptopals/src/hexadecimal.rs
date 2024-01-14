@@ -1,6 +1,8 @@
 use std::convert::TryFrom;
 use std::vec::Vec;
 
+use error_stack::{bail, ensure, Report, Result};
+
 use super::{Bytes, CryptopalsError};
 
 /// Hexadecimal encoded string
@@ -17,9 +19,9 @@ where
 }
 
 impl TryFrom<Hexadecimal> for Bytes {
-    type Error = CryptopalsError;
+    type Error = Report<CryptopalsError>;
 
-    fn try_from(mut value: Hexadecimal) -> Result<Self, Self::Error> {
+    fn try_from(mut value: Hexadecimal) -> core::result::Result<Self, Self::Error> {
         // Remove whitespaces for ease of use
         value.0.retain(|c| !c.is_whitespace());
 
@@ -27,9 +29,7 @@ impl TryFrom<Hexadecimal> for Bytes {
         let length = value.0.len();
 
         // Input must be even
-        if length % 2 != 0 {
-            return Err(CryptopalsError::InvalidHexadecimal);
-        }
+        ensure!(length % 2 == 0, CryptopalsError::InvalidHexadecimal);
 
         // Parse each chunk of 2 characters
         let bytes = (value.0)
@@ -90,7 +90,7 @@ fn char_to_u8(character: char) -> Result<u8, CryptopalsError> {
         'e' | 'E' => 14,
         'f' | 'F' => 15,
         _ => {
-            return Err(CryptopalsError::InvalidHexadecimal);
+            bail!(CryptopalsError::InvalidHexadecimal);
         }
     };
 
@@ -117,7 +117,7 @@ fn u8_to_char(number: u8) -> Result<char, CryptopalsError> {
         14 => 'E',
         15 => 'F',
         _ => {
-            return Err(CryptopalsError::InvalidHexadecimal);
+            bail!(CryptopalsError::InvalidHexadecimal);
         }
     };
 
@@ -130,25 +130,24 @@ mod tests {
 
     #[test]
     fn invalid_length() {
-        let error = Bytes::try_from(Hexadecimal::from("48656c6c6f2c20576f726c642")).unwrap_err();
-        let expected = CryptopalsError::InvalidHexadecimal;
+        let result = Bytes::try_from(Hexadecimal::from("48656c6c6f2c20576f726c642"));
 
-        assert_eq!(error, expected);
+        assert!(result.is_err());
     }
 
     #[test]
     fn lowercase() {
-        let value = Bytes::try_from(Hexadecimal::from("48656c6c6f2c20576f726c6421")).unwrap();
+        let result = Bytes::try_from(Hexadecimal::from("48656c6c6f2c20576f726c6421"));
         let expected = Bytes::from("Hello, World!");
 
-        assert_eq!(value, expected);
+        assert_eq!(result.unwrap(), expected);
     }
 
     #[test]
     fn uppercase() {
-        let value = Bytes::try_from(Hexadecimal::from("48656C6C6f2C20576F726C6421")).unwrap();
+        let result = Bytes::try_from(Hexadecimal::from("48656C6C6f2C20576F726C6421"));
         let expected = Bytes::from("Hello, World!");
 
-        assert_eq!(value, expected);
+        assert_eq!(result.unwrap(), expected);
     }
 }

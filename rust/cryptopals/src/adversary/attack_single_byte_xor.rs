@@ -1,3 +1,5 @@
+use error_stack::Result;
+
 use super::{find_english_text, AdversaryError};
 use crate::Bytes;
 

@@ -1,3 +1,5 @@
+use error_stack::Result;
+
 use super::{attack_single_byte_xor, detect_block_size_repeating_key, AdversaryError};
 use crate::Bytes;
 

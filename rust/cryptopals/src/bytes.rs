@@ -3,6 +3,8 @@ use std::fmt;
 use std::ops::{Add, AddAssign};
 use std::vec::Vec;
 
+use error_stack::{ensure, Result};
+
 use crate::{Base64, CryptopalsError, Hexadecimal};
 
 /// Collection of bytes
@@ -210,9 +212,7 @@ impl Bytes {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn fixed_xor(&self, other: &Bytes) -> Result<Bytes, CryptopalsError> {
-        if self.length() != other.length() {
-            return Err(CryptopalsError::UnequalLength);
-        }
+        ensure!(self.length() == other.length(), CryptopalsError::UnequalLength);
 
         let bytes = (self.iter())
             .zip(other.iter())
@@ -425,9 +425,8 @@ mod tests {
         let value_1 = Bytes::from("Hello, World");
         let value_2 = Bytes::from("foo");
 
-        let error = value_1.fixed_xor(&value_2).unwrap_err();
-        let expected = CryptopalsError::UnequalLength;
+        let result = value_1.fixed_xor(&value_2);
 
-        assert_eq!(error, expected);
+        assert!(result.is_err());
     }
 }

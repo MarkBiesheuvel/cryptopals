@@ -2,6 +2,8 @@ use std::convert::TryFrom;
 use std::ops::BitXorAssign;
 use std::ops::{Index, IndexMut};
 
+use error_stack::{ensure, Report, Result};
+
 use super::{g_mul, sub_byte};
 use crate::{Bytes, CryptopalsError};
 
@@ -151,12 +153,11 @@ impl From<Block> for Vec<u8> {
 }
 
 impl TryFrom<&Bytes> for Block {
-    type Error = CryptopalsError;
+    type Error = Report<CryptopalsError>;
 
-    fn try_from(bytes: &Bytes) -> Result<Self, Self::Error> {
-        if bytes.length() != BLOCK_LENGTH {
-            return Err(CryptopalsError::InvalidLength);
-        }
+    fn try_from(bytes: &Bytes) -> core::result::Result<Self, Self::Error> {
+        // Make sure the bytes match the desired block length
+        ensure!(bytes.length() == BLOCK_LENGTH, CryptopalsError::InvalidLength);
 
         // Initialize default block
         let mut block = Block::default();

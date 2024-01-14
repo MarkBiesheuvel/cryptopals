@@ -32,6 +32,7 @@ impl Default for EcbFixedPostfix {
         let key = aes::Block::with_random_values(&mut rng);
 
         // Initialze postfix from base64
+        // TODO: move base64 decoding to proc_macro
         let postfix = Bytes::try_from_base64(FIXED_POSTFIX).expect("Expected hardcoded base64 string to be valid");
 
         EcbFixedPostfix { key, postfix }

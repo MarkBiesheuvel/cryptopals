@@ -1,3 +1,4 @@
+use error_stack::{ensure, Result};
 use itertools::Itertools;
 
 use super::AdversaryError;
@@ -22,10 +23,9 @@ pub fn average_hamming_distance(bytes: &Bytes, block_size: usize) -> Result<f32,
     // Count the actual number of combinations
     let number_of_combinations = combinations.len();
 
-    // If there was only one block, then there are
-    if number_of_combinations == 0 {
-        return Err(AdversaryError::UnableToCalculateAverageHammingDistance);
-    }
+    // If there is less than one block, it's not possible to calculate hamming
+    // distance
+    ensure!(number_of_combinations > 1, AdversaryError::UnableToCalculateAverageHammingDistance);
 
     // Calculate total distance
     let total_distance = combinations
@@ -49,26 +49,27 @@ mod tests {
 
         let result = average_hamming_distance(&value, 2);
 
-        assert_eq!(result, Ok(43.0 / 15.0));
+        assert_eq!(result.unwrap(), 43.0 / 15.0);
     }
 
     #[test]
     fn barely_enough_blocks() {
         let value = Bytes::from("Hello, World");
 
-        // Due to a change in the implementation
+        // Due to a change in the implementation, the function will even work if there
+        // is a lower number of blocks
         let result = average_hamming_distance(&value, 3);
 
-        assert_eq!(result, Ok(16.0 / 6.0));
+        assert_eq!(result.unwrap(), 16.0 / 6.0);
     }
 
     #[test]
     fn not_enough_blocks() {
         let value = Bytes::from("Hello, World");
 
-        // Due to a change in the implementation
+        // However, it will fail if there are 0 or 1 blocks
         let result = average_hamming_distance(&value, 16);
 
-        assert_eq!(result, Err(AdversaryError::UnableToCalculateAverageHammingDistance));
+        assert!(result.is_err());
     }
 }
