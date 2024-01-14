@@ -4,11 +4,13 @@
 //! adversary.
 pub use ecb_fixed_postfix::EcbFixedPostfix;
 pub use random_block_mode::RandomBlockMode;
+pub use user_profile::UserProfile;
 
 use crate::Bytes;
 
 mod ecb_fixed_postfix;
 mod random_block_mode;
+mod user_profile;
 
 /// Trait that should be implemented by all oracles.
 ///

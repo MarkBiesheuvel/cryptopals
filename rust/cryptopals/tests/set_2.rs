@@ -1,4 +1,4 @@
-use cryptopals::{adversary, aes, oracle, Bytes};
+use cryptopals::{adversary, aes, oracle, Bytes, Oracle};
 // Test support
 use support::{funky_music, ok, FileLineIterator, TestResult};
 mod support;
@@ -55,4 +55,16 @@ fn challenge_12() {
     let fixed_postfix = adversary::attack_ecb_fixed_postfix(&oracle);
 
     assert_eq!(&fixed_postfix, oracle.postfix());
+}
+
+#[test]
+fn challenge_13() {
+    let oracle = oracle::UserProfile::default();
+
+    let email = Bytes::from("foo@bar.com");
+    let ciphertext = oracle.encrypt(email);
+
+    dbg!(ciphertext);
+
+    assert!(false);
 }

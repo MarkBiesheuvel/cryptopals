@@ -3,7 +3,7 @@ use crate::{aes, Bytes};
 
 const FIXED_POSTFIX: &str = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK";
 
-/// Create a new oracle which will encrypt a plaintext.
+/// An oracle which will encrypt a plaintext appended with a fixed string.
 ///
 /// During creation it will:
 ///  - randomly generate an encryption key

@@ -3,7 +3,7 @@ use rand::Rng;
 use super::Oracle;
 use crate::{aes, Bytes};
 
-/// Create a new oracle which will encrypt a plaintext.
+/// An oracle which will encrypt a plaintext with a random AES block cipher mode
 ///
 /// During creation it will:
 ///  - randomly generate an encryption key
