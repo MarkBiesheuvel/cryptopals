@@ -1,4 +1,6 @@
-use super::Oracle;
+use error_stack::Result;
+
+use super::{Oracle, OracleError};
 use crate::{aes, Bytes};
 
 const FIXED_POSTFIX: &str = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK";
@@ -40,11 +42,13 @@ impl Default for EcbFixedPostfix {
 }
 
 impl Oracle for EcbFixedPostfix {
-    fn encrypt(&self, plaintext: Bytes) -> Bytes {
+    fn encrypt(&self, plaintext: Bytes) -> Result<Bytes, OracleError> {
         // Build a payload by adding the postfix to the plainttext
         let payload = &plaintext + &self.postfix;
 
         // Encrypt using AES ECB block cipher mode
-        aes::ecb::encrypt(&payload, &self.key)
+        let ciphertext = aes::ecb::encrypt(&payload, &self.key);
+
+        Ok(ciphertext)
     }
 }

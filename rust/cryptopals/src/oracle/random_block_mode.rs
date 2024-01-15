@@ -1,6 +1,7 @@
+use error_stack::Result;
 use rand::Rng;
 
-use super::Oracle;
+use super::{Oracle, OracleError};
 use crate::{aes, Bytes};
 
 /// An oracle which will encrypt a plaintext with a random AES block cipher mode
@@ -60,14 +61,16 @@ impl Default for RandomBlockMode {
 }
 
 impl Oracle for RandomBlockMode {
-    fn encrypt(&self, plaintext: Bytes) -> Bytes {
+    fn encrypt(&self, plaintext: Bytes) -> Result<Bytes, OracleError> {
         // Build a payload by adding the prefix and postfix to the plainttext
         let payload = &self.prefix + &plaintext + &self.postfix;
 
         // Encrypt using the selected mode
-        match self.mode {
+        let ciphertext = match self.mode {
             aes::BlockMode::Ecb => aes::ecb::encrypt(&payload, &self.key),
             aes::BlockMode::Cbc => aes::cbc::encrypt(&payload, &self.key),
-        }
+        };
+
+        Ok(ciphertext)
     }
 }

@@ -1,4 +1,4 @@
-use cryptopals::{adversary, aes, oracle, Bytes, Oracle};
+use cryptopals::{adversary, aes, oracle, oracle::Oracle, Bytes};
 // Test support
 use support::{funky_music, ok, FileLineIterator, TestResult};
 mod support;
@@ -31,40 +31,49 @@ fn challenge_10() -> TestResult {
 }
 
 #[test]
-fn challenge_11() {
+fn challenge_11() -> TestResult {
     // Re-run the test multiple times, since the oracle involves randomness
     for _ in 0..16 {
         let oracle = oracle::RandomBlockMode::default();
 
         // Let the adversary attack the oracle
-        let detected_mode = adversary::detect_aes_block_mode(&oracle);
+        let detected_mode = adversary::detect_aes_block_mode(&oracle)?;
 
         assert_eq!(&detected_mode, oracle.block_mode());
     }
+
+    ok()
 }
 
 #[test]
-fn challenge_12() {
+fn challenge_12() -> TestResult {
     let oracle = oracle::EcbFixedPostfix::default();
 
     // It is known that the oracle uses ECB, but verify anyway.
-    let detected_mode = adversary::detect_aes_block_mode(&oracle);
+    let detected_mode = adversary::detect_aes_block_mode(&oracle)?;
     assert_eq!(&detected_mode, &aes::BlockMode::Ecb);
 
     // Let the adversary attack the oracle
-    let fixed_postfix = adversary::attack_ecb_fixed_postfix(&oracle);
+    let fixed_postfix = adversary::attack_ecb_fixed_postfix(&oracle)?;
 
     assert_eq!(&fixed_postfix, oracle.postfix());
+
+    ok()
 }
 
 #[test]
-fn challenge_13() {
+fn challenge_13() -> TestResult {
     let oracle = oracle::UserProfile::default();
 
+    // Valid email address should work
     let email = Bytes::from("foo@bar.com");
-    let ciphertext = oracle.encrypt(email);
+    let result = oracle.encrypt(email);
+    assert!(result.is_ok());
 
-    dbg!(ciphertext);
+    // Invalid email should give an error
+    let email = Bytes::from("foo@bar.com&role=admin");
+    let result = oracle.encrypt(email);
+    assert!(result.is_err());
 
-    assert!(false);
+    ok()
 }

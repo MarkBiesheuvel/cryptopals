@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use crate::{aes, Bytes, Oracle};
+use error_stack::{Result, ResultExt};
+
+use super::AdversaryError;
+use crate::{aes, oracle::Oracle, Bytes};
 
 const DEFAULT_CHARACTER: char = 'U';
 
@@ -12,23 +15,50 @@ const PRINTABLE_CHARACTERS: [u8; 97] = [
     112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125,
 ];
 
-fn ciphertext_length<O: Oracle>(oracle: &O, plaintext_length: usize) -> usize {
+fn ciphertext_length<O: Oracle>(oracle: &O, plaintext_length: usize) -> Result<usize, AdversaryError> {
+    // Build a plaintext of desired length
     let plaintext = Bytes::with_repeated_character(plaintext_length, DEFAULT_CHARACTER);
-    let ciphertext = oracle.encrypt(plaintext);
-    ciphertext.length()
+
+    // Try to encrypt it using the oracle
+    let ciphertext = oracle
+        .encrypt(plaintext)
+        .change_context(AdversaryError::InvalidInputOracle)?;
+
+    // Return the ciphertext length
+    Ok(ciphertext.length())
+}
+
+fn get_nth_block_of_ciphertext<O: Oracle>(
+    oracle: &O,
+    plaintext: Bytes,
+    block_length: usize,
+    block_index: usize,
+) -> Result<Bytes, AdversaryError> {
+    // Try to encrypt it using the oracle
+    let ciphertext = oracle
+        .encrypt(plaintext)
+        .change_context(AdversaryError::InvalidInputOracle)?;
+
+    // Try to find the desired block
+    let block = ciphertext
+        .blocks(block_length)
+        .nth(block_index)
+        .ok_or(AdversaryError::UnexpectedCiphertextLength)?;
+
+    Ok(block)
 }
 
 /// Attack the the postfix of an Oracle encrypting with ECB mode
-pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Bytes {
+pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<Bytes, AdversaryError> {
     // Initialize all variables before entering the while loop
     let mut plaintext_length = 0;
-    let mut current_ciphertext_length = ciphertext_length(oracle, plaintext_length);
+    let mut current_ciphertext_length = ciphertext_length(oracle, plaintext_length)?;
     let mut previous_ciphertext_length;
 
     loop {
         // Recalculate the values for new plaintext length
         previous_ciphertext_length = current_ciphertext_length;
-        current_ciphertext_length = ciphertext_length(oracle, plaintext_length);
+        current_ciphertext_length = ciphertext_length(oracle, plaintext_length)?;
 
         if previous_ciphertext_length != current_ciphertext_length {
             break;
@@ -54,7 +84,6 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Bytes {
     let mut known_characters = Bytes::default();
 
     // Brute force each character of the fixed postfix one by one
-    #[allow(clippy::never_loop)]
     for byte_index in 0..postfix_length {
         // Calculate the block number within the plaintext/cipher which will contain the
         // character we are looking for
@@ -78,15 +107,11 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Bytes {
 
                 // Store the block of the ciphertext containing the different bytes values in
                 // the last position
-                let block = oracle
-                    .encrypt(plaintext)
-                    .blocks(block_length)
-                    .nth(block_index)
-                    .unwrap();
+                let block = get_nth_block_of_ciphertext(oracle, plaintext, block_length, block_index)?;
 
-                (block, byte_value)
+                Ok((block, byte_value))
             })
-            .collect::<HashMap<_, _>>();
+            .collect::<Result<HashMap<_, _>, _>>()?;
 
         // Encrypt only the prefix and lookup the block in the dictionary
         //
@@ -98,11 +123,7 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Bytes {
         //
         // pppp [pkkB] kkuu u
         // pppp [pkku] uu
-        let block = oracle
-            .encrypt(prefix)
-            .blocks(block_length)
-            .nth(block_index)
-            .unwrap();
+        let block = get_nth_block_of_ciphertext(oracle, prefix, block_length, block_index)?;
 
         // Add the discovered character to the list of known characters so it can be
         // used in the next step
@@ -110,10 +131,6 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Bytes {
         known_characters += *byte_value;
     }
 
-    // TODO: there are only 16 possible prefix lengths, however in the current
-    // implementation the block_map is calculated for each character of the fixed
-    // postfix which is 138 times. Try to build a cache for the block_maps
-
     // All characters are known, this must be the fixed postfix
-    known_characters
+    Ok(known_characters)
 }

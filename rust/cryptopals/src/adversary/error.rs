@@ -15,4 +15,10 @@ pub enum AdversaryError {
     /// The input list of candidates is empty. Cannot pick from empty list.
     #[error("The input list of candidates is empty. Cannot pick from empty list.")]
     EmptyCandidateList,
+    /// The oracle rejected the input from the adversary.
+    #[error("The oracle rejected the input from the adversary.")]
+    InvalidInputOracle,
+    /// The ciphertext provided by the oracle had less blocks than expected.
+    #[error("The ciphertext provided by the oracle had less blocks than expected.")]
+    UnexpectedCiphertextLength,
 }

@@ -1,7 +1,13 @@
 use std::cell::RefCell;
 
-use super::Oracle;
+use error_stack::{ensure, Result};
+
+use super::{Oracle, OracleError};
 use crate::{aes, Bytes};
+
+// Special charactors for URL-encoding
+const CHARACTER_AMPERSAND: u8 = b'&';
+const CHARACTER_EQUALS_SIGN: u8 = b'=';
 
 /// An oracle which takes a plaintext email address and creates an encrypted
 /// token for it.
@@ -37,7 +43,11 @@ impl Default for UserProfile {
 }
 
 impl Oracle for UserProfile {
-    fn encrypt(&self, email: Bytes) -> Bytes {
+    fn encrypt(&self, email: Bytes) -> Result<Bytes, OracleError> {
+        // Input validation
+        ensure!(!email.contains(&CHARACTER_AMPERSAND), OracleError::DisallowedCharacterInEmail('&'));
+        ensure!(!email.contains(&CHARACTER_EQUALS_SIGN), OracleError::DisallowedCharacterInEmail('='));
+
         // Mutably borrow from an inmutable RefCell
         let mut id = self.latest_id.borrow_mut();
 
@@ -49,6 +59,8 @@ impl Oracle for UserProfile {
         let profile = dbg!(&self.prefix + &email + &postfix);
 
         // Encrypt
-        aes::ecb::encrypt(&profile, &self.key)
+        let ciphertext = aes::ecb::encrypt(&profile, &self.key);
+
+        Ok(ciphertext)
     }
 }

@@ -128,6 +128,20 @@ impl Bytes {
         self.0.get(index).copied()
     }
 
+    /// Whether the Bytes contains a specific byte value
+    ///
+    /// ## Examples
+    /// ```
+    /// # use cryptopals::Bytes;
+    /// #
+    /// let value = Bytes::from("cryptopals");
+    ///
+    /// assert!(value.contains(&116));
+    /// ```
+    pub fn contains(&self, value: &u8) -> bool {
+        self.0.contains(value)
+    }
+
     /// Return a range within Bytes as a new Bytes
     ///
     /// ## Examples
