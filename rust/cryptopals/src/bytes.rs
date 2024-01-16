@@ -19,13 +19,13 @@ impl Bytes {
     /// ```
     /// # use cryptopals::Bytes;
     /// #
-    /// let value = Bytes::with_repeated_character(33, 'a');
+    /// let value = Bytes::with_repeated_character(33, b'a');
     /// let expected = Bytes::from("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     ///
     /// assert_eq!(value, expected);
     /// ```
-    pub fn with_repeated_character(length: usize, character: char) -> Bytes {
-        Bytes::from_iter((0..length).map(|_| character as u8))
+    pub fn with_repeated_character(length: usize, value: u8) -> Bytes {
+        Bytes::from_iter((0..length).map(|_| value))
     }
 
     /// Create a new `Bytes` struct of the given `length` containing randoms

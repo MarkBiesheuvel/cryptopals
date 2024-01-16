@@ -21,4 +21,7 @@ pub enum AdversaryError {
     /// The ciphertext provided by the oracle had less blocks than expected.
     #[error("The ciphertext provided by the oracle had less blocks than expected.")]
     UnexpectedCiphertextLength,
+    /// The oracle uses an unexpected block length
+    #[error("The oracle uses an unexpected block length of {0}.")]
+    UnexpectedBlockLength(usize),
 }

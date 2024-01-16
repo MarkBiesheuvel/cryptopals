@@ -4,13 +4,15 @@ use itertools::Itertools;
 use super::AdversaryError;
 use crate::{aes, oracle::Oracle, Bytes};
 
+const DEFAULT_CHARACTER: u8 = b'U';
+
 /// Detect whether an oracle is encrypting with ECB or CBC block cipher mode.
 pub fn detect_aes_block_mode<O: Oracle>(oracle: &O) -> Result<aes::BlockMode, AdversaryError> {
     // Purposefully choosen string for detecting AES ECB block mode.
     // The string contains an arbitrary character 64 times in a row.
     // After encrypting this plaintext with AES ECB mode, the cipher should have at
     // least two repeated blocks of 16 bytes
-    let plaintext: Bytes = Bytes::with_repeated_character(64, 'U');
+    let plaintext: Bytes = Bytes::with_repeated_character(64, DEFAULT_CHARACTER);
 
     // Let the oracle encrypt our plaintext
     let ciphertext = oracle

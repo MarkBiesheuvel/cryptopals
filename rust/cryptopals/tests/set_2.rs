@@ -65,6 +65,10 @@ fn challenge_12() -> TestResult {
 fn challenge_13() -> TestResult {
     let oracle = oracle::UserProfile::default();
 
+    // It is known that the oracle uses ECB, but verify anyway.
+    let detected_mode = adversary::detect_aes_block_mode(&oracle)?;
+    assert_eq!(&detected_mode, &aes::BlockMode::Ecb);
+
     // Valid email address should work
     let email = Bytes::from("foo@bar.com");
     let result = oracle.encrypt(email);

@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use error_stack::{Result, ResultExt};
+use error_stack::{ensure, Result, ResultExt};
 
 use super::AdversaryError;
 use crate::{aes, oracle::Oracle, Bytes};
 
-const DEFAULT_CHARACTER: char = 'U';
+const DEFAULT_CHARACTER: u8 = b'U';
 
 // List of printable ASCII characters
 const PRINTABLE_CHARACTERS: [u8; 97] = [
@@ -72,7 +72,7 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<Bytes, Adversar
     // Since we only added one character, the padding extended the length by one
     // block
     let block_length = current_ciphertext_length - previous_ciphertext_length;
-    assert_eq!(block_length, aes::BLOCK_LENGTH);
+    ensure!(block_length == aes::BLOCK_LENGTH, AdversaryError::UnexpectedBlockLength(block_length));
 
     // Calculate the length of the postfix string that was appended to the plaintext
     // The current plaintext length plus postfix length fit exactly in the block
