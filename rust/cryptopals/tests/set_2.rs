@@ -1,4 +1,4 @@
-use cryptopals::{adversary, aes, oracle, oracle::Oracle, Bytes};
+use cryptopals::{adversary, aes, encoding::Base64, oracle, oracle::Oracle, Bytes};
 // Test support
 use support::{funky_music, ok, FileLineIterator, TestResult};
 mod support;
@@ -22,8 +22,8 @@ fn challenge_10() -> TestResult {
     let key = aes::Block::new(*b"YELLOW SUBMARINE");
 
     // Expected output
-    let file = FileLineIterator::new("../../data/10.txt")?;
-    let ciphertext = Bytes::try_from_base64(file)?;
+    let encoded_data = FileLineIterator::new("../../data/10.txt")?.concat();
+    let ciphertext = Bytes::try_from(Base64::from(encoded_data))?;
 
     assert_eq!(aes::cbc::encrypt(&plaintext, &key), ciphertext);
 

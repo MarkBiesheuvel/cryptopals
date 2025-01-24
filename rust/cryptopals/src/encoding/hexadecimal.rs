@@ -4,7 +4,7 @@ use std::vec::Vec;
 use itermore::IterArrayChunks;
 use error_stack::{bail, ensure, Report, Result};
 
-use super::{Bytes, CryptopalsError};
+use crate::{Bytes, CryptopalsError};
 
 /// Hexadecimal encoded string
 #[derive(Debug)]

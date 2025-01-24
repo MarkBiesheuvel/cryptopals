@@ -5,7 +5,7 @@ use std::vec::Vec;
 
 use error_stack::{ensure, Result};
 
-use crate::{Base64, CryptopalsError, Hexadecimal};
+use crate::{CryptopalsError, encoding::{Base64, Hexadecimal}};
 
 /// Collection of bytes
 #[derive(Clone, Default, Eq, Hash, PartialEq)]
@@ -60,7 +60,7 @@ impl Bytes {
     /// #
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn try_from_base64<S: Into<String>>(value: S) -> Result<Bytes, CryptopalsError> {
+    pub fn try_from_base64(value: &str) -> Result<Bytes, CryptopalsError> {
         Bytes::try_from(Base64::from(value))
     }
 

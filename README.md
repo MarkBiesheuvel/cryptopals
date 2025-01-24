@@ -23,7 +23,7 @@ class TestChallenge13:
 
 ## Rust
 
-I began rewriting all the challanges again in [Rust](./rust/) in May 2023 and continued in December 2023.
+I began rewriting all the challenges again in [Rust](./rust/) in May 2023 and continued in December 2023.
 
 Here is an example of challenge 6 in Rust
 ```rust

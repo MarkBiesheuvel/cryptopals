@@ -10,7 +10,7 @@ Here is an example of how the `cryptopals` library can be used to (weakly) encry
 
 ```rust
 use std::error::Error;
-use cryptopals::{Base64, Bytes};
+use cryptopals::{Bytes, encoding::Base64};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let key = 42;

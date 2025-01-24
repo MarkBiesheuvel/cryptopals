@@ -1,4 +1,4 @@
-use cryptopals::{adversary, aes, Bytes};
+use cryptopals::{adversary, aes, encoding::Base64, Bytes};
 // Test support
 use support::{funky_music, ok, FileLineIterator, TestResult};
 mod support;
@@ -84,8 +84,8 @@ fn challenge_5() -> TestResult {
 #[test]
 fn challenge_6() -> TestResult {
     // Input
-    let file = FileLineIterator::new("../../data/6.txt")?;
-    let ciphertext = Bytes::try_from_base64(file)?;
+    let encoded_data = FileLineIterator::new("../../data/6.txt")?.concat();
+    let ciphertext = Bytes::try_from(Base64::from(encoded_data))?;
 
     // Expected output
     let plaintext = funky_music()?;
@@ -96,7 +96,7 @@ fn challenge_6() -> TestResult {
 }
 
 // I realize I am doing challenge 7 the other way around (encrypt vs. decrypt)
-// However, for future challanges, it is more useful to implement encrypt
+// However, for future challenges, it is more useful to implement encrypt
 #[test]
 fn challenge_7() -> TestResult {
     // Input
@@ -104,8 +104,8 @@ fn challenge_7() -> TestResult {
     let key = aes::Block::new(*b"YELLOW SUBMARINE");
 
     // Expected output
-    let file = FileLineIterator::new("../../data/7.txt")?;
-    let ciphertext = Bytes::try_from_base64(file)?;
+    let encoded_data = FileLineIterator::new("../../data/7.txt")?.concat();
+    let ciphertext = Bytes::try_from(Base64::from(encoded_data))?;
 
     assert_eq!(aes::ecb::encrypt(&plaintext, &key), ciphertext);
 

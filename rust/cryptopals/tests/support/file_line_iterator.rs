@@ -15,13 +15,24 @@ impl FileLineIterator {
 
         Ok(FileLineIterator { reader })
     }
+
+    pub fn concat(self) -> String {
+        // Create new String to hold entire file
+        let mut result = String::new();
+
+        for line in self {
+            result.push_str(&line);
+        }
+
+        result
+    }
 }
 
 impl Iterator for FileLineIterator {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // Create new string to hold the line
+        // Create new String to hold the line
         let mut line = String::new();
 
         match self.reader.read_line(&mut line) {

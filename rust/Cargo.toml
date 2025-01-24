@@ -2,6 +2,7 @@
 members = [
     "cryptopals",
 ]
+resolver = "2"
 
 [profile.test]
 opt-level = 3

@@ -1,25 +1,30 @@
-use std::convert::TryFrom;
+use std::{borrow::Cow, convert::TryFrom};
 use std::vec::Vec;
 
 use itermore::IterArrayChunks;
 use error_stack::{bail, ensure, Report, Result};
 
-use super::{Bytes, CryptopalsError};
+use crate::{Bytes, CryptopalsError};
 
 /// Base64 encoded string
 #[derive(Debug)]
-pub struct Base64(String);
+pub struct Base64<'a>(Cow<'a, str>);
 
-impl<S> From<S> for Base64
-where
-    S: Into<String>,
+impl From<String> for Base64<'_>
 {
-    fn from(value: S) -> Base64 {
-        Base64(value.into())
+    fn from(value: String) -> Base64<'static> {
+        Base64(Cow::Owned(value))
     }
 }
 
-impl TryFrom<Base64> for Bytes {
+impl<'a> From<&'a str> for Base64<'a>
+{
+    fn from(value: &'a str) -> Base64<'a> {
+        Base64(Cow::Borrowed(value))
+    }
+}
+
+impl TryFrom<Base64<'_>> for Bytes {
     type Error = Report<CryptopalsError>;
 
     fn try_from(value: Base64) -> core::result::Result<Self, Self::Error> {
