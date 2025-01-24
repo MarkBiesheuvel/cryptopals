@@ -1,6 +1,6 @@
 #![doc = include_str!("../../README.md")]
-#![feature(iter_array_chunks)]
 #![warn(missing_docs)]
+#![allow(unstable_name_collisions)]
 
 pub use base64::Base64;
 pub use bytes::Bytes;

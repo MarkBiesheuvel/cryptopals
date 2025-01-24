@@ -1,6 +1,7 @@
 use std::convert::TryFrom;
 use std::vec::Vec;
 
+use itermore::IterArrayChunks;
 use error_stack::{bail, ensure, Report, Result};
 
 use super::{Bytes, CryptopalsError};
