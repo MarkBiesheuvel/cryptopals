@@ -1,4 +1,5 @@
-use std::{borrow::Cow, convert::TryFrom};
+use std::convert::TryFrom;
+use std::borrow::Cow;
 use std::vec::Vec;
 
 use itermore::IterArrayChunks;

@@ -1,4 +1,4 @@
-use cryptopals::{adversary, aes, encoding::Base64, Bytes};
+use cryptopals::{adversary, aes, encoding::{Base64, Hexadecimal}, Bytes};
 // Test support
 use support::{funky_music, ok, FileLineIterator, TestResult};
 mod support;
@@ -50,7 +50,7 @@ fn challenge_4() -> TestResult {
 
     // Convert each line from hexadecimal encoded string to Bytes
     let lines = lines
-        .map(|line| Bytes::try_from_hexadecimal(line))
+        .map(|line| Bytes::try_from(Hexadecimal::from(line)))
         .collect::<Result<Vec<_>, _>>()?;
 
     // Try to find the most likely candidate and skip any ciphertext for which no
@@ -118,7 +118,7 @@ fn challenge_8() -> TestResult {
 
     // Convert each line from hexadecimal encoded string to Bytes
     let candidates = lines
-        .map(|line| Bytes::try_from_hexadecimal(line))
+        .map(|line| Bytes::try_from(Hexadecimal::from(line)))
         .collect::<Result<Vec<_>, _>>()?;
 
     // Expected output

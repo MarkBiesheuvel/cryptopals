@@ -1,4 +1,5 @@
 use std::convert::TryFrom;
+use std::borrow::Cow;
 use std::vec::Vec;
 
 use itermore::IterArrayChunks;
@@ -8,33 +9,36 @@ use crate::{Bytes, CryptopalsError};
 
 /// Hexadecimal encoded string
 #[derive(Debug)]
-pub struct Hexadecimal(String);
+pub struct Hexadecimal<'a>(Cow<'a, str>);
 
-impl<S> From<S> for Hexadecimal
-where
-    S: Into<String>,
+impl From<String> for Hexadecimal<'_>
 {
-    fn from(value: S) -> Hexadecimal {
-        Hexadecimal(value.into())
+    fn from(value: String) -> Hexadecimal<'static> {
+        Hexadecimal(Cow::Owned(value))
     }
 }
 
-impl TryFrom<Hexadecimal> for Bytes {
+impl<'a> From<&'a str> for Hexadecimal<'a>
+{
+    fn from(value: &'a str) -> Hexadecimal<'a> {
+        Hexadecimal(Cow::Borrowed(value))
+    }
+}
+
+impl TryFrom<Hexadecimal<'_>> for Bytes {
     type Error = Report<CryptopalsError>;
 
-    fn try_from(mut value: Hexadecimal) -> core::result::Result<Self, Self::Error> {
-        // Remove whitespaces for ease of use
-        value.0.retain(|c| !c.is_whitespace());
-
-        // Get the length of the string
-        let length = value.0.len();
+    fn try_from(value: Hexadecimal) -> core::result::Result<Self, Self::Error> {
+        let characters = value.0
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<Vec<_>>();
 
         // Input must be even
-        ensure!(length % 2 == 0, CryptopalsError::InvalidHexadecimal);
+        ensure!(characters.len() % 2 == 0, CryptopalsError::InvalidHexadecimal);
 
         // Parse each chunk of 2 characters
-        let bytes = (value.0)
-            .chars()
+        let bytes = characters.into_iter()
             .array_chunks()
             .map(|chunk| {
                 // Deconstruct the chunk
@@ -54,7 +58,7 @@ impl TryFrom<Hexadecimal> for Bytes {
     }
 }
 
-impl From<&Bytes> for Hexadecimal {
+impl From<&Bytes> for Hexadecimal<'static> {
     fn from(value: &Bytes) -> Self {
         let value = value
             .iter()
@@ -67,7 +71,7 @@ impl From<&Bytes> for Hexadecimal {
             .collect::<Vec<_>>()
             .join(" ");
 
-        Hexadecimal(value)
+        Hexadecimal::from(value)
     }
 }
 

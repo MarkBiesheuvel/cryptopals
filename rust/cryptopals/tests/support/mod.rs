@@ -17,10 +17,10 @@ pub fn ok() -> TestResult {
 #[allow(dead_code)]
 pub fn funky_music() -> Result<Bytes, Box<dyn Error>> {
     // Load content from file
-    let file = FileLineIterator::new("../../data/n2Ubq9XII8c.txt")?;
+    let encoded_data = &FileLineIterator::new("../../data/n2Ubq9XII8c.txt")?.concat();
 
     // Parse as hexadecimal
-    let bytes = Bytes::try_from_hexadecimal(file)?;
+    let bytes = Bytes::try_from_hexadecimal(encoded_data)?;
 
     // Return result
     Ok(bytes)

@@ -78,7 +78,7 @@ impl Bytes {
     /// #
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn try_from_hexadecimal<S: Into<String>>(value: S) -> Result<Bytes, CryptopalsError> {
+    pub fn try_from_hexadecimal(value: &str) -> Result<Bytes, CryptopalsError> {
         Bytes::try_from(Hexadecimal::from(value))
     }
 

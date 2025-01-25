@@ -27,7 +27,7 @@ fn roundkey() -> TestResult {
     .map(|string| aes::Block::try_from_hexadecimal(string))
     .collect::<Result<Vec<_>, _>>()?;
 
-    // Verify each roundkey aginst expected value
+    // Verify each roundkey against expected value
     for (value, expected) in roundkey.into_iter().zip(expected_roundkeys) {
         assert_eq!(value, expected);
     }

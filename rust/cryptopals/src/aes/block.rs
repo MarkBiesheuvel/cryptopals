@@ -22,7 +22,7 @@ impl Block {
 
     /// Generate a `Block` with random values.
     ///
-    /// Extremly useful for creating encryption keys
+    /// Extremely useful for creating encryption keys
     pub fn with_random_values<R: rand::Rng>(rng: &mut R) -> Block {
         Block(rng.gen())
     }
@@ -41,7 +41,7 @@ impl Block {
     /// #
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn try_from_hexadecimal<S: Into<String>>(value: S) -> Result<Block, CryptopalsError> {
+    pub fn try_from_hexadecimal(value: &str) -> Result<Block, CryptopalsError> {
         let bytes = Bytes::try_from_hexadecimal(value)?;
         Block::try_from(&bytes)
     }

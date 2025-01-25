@@ -1,4 +1,3 @@
-use std::convert::From;
 use std::iter::Iterator;
 use std::{fs, io, io::BufRead};
 
@@ -17,14 +16,10 @@ impl FileLineIterator {
     }
 
     pub fn concat(self) -> String {
-        // Create new String to hold entire file
-        let mut result = String::new();
-
-        for line in self {
-            result.push_str(&line);
-        }
-
-        result
+        self.fold(String::new(), |mut acc, line| {
+            acc.push_str(&line);
+            acc
+        })
     }
 }
 
@@ -59,14 +54,5 @@ impl Iterator for FileLineIterator {
             // IO error
             Err(_) => None,
         }
-    }
-}
-
-impl From<FileLineIterator> for String {
-    fn from(value: FileLineIterator) -> Self {
-        value.fold(String::new(), |mut acc, line| {
-            acc.push_str(&line);
-            acc
-        })
     }
 }
