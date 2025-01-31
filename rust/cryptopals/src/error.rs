@@ -3,7 +3,7 @@ use thiserror::Error;
 /// Error enum for general cryptographic errors
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum CryptopalsError {
-    /// The input does not have a valid lenth
+    /// The input does not have a valid length
     #[error("The input does not have a valid length")]
     InvalidLength,
     /// The input is not valid hexadecimal

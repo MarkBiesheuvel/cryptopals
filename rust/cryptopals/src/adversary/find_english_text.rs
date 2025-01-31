@@ -1,7 +1,7 @@
 use error_stack::{report, Result};
 
 use super::AdversaryError;
-use crate::{Bytes, OrderedBox};
+use crate::{byte::*, OrderedBox};
 
 // 26 letters plus 4 categories (whitespace, numbers, punctuation, symbols)
 const SIZE: usize = 30;
@@ -74,7 +74,7 @@ fn char_index(code_point: &u8) -> Option<usize> {
 /// Calculate score for candidate based on how closely it resembles English
 /// text. The lower the score, the more resemblance to English.
 /// Inspiration: https://crypto.stackexchange.com/a/30259/103927
-fn chi_squared(candidate: &Bytes) -> f32 {
+fn chi_squared(candidate: &ByteSlice) -> f32 {
     // Start with all zeroes
     // Since the size is known, we can use an array instead of a HashMap
     let mut counts = [0usize; SIZE];
@@ -85,8 +85,8 @@ fn chi_squared(candidate: &Bytes) -> f32 {
         let index = match char_index(byte) {
             Some(index) => index,
             None => {
-                // If byte does not map to a printable charachter, the expected frequency is 0.
-                // Therefore, when calculating chi sqaured, dividing by 0 will lead to a score
+                // If byte does not map to a printable character, the expected frequency is 0.
+                // Therefore, when calculating chi squared, dividing by 0 will lead to a score
                 // of infinity.
                 return f32::INFINITY;
             }
@@ -103,8 +103,9 @@ fn chi_squared(candidate: &Bytes) -> f32 {
     let length = candidate.length() as f32;
 
     // Sum over each letter
-    (counts.into_iter())
-        .zip(EXPECTED_FREQUENCY.into_iter())
+    counts
+        .into_iter()
+        .zip(EXPECTED_FREQUENCY.iter())
         .map(|(observed_count, expected_frequency)| {
             // Calculate the expected count based on the candidate length
             let expected_count = expected_frequency * length;
@@ -118,7 +119,7 @@ fn chi_squared(candidate: &Bytes) -> f32 {
 
 /// Adversary which takes a list of candidates and returns the one which is most
 /// likely to be English text
-pub fn find_english_text(candidates: Vec<Bytes>) -> Result<Bytes, AdversaryError> {
+pub fn find_english_text(candidates: Vec<ByteSlice<'_>>) -> Result<ByteSlice<'_>, AdversaryError> {
     candidates
         .into_iter()
         // Calculate chi squared score for each candidate

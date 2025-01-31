@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use cryptopals::Bytes;
+use cryptopals::{byte::*, encoding::Hexadecimal};
 pub use file_line_iterator::FileLineIterator;
 
 mod file_line_iterator;
@@ -15,12 +15,12 @@ pub fn ok() -> TestResult {
 
 /// Returns the lyrics to Funky Music as a Bytes struct
 #[allow(dead_code)]
-pub fn funky_music() -> Result<Bytes, Box<dyn Error>> {
+pub fn funky_music() -> Result<ByteSlice<'static>, Box<dyn Error>> {
     // Load content from file
-    let encoded_data = &FileLineIterator::new("../../data/n2Ubq9XII8c.txt")?.concat();
+    let encoded_data = FileLineIterator::new("../../data/n2Ubq9XII8c.txt")?.concat();
 
     // Parse as hexadecimal
-    let bytes = Bytes::try_from_hexadecimal(encoded_data)?;
+    let bytes = ByteSlice::try_from(Hexadecimal::from(encoded_data))?;
 
     // Return result
     Ok(bytes)

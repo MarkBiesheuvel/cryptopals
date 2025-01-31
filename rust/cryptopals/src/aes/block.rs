@@ -1,49 +1,37 @@
-use std::convert::TryFrom;
 use std::ops::BitXorAssign;
 use std::ops::{Index, IndexMut};
 
-use error_stack::{ensure, Report, Result};
-
-use super::{g_mul, sub_byte};
-use crate::{Bytes, CryptopalsError};
+use super::byte_operator::{g_mul, sub_byte};
+use crate::byte::*;
 
 /// Number of bytes in 128 bits (e.g. 16 bytes)
 pub const BLOCK_LENGTH: usize = 16;
 
 /// A block of 16 bytes used in AES encryption
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub struct Block([u8; BLOCK_LENGTH]);
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Block(ByteArray<BLOCK_LENGTH>);
+
+impl<B> From<B> for Block
+where
+    B: Into<ByteArray<16>>,
+{
+    // TODO: docs - can create from ByteArray or [u8; 16]
+    fn from(value: B) -> Self {
+        Block(value.into())
+    }
+}
 
 impl Block {
-    /// Create a new `Block` from a fixed sized array.
-    pub fn new(value: [u8; BLOCK_LENGTH]) -> Block {
-        Block(value)
+    /// TODO: documentation
+    pub fn unpack(self) -> ByteArray<BLOCK_LENGTH> {
+        self.0
     }
 
     /// Generate a `Block` with random values.
     ///
     /// Extremely useful for creating encryption keys
-    pub fn with_random_values<R: rand::Rng>(rng: &mut R) -> Block {
-        Block(rng.gen())
-    }
-
-    /// Short-hand function for creating Block struct from hexadecimal encoded
-    /// string
-    ///
-    /// ## Examples
-    /// ```
-    /// # use cryptopals::aes;
-    /// # use std::ops::Index;
-    /// #
-    /// let block = aes::Block::try_from_hexadecimal("5468617473206D79204B756E67204675")?;
-    ///
-    /// assert_eq!(block[4], 115);
-    /// #
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn try_from_hexadecimal(value: &str) -> Result<Block, CryptopalsError> {
-        let bytes = Bytes::try_from_hexadecimal(value)?;
-        Block::try_from(&bytes)
+    pub fn with_random_values(rng: &mut impl rand::Rng) -> Block {
+        Block::from(ByteArray::with_random_values(rng))
     }
 
     /// Apply Rijndael S-box to all bytes of the block
@@ -70,32 +58,35 @@ impl Block {
 
     /// Matrix multiplication with fixed matrix
     pub fn mix_columns(&mut self) {
-        // Create a clone to store original values
-        let clone = self.clone();
+        // Initialize new byte array
+        let mut bytes = [0; BLOCK_LENGTH];
 
         // First column
-        self[0] = g_mul(clone[0], 2) ^ g_mul(clone[1], 3) ^ g_mul(clone[2], 1) ^ g_mul(clone[3], 1);
-        self[1] = g_mul(clone[0], 1) ^ g_mul(clone[1], 2) ^ g_mul(clone[2], 3) ^ g_mul(clone[3], 1);
-        self[2] = g_mul(clone[0], 1) ^ g_mul(clone[1], 1) ^ g_mul(clone[2], 2) ^ g_mul(clone[3], 3);
-        self[3] = g_mul(clone[0], 3) ^ g_mul(clone[1], 1) ^ g_mul(clone[2], 1) ^ g_mul(clone[3], 2);
+        bytes[0] = g_mul(self[0], 2) ^ g_mul(self[1], 3) ^ g_mul(self[2], 1) ^ g_mul(self[3], 1);
+        bytes[1] = g_mul(self[0], 1) ^ g_mul(self[1], 2) ^ g_mul(self[2], 3) ^ g_mul(self[3], 1);
+        bytes[2] = g_mul(self[0], 1) ^ g_mul(self[1], 1) ^ g_mul(self[2], 2) ^ g_mul(self[3], 3);
+        bytes[3] = g_mul(self[0], 3) ^ g_mul(self[1], 1) ^ g_mul(self[2], 1) ^ g_mul(self[3], 2);
 
         // Second column
-        self[4] = g_mul(clone[4], 2) ^ g_mul(clone[5], 3) ^ g_mul(clone[6], 1) ^ g_mul(clone[7], 1);
-        self[5] = g_mul(clone[4], 1) ^ g_mul(clone[5], 2) ^ g_mul(clone[6], 3) ^ g_mul(clone[7], 1);
-        self[6] = g_mul(clone[4], 1) ^ g_mul(clone[5], 1) ^ g_mul(clone[6], 2) ^ g_mul(clone[7], 3);
-        self[7] = g_mul(clone[4], 3) ^ g_mul(clone[5], 1) ^ g_mul(clone[6], 1) ^ g_mul(clone[7], 2);
+        bytes[4] = g_mul(self[4], 2) ^ g_mul(self[5], 3) ^ g_mul(self[6], 1) ^ g_mul(self[7], 1);
+        bytes[5] = g_mul(self[4], 1) ^ g_mul(self[5], 2) ^ g_mul(self[6], 3) ^ g_mul(self[7], 1);
+        bytes[6] = g_mul(self[4], 1) ^ g_mul(self[5], 1) ^ g_mul(self[6], 2) ^ g_mul(self[7], 3);
+        bytes[7] = g_mul(self[4], 3) ^ g_mul(self[5], 1) ^ g_mul(self[6], 1) ^ g_mul(self[7], 2);
 
         // Third column
-        self[8] = g_mul(clone[8], 2) ^ g_mul(clone[9], 3) ^ g_mul(clone[10], 1) ^ g_mul(clone[11], 1);
-        self[9] = g_mul(clone[8], 1) ^ g_mul(clone[9], 2) ^ g_mul(clone[10], 3) ^ g_mul(clone[11], 1);
-        self[10] = g_mul(clone[8], 1) ^ g_mul(clone[9], 1) ^ g_mul(clone[10], 2) ^ g_mul(clone[11], 3);
-        self[11] = g_mul(clone[8], 3) ^ g_mul(clone[9], 1) ^ g_mul(clone[10], 1) ^ g_mul(clone[11], 2);
+        bytes[8] = g_mul(self[8], 2) ^ g_mul(self[9], 3) ^ g_mul(self[10], 1) ^ g_mul(self[11], 1);
+        bytes[9] = g_mul(self[8], 1) ^ g_mul(self[9], 2) ^ g_mul(self[10], 3) ^ g_mul(self[11], 1);
+        bytes[10] = g_mul(self[8], 1) ^ g_mul(self[9], 1) ^ g_mul(self[10], 2) ^ g_mul(self[11], 3);
+        bytes[11] = g_mul(self[8], 3) ^ g_mul(self[9], 1) ^ g_mul(self[10], 1) ^ g_mul(self[11], 2);
 
         // Fourth column
-        self[12] = g_mul(clone[12], 2) ^ g_mul(clone[13], 3) ^ g_mul(clone[14], 1) ^ g_mul(clone[15], 1);
-        self[13] = g_mul(clone[12], 1) ^ g_mul(clone[13], 2) ^ g_mul(clone[14], 3) ^ g_mul(clone[15], 1);
-        self[14] = g_mul(clone[12], 1) ^ g_mul(clone[13], 1) ^ g_mul(clone[14], 2) ^ g_mul(clone[15], 3);
-        self[15] = g_mul(clone[12], 3) ^ g_mul(clone[13], 1) ^ g_mul(clone[14], 1) ^ g_mul(clone[15], 2);
+        bytes[12] = g_mul(self[12], 2) ^ g_mul(self[13], 3) ^ g_mul(self[14], 1) ^ g_mul(self[15], 1);
+        bytes[13] = g_mul(self[12], 1) ^ g_mul(self[13], 2) ^ g_mul(self[14], 3) ^ g_mul(self[15], 1);
+        bytes[14] = g_mul(self[12], 1) ^ g_mul(self[13], 1) ^ g_mul(self[14], 2) ^ g_mul(self[15], 3);
+        bytes[15] = g_mul(self[12], 3) ^ g_mul(self[13], 1) ^ g_mul(self[14], 1) ^ g_mul(self[15], 2);
+
+        // Override self
+        *self = Block::from(bytes)
     }
 
     /// Encrypt a single block
@@ -143,31 +134,5 @@ impl Index<usize> for Block {
 impl IndexMut<usize> for Block {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         self.0.index_mut(index)
-    }
-}
-
-impl From<Block> for Vec<u8> {
-    fn from(value: Block) -> Self {
-        Self::from(value.0)
-    }
-}
-
-impl TryFrom<&Bytes> for Block {
-    type Error = Report<CryptopalsError>;
-
-    fn try_from(bytes: &Bytes) -> core::result::Result<Self, Self::Error> {
-        // Make sure the bytes match the desired block length
-        ensure!(bytes.length() == BLOCK_LENGTH, CryptopalsError::InvalidLength);
-
-        // Initialize default block
-        let mut block = Block::default();
-
-        // Copy over each item from slice
-        for (k, v) in block.0.iter_mut().zip(bytes.iter()) {
-            *k = *v;
-        }
-
-        // Return block
-        Ok(block)
     }
 }

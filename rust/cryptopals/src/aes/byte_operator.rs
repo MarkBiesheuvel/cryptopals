@@ -1,5 +1,7 @@
-/// Rijndael S-box
-const S_BOX: [u8; 256] = [
+const BITMASK_LOWEST_BIT: u8 = 0b00000001;
+const BITMASK_HIGHEST_BIT: u8 = 0b10000000;
+
+const RIJNDAEL_S_BOX: [u8; 256] = [
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76, 0xca, 0x82, 0xc9,
     0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0, 0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f,
     0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15, 0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07,
@@ -16,6 +18,39 @@ const S_BOX: [u8; 256] = [
     0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16,
 ];
 
+fn is_bit_set(value: u8, bitmask: u8) -> bool {
+    (value & bitmask) == bitmask
+}
+
+/// Galois Field (256) Multiplication of two Bytes
+pub fn g_mul(mut lhs: u8, mut rhs: u8) -> u8 {
+    let mut result = 0;
+
+    // Instead of always looping 8 times for 8 bits, the loop can exit once rhs is 0
+    while rhs != 0 {
+        let is_rhs_lowest_bit_set = is_bit_set(rhs, BITMASK_LOWEST_BIT);
+        let is_lhs_highest_bit_set = is_bit_set(lhs, BITMASK_HIGHEST_BIT);
+
+        // If the lowest bit of rhs is set, XOR the result with the lhs
+        if is_rhs_lowest_bit_set {
+            result ^= lhs;
+        }
+
+        // Left bitshift lhs
+        lhs <<= 1;
+
+        // If the highest bit of lhs was set before shifting, XOR lhs with constant
+        if is_lhs_highest_bit_set {
+            lhs ^= 0x1B;
+        }
+
+        // Right bitshift rhs
+        rhs >>= 1;
+    }
+
+    result
+}
+
 pub fn sub_byte(input: u8) -> u8 {
-    S_BOX[input as usize]
+    RIJNDAEL_S_BOX[input as usize]
 }

@@ -1,31 +1,29 @@
-use std::convert::TryFrom;
 use std::borrow::Cow;
+use std::convert::TryFrom;
 use std::vec::Vec;
 
-use itermore::IterArrayChunks;
 use error_stack::{bail, ensure, Report, Result};
+use itermore::IterArrayChunks;
 
-use crate::{Bytes, CryptopalsError};
+use crate::{byte::ByteSlice, CryptopalsError};
 
 /// Base64 encoded string
 #[derive(Debug)]
 pub struct Base64<'a>(Cow<'a, str>);
 
-impl From<String> for Base64<'_>
-{
-    fn from(value: String) -> Base64<'static> {
-        Base64(Cow::Owned(value))
+impl From<String> for Base64<'static> {
+    fn from(value: String) -> Self {
+        Self(Cow::Owned(value))
     }
 }
 
-impl<'a> From<&'a str> for Base64<'a>
-{
-    fn from(value: &'a str) -> Base64<'a> {
-        Base64(Cow::Borrowed(value))
+impl<'a> From<&'a str> for Base64<'a> {
+    fn from(value: &'a str) -> Self {
+        Self(Cow::Borrowed(value))
     }
 }
 
-impl TryFrom<Base64<'_>> for Bytes {
+impl TryFrom<Base64<'_>> for ByteSlice<'static> {
     type Error = Report<CryptopalsError>;
 
     fn try_from(value: Base64) -> core::result::Result<Self, Self::Error> {
@@ -83,7 +81,7 @@ impl TryFrom<Base64<'_>> for Bytes {
         let bytes = chunks.into_iter().flatten().collect::<Vec<_>>();
 
         // Return Bytes struct
-        Ok(Bytes::from(bytes))
+        Ok(ByteSlice::from(bytes))
     }
 }
 
@@ -168,23 +166,23 @@ mod tests {
 
     #[test]
     fn invalid_length() {
-        let result = Bytes::try_from(Base64::from("bGlnaHQgd29yay4"));
+        let result = ByteSlice::try_from(Base64::from("bGlnaHQgd29yay4"));
 
         assert!(result.is_err());
     }
 
     #[test]
     fn padding_1() {
-        let result = Bytes::try_from(Base64::from("bGlnaHQgd29yay4="));
-        let expected = Bytes::from("light work.");
+        let result = ByteSlice::try_from(Base64::from("bGlnaHQgd29yay4="));
+        let expected = ByteSlice::from("light work.");
 
         assert_eq!(result.unwrap(), expected);
     }
 
     #[test]
     fn padding_2() {
-        let result = Bytes::try_from(Base64::from("bGlnaHQgd29yaw=="));
-        let expected = Bytes::from("light work");
+        let result = ByteSlice::try_from(Base64::from("bGlnaHQgd29yaw=="));
+        let expected = ByteSlice::from("light work");
 
         assert_eq!(result.unwrap(), expected);
     }

@@ -1,7 +1,7 @@
 use error_stack::Result;
 
 use super::{Oracle, OracleError};
-use crate::{aes, Bytes};
+use crate::{aes, byte::*, encoding::Base64};
 
 const FIXED_POSTFIX: &str = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK";
 
@@ -15,13 +15,13 @@ const FIXED_POSTFIX: &str = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24
 ///  - encrypt everything using AES ECB block cipher mode
 pub struct EcbFixedPostfix {
     key: aes::Block,
-    postfix: Bytes,
+    postfix: ByteSlice<'static>,
 }
 
 impl EcbFixedPostfix {
     /// Return the base64 encoded postfix, so it can be verified by the test
     /// case.
-    pub fn postfix(&self) -> &Bytes {
+    pub fn postfix(&self) -> &ByteSlice<'static> {
         &self.postfix
     }
 }
@@ -33,21 +33,23 @@ impl Default for EcbFixedPostfix {
         // Generate a random key
         let key = aes::Block::with_random_values(&mut rng);
 
-        // Initialze postfix from base64
+        // Initialize postfix from base64
         // TODO: move base64 decoding to proc_macro
-        let postfix = Bytes::try_from_base64(FIXED_POSTFIX).expect("Expected hardcoded base64 string to be valid");
+        let postfix =
+            ByteSlice::try_from(Base64::from(FIXED_POSTFIX)).expect("Expected hardcoded base64 string to be valid");
 
         EcbFixedPostfix { key, postfix }
     }
 }
 
 impl Oracle for EcbFixedPostfix {
-    fn encrypt(&self, plaintext: Bytes) -> Result<Bytes, OracleError> {
-        // Build a payload by adding the postfix to the plainttext
-        let payload = &plaintext + &self.postfix;
+    fn encrypt(&self, plaintext: ByteSlice<'_>) -> Result<ByteSlice<'static>, OracleError> {
+        // Build a payload by adding the postfix to the plaintext
+        let payload = plaintext + &self.postfix;
 
         // Encrypt using AES ECB block cipher mode
-        let ciphertext = aes::ecb::encrypt(&payload, &self.key);
+        // TODO: create Key struct, which auto expends round keys
+        let ciphertext = aes::ecb::encrypt(payload, self.key.clone());
 
         Ok(ciphertext)
     }

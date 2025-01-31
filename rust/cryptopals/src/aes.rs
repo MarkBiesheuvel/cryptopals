@@ -2,26 +2,24 @@
 //!
 //! ## Examples
 //! ```
-//! # use cryptopals::{aes, Bytes};
-//! #
-//! let key = aes::Block::new(*b"YELLOW SUBMARINE");
-//! let plaintext = Bytes::from("cryptopals");
+//! use cryptopals::{aes, byte::*};
+//!
+//! let key = aes::Block::from(*b"YELLOW SUBMARINE");
+//! let ecb_plaintext = ByteSlice::from("cryptopals");
+//! let cbc_plaintext = ByteSlice::from("cryptopals");
 //!
 //! // Since the plaintext is less than 16 bytes (one AES block),
 //! // there is no difference between ECB and CBC mode
-//! assert_eq!(aes::ecb::encrypt(&plaintext, &key), aes::cbc::encrypt(&plaintext, &key));
+//! assert_eq!(aes::ecb::encrypt(ecb_plaintext, key.clone()), aes::cbc::encrypt(cbc_plaintext, key.clone()));
 //! ```
 pub use block::{Block, BLOCK_LENGTH};
-use g_mul::g_mul;
 pub use roundkey::Roundkey;
-use sub_byte::sub_byte;
 
 mod block;
+mod byte_operator;
 pub mod cbc;
 pub mod ecb;
-mod g_mul;
 mod roundkey;
-mod sub_byte;
 
 /// The block cipher mode of operation of AES
 #[derive(Debug, PartialEq, Eq)]

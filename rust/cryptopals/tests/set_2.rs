@@ -1,12 +1,12 @@
-use cryptopals::{adversary, aes, encoding::Base64, oracle, oracle::Oracle, Bytes};
+use cryptopals::{adversary, aes, byte::*, encoding::Base64, oracle, oracle::Oracle};
 // Test support
 use support::{funky_music, ok, FileLineIterator, TestResult};
 mod support;
 
 #[test]
 fn challenge_9() -> TestResult {
-    let input = Bytes::from("YELLOW SUBMARINE");
-    let expected = Bytes::from("YELLOW SUBMARINE\x04\x04\x04\x04");
+    let input = ByteSlice::from("YELLOW SUBMARINE");
+    let expected = ByteSlice::from("YELLOW SUBMARINE\x04\x04\x04\x04");
 
     assert_eq!(input.pad(20), expected);
 
@@ -14,18 +14,18 @@ fn challenge_9() -> TestResult {
 }
 
 // I realize I am doing challenge 10 the other way around (encrypt vs. decrypt)
-// However, for future challanges, it is more useful to implement encrypt
+// However, for future challenges, it is more useful to implement encrypt
 #[test]
 fn challenge_10() -> TestResult {
     // Input
     let plaintext = funky_music()?;
-    let key = aes::Block::new(*b"YELLOW SUBMARINE");
+    let key = aes::Block::from(*b"YELLOW SUBMARINE");
 
     // Expected output
     let encoded_data = FileLineIterator::new("../../data/10.txt")?.concat();
-    let ciphertext = Bytes::try_from(Base64::from(encoded_data))?;
+    let ciphertext = ByteSlice::try_from(Base64::from(encoded_data))?;
 
-    assert_eq!(aes::cbc::encrypt(&plaintext, &key), ciphertext);
+    assert_eq!(aes::cbc::encrypt(plaintext, key), ciphertext);
 
     ok()
 }
@@ -70,12 +70,12 @@ fn challenge_13() -> TestResult {
     assert_eq!(&detected_mode, &aes::BlockMode::Ecb);
 
     // Valid email address should work
-    let email = Bytes::from("foo@bar.com");
+    let email = ByteSlice::from("foo@bar.com");
     let result = oracle.encrypt(email);
     assert!(result.is_ok());
 
     // Invalid email should give an error
-    let email = Bytes::from("foo@bar.com&role=admin");
+    let email = ByteSlice::from("foo@bar.com&role=admin");
     let result = oracle.encrypt(email);
     assert!(result.is_err());
 

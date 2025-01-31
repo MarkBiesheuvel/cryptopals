@@ -1,5 +1,6 @@
 //! Collection of adversaries that can be used to break encryption or detect
 //! hidden properties
+
 pub use attack_ecb_fixed_postfix::attack_ecb_fixed_postfix;
 pub use attack_repeating_key_xor::attack_repeating_key_xor;
 pub use attack_single_byte_xor::attack_single_byte_xor;

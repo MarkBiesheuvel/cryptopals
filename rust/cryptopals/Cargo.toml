@@ -1,6 +1,6 @@
 [package]
 name = "cryptopals"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [dependencies]
@@ -8,4 +8,4 @@ itertools = "0.12"
 rand = "0.8"
 thiserror = "1.0"
 error-stack = "0.3"
-itermore = { version = "0.7", default-features = false, features = ["array_chunks"] }
+itermore = { version = "0.7", features = ["array_chunks"] }

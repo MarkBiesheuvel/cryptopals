@@ -1,44 +1,44 @@
-use std::convert::TryFrom;
 use std::borrow::Cow;
+use std::convert::TryFrom;
 use std::vec::Vec;
 
-use itermore::IterArrayChunks;
 use error_stack::{bail, ensure, Report, Result};
+use itermore::IterArrayChunks;
 
-use crate::{Bytes, CryptopalsError};
+use crate::{byte::ByteSlice, CryptopalsError};
 
 /// Hexadecimal encoded string
 #[derive(Debug)]
 pub struct Hexadecimal<'a>(Cow<'a, str>);
 
-impl From<String> for Hexadecimal<'_>
-{
+impl From<String> for Hexadecimal<'_> {
     fn from(value: String) -> Hexadecimal<'static> {
         Hexadecimal(Cow::Owned(value))
     }
 }
 
-impl<'a> From<&'a str> for Hexadecimal<'a>
-{
+impl<'a> From<&'a str> for Hexadecimal<'a> {
     fn from(value: &'a str) -> Hexadecimal<'a> {
         Hexadecimal(Cow::Borrowed(value))
     }
 }
 
-impl TryFrom<Hexadecimal<'_>> for Bytes {
+impl TryFrom<Hexadecimal<'_>> for ByteSlice<'static> {
     type Error = Report<CryptopalsError>;
 
     fn try_from(value: Hexadecimal) -> core::result::Result<Self, Self::Error> {
-        let characters = value.0
-        .chars()
-        .filter(|c| !c.is_whitespace())
-        .collect::<Vec<_>>();
+        let characters = value
+            .0
+            .chars()
+            .filter(|c| !c.is_whitespace())
+            .collect::<Vec<_>>();
 
         // Input must be even
         ensure!(characters.len() % 2 == 0, CryptopalsError::InvalidHexadecimal);
 
         // Parse each chunk of 2 characters
-        let bytes = characters.into_iter()
+        let bytes = characters
+            .into_iter()
             .array_chunks()
             .map(|chunk| {
                 // Deconstruct the chunk
@@ -54,24 +54,7 @@ impl TryFrom<Hexadecimal<'_>> for Bytes {
             .collect::<Result<Vec<_>, _>>()?;
 
         // Return Bytes struct
-        Ok(Bytes::from(bytes))
-    }
-}
-
-impl From<&Bytes> for Hexadecimal<'static> {
-    fn from(value: &Bytes) -> Self {
-        let value = value
-            .iter()
-            .map(|number| {
-                let second_character = u8_to_char(number & 0b00001111).unwrap();
-                let first_character = u8_to_char(number >> 4).unwrap();
-
-                format!("{first_character}{second_character}")
-            })
-            .collect::<Vec<_>>()
-            .join(" ");
-
-        Hexadecimal::from(value)
+        Ok(ByteSlice::from(bytes))
     }
 }
 
@@ -102,56 +85,29 @@ fn char_to_u8(character: char) -> Result<u8, CryptopalsError> {
     Ok(number)
 }
 
-/// Convert single 4 bit number into hexadecimal char
-fn u8_to_char(number: u8) -> Result<char, CryptopalsError> {
-    let character = match number {
-        0 => '0',
-        1 => '1',
-        2 => '2',
-        3 => '3',
-        4 => '4',
-        5 => '5',
-        6 => '6',
-        7 => '7',
-        8 => '8',
-        9 => '9',
-        10 => 'A',
-        11 => 'B',
-        12 => 'C',
-        13 => 'D',
-        14 => 'E',
-        15 => 'F',
-        _ => {
-            bail!(CryptopalsError::InvalidHexadecimal);
-        }
-    };
-
-    Ok(character)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn invalid_length() {
-        let result = Bytes::try_from(Hexadecimal::from("48656c6c6f2c20576f726c642"));
+        let result = ByteSlice::try_from(Hexadecimal::from("48656c6c6f2c20576f726c642"));
 
         assert!(result.is_err());
     }
 
     #[test]
     fn lowercase() {
-        let result = Bytes::try_from(Hexadecimal::from("48656c6c6f2c20576f726c6421"));
-        let expected = Bytes::from("Hello, World!");
+        let result = ByteSlice::try_from(Hexadecimal::from("48656c6c6f2c20576f726c6421"));
+        let expected = ByteSlice::from("Hello, World!");
 
         assert_eq!(result.unwrap(), expected);
     }
 
     #[test]
     fn uppercase() {
-        let result = Bytes::try_from(Hexadecimal::from("48656C6C6f2C20576F726C6421"));
-        let expected = Bytes::from("Hello, World!");
+        let result = ByteSlice::try_from(Hexadecimal::from("48656C6C6f2C20576F726C6421"));
+        let expected = ByteSlice::from("Hello, World!");
 
         assert_eq!(result.unwrap(), expected);
     }

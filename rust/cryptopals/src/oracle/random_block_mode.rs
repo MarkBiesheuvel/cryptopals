@@ -2,7 +2,7 @@ use error_stack::Result;
 use rand::Rng;
 
 use super::{Oracle, OracleError};
-use crate::{aes, Bytes};
+use crate::{aes, byte::*};
 
 /// An oracle which will encrypt a plaintext with a random AES block cipher mode
 ///
@@ -18,8 +18,8 @@ use crate::{aes, Bytes};
 pub struct RandomBlockMode {
     key: aes::Block,
     mode: aes::BlockMode,
-    prefix: Bytes,
-    postfix: Bytes,
+    prefix: ByteSlice<'static>,
+    postfix: ByteSlice<'static>,
 }
 
 impl RandomBlockMode {
@@ -48,8 +48,8 @@ impl Default for RandomBlockMode {
         let postfix_length = rng.gen_range(5..=10);
 
         // Generate random bytes
-        let prefix = Bytes::with_random_values(prefix_length, &mut rng);
-        let postfix = Bytes::with_random_values(postfix_length, &mut rng);
+        let prefix = ByteSlice::with_random_values_and_length(prefix_length, &mut rng);
+        let postfix = ByteSlice::with_random_values_and_length(postfix_length, &mut rng);
 
         RandomBlockMode {
             key,
@@ -61,14 +61,15 @@ impl Default for RandomBlockMode {
 }
 
 impl Oracle for RandomBlockMode {
-    fn encrypt(&self, plaintext: Bytes) -> Result<Bytes, OracleError> {
-        // Build a payload by adding the prefix and postfix to the plainttext
-        let payload = &self.prefix + &plaintext + &self.postfix;
+    fn encrypt(&self, plaintext: ByteSlice<'_>) -> Result<ByteSlice<'static>, OracleError> {
+        // Build a payload by adding the prefix and postfix to the plaintext
+        let payload = &self.prefix + plaintext + &self.postfix;
 
         // Encrypt using the selected mode
+        // TODO: create Key struct, which auto expends round keys
         let ciphertext = match self.mode {
-            aes::BlockMode::Ecb => aes::ecb::encrypt(&payload, &self.key),
-            aes::BlockMode::Cbc => aes::cbc::encrypt(&payload, &self.key),
+            aes::BlockMode::Ecb => aes::ecb::encrypt(payload, self.key.clone()),
+            aes::BlockMode::Cbc => aes::cbc::encrypt(payload, self.key.clone()),
         };
 
         Ok(ciphertext)

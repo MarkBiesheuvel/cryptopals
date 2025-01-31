@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use error_stack::{ensure, Result, ResultExt};
 
 use super::AdversaryError;
-use crate::{aes, oracle::Oracle, Bytes};
+use crate::{aes, byte::*, oracle::Oracle};
 
 const DEFAULT_CHARACTER: u8 = b'U';
 
@@ -17,7 +17,7 @@ const PRINTABLE_CHARACTERS: [u8; 97] = [
 
 fn ciphertext_length<O: Oracle>(oracle: &O, plaintext_length: usize) -> Result<usize, AdversaryError> {
     // Build a plaintext of desired length
-    let plaintext = Bytes::with_repeated_character(plaintext_length, DEFAULT_CHARACTER);
+    let plaintext = ByteSlice::with_repeated_byte_and_length(plaintext_length, DEFAULT_CHARACTER);
 
     // Try to encrypt it using the oracle
     let ciphertext = oracle
@@ -30,10 +30,10 @@ fn ciphertext_length<O: Oracle>(oracle: &O, plaintext_length: usize) -> Result<u
 
 fn get_nth_block_of_ciphertext<O: Oracle>(
     oracle: &O,
-    plaintext: Bytes,
+    plaintext: ByteSlice<'_>,
     block_length: usize,
     block_index: usize,
-) -> Result<Bytes, AdversaryError> {
+) -> Result<ByteSlice<'static>, AdversaryError> {
     // Try to encrypt it using the oracle
     let ciphertext = oracle
         .encrypt(plaintext)
@@ -41,15 +41,18 @@ fn get_nth_block_of_ciphertext<O: Oracle>(
 
     // Try to find the desired block
     let block = ciphertext
-        .blocks(block_length)
+        .chunks(block_length)
         .nth(block_index)
         .ok_or(AdversaryError::UnexpectedCiphertextLength)?;
+
+    // TODO: solve issue that block is a reference to ciphertext
+    let block = ByteSlice::from_iter(block.into_iter());
 
     Ok(block)
 }
 
 /// Attack the the postfix of an Oracle encrypting with ECB mode
-pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<Bytes, AdversaryError> {
+pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<ByteSlice<'static>, AdversaryError> {
     // Initialize all variables before entering the while loop
     let mut plaintext_length = 0;
     let mut current_ciphertext_length = ciphertext_length(oracle, plaintext_length)?;
@@ -81,7 +84,7 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<Bytes, Adversar
     let postfix_length = previous_ciphertext_length - plaintext_length;
 
     // Starting with no known characters
-    let mut known_characters = Bytes::default();
+    let mut known_characters = ByteSlice::from(Vec::new());
 
     // Brute force each character of the fixed postfix one by one
     for byte_index in 0..postfix_length {
@@ -93,17 +96,17 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<Bytes, Adversar
         // character we are looking for in the last position of a block in the
         // ciphertext
         let prefix_length = (block_index + 1) * block_length - byte_index - 1;
-        let prefix = Bytes::with_repeated_character(prefix_length, DEFAULT_CHARACTER);
+        let prefix = ByteSlice::with_repeated_byte_and_length(prefix_length, DEFAULT_CHARACTER);
 
         // Build a map of encrypted blocks where the corresponding plaintext block was
         // our prefix + known characters + a printable byte value
-        let block_map = PRINTABLE_CHARACTERS
+        let mut block_map = PRINTABLE_CHARACTERS
             .into_iter()
             .map(|byte_value| {
                 // Create plaintexts from the prefix, followed by all known characters, followed
                 // by byte value
                 let mut plaintext = &prefix + &known_characters;
-                plaintext += byte_value;
+                plaintext.push(byte_value);
 
                 // Store the block of the ciphertext containing the different bytes values in
                 // the last position
@@ -127,8 +130,8 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<Bytes, Adversar
 
         // Add the discovered character to the list of known characters so it can be
         // used in the next step
-        let byte_value = block_map.get(&block).unwrap();
-        known_characters += *byte_value;
+        let byte_value = block_map.remove(&block).unwrap();
+        known_characters.push(byte_value);
     }
 
     // All characters are known, this must be the fixed postfix

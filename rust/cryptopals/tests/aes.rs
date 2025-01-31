@@ -1,4 +1,4 @@
-use cryptopals::{aes, Bytes};
+use cryptopals::{aes, byte::*, encoding::Hexadecimal};
 // Test support
 use support::{ok, TestResult};
 mod support;
@@ -7,7 +7,7 @@ mod support;
 
 #[test]
 fn roundkey() -> TestResult {
-    let key = aes::Block::new(*b"Thats my Kung Fu");
+    let key = aes::Block::from(*b"Thats my Kung Fu");
     let roundkey = aes::Roundkey::from(key);
 
     let expected_roundkeys = [
@@ -24,8 +24,13 @@ fn roundkey() -> TestResult {
         "28 FD DE F8 6D A4 24 4A CC C0 A4 FE 3B 31 6F 26",
     ]
     .into_iter()
-    .map(|string| aes::Block::try_from_hexadecimal(string))
-    .collect::<Result<Vec<_>, _>>()?;
+    .map(|value| {
+        // TODO: find prettier way
+        let value = Hexadecimal::from(value);
+        let value = ByteSlice::try_from(value).unwrap();
+        let value = ByteArray::try_from(value).unwrap();
+        aes::Block::from(value)
+    });
 
     // Verify each roundkey against expected value
     for (value, expected) in roundkey.into_iter().zip(expected_roundkeys) {
@@ -37,9 +42,9 @@ fn roundkey() -> TestResult {
 
 #[test]
 fn manual_rounds() -> TestResult {
-    let key = aes::Block::new(*b"Thats my Kung Fu");
+    let key = aes::Block::from(*b"Thats my Kung Fu");
     let mut roundkey = aes::Roundkey::from(key);
-    let plaintext = aes::Block::new(*b"Two One Nine Two");
+    let plaintext = aes::Block::from(*b"Two One Nine Two");
 
     // Expected state after each step
     let mut expected_states = [
@@ -54,9 +59,13 @@ fn manual_rounds() -> TestResult {
         "43 C6 A9 62 0E 57 C0 C8 09 08 EB FE 3D F8 7F 37",
     ]
     .into_iter()
-    .map(|string| aes::Block::try_from_hexadecimal(string))
-    .collect::<Result<Vec<_>, _>>()?
-    .into_iter();
+    .map(|value| {
+        // TODO: find prettier way
+        let value = Hexadecimal::from(value);
+        let value = ByteSlice::try_from(value).unwrap();
+        let value = ByteArray::try_from(value).unwrap();
+        aes::Block::from(value)
+    });
 
     // Function to be used in Option::ok_or_else
     let err = || "unexpected end of iterator";
@@ -105,22 +114,24 @@ fn manual_rounds() -> TestResult {
 
 #[test]
 fn start_to_finish() -> TestResult {
-    let key = aes::Block::new(*b"Thats my Kung Fu");
-    let plaintext = Bytes::from("Two One Nine Two");
+    let key = aes::Block::from(*b"Thats my Kung Fu");
+    let plaintext = ByteSlice::from("Two One Nine Two");
 
     // Perform encryption operation from start to finish
-    let ciphertext = aes::ecb::encrypt(&plaintext, &key);
+    let ciphertext = aes::ecb::encrypt(plaintext, key);
 
     // Since PKCS#7 requires strings to be padded even if the match the block
-    // length, the ciphertext will be 2 blocks instead of one. We're only intrested
+    // length, the ciphertext will be 2 blocks instead of one. We're only interested
     // in the first block.
     let ciphertext = ciphertext
-        .blocks(aes::BLOCK_LENGTH)
+        .blocks::<{ aes::BLOCK_LENGTH }>()
         .next()
         .ok_or("Empty ciphertext")?;
 
     // Expected ciphertext
-    let expected = Bytes::try_from_hexadecimal("29 C3 50 5F 57 14 20 F6 40 22 99 B3 1A 02 D7 3A")?;
+    let expected = ByteArray::<{ aes::BLOCK_LENGTH }>::try_from(ByteSlice::try_from(Hexadecimal::from(
+        "29 C3 50 5F 57 14 20 F6 40 22 99 B3 1A 02 D7 3A",
+    ))?)?;
 
     // Assertion
     assert_eq!(ciphertext, expected);

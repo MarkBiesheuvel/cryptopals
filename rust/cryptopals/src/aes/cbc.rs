@@ -2,58 +2,51 @@
 //!
 //! ## Examples
 //! ```
-//! # use cryptopals::{aes, Bytes};
-//! #
-//! let key = aes::Block::new(*b"YELLOW SUBMARINE");
-//! let plaintext = Bytes::from("https://cryptopals.com/");
+//! use cryptopals::{aes, byte::*};
 //!
-//! let expected = Bytes::from([
+//! let key = aes::Block::from(*b"YELLOW SUBMARINE");
+//! let plaintext = ByteSlice::from("https://cryptopals.com/");
+//!
+//! let expected = ByteSlice::from(&[
 //!     147, 213, 116, 241, 131, 50, 159, 45, 146, 150, 13, 146, 29, 242, 88, 90, 232, 196,
 //!     246, 36, 93, 32, 2, 180, 64, 12, 116, 236, 193, 5, 120, 27,
-//! ]);
+//! ][..]);
 //!
-//! assert_eq!(aes::cbc::encrypt(&plaintext, &key), expected);
+//! assert_eq!(aes::cbc::encrypt(plaintext, key), expected);
 //! ```
-use super::{Block, Roundkey, BLOCK_LENGTH};
-use crate::Bytes;
+use super::{Block, Roundkey};
+use crate::byte::*;
 
-/// AES encrypt using cipher block chaining (CBC) mode
-pub fn encrypt(plaintext: &Bytes, key: &Block) -> Bytes {
-    // Pad the plaintext
-    let plaintext = plaintext.pad(BLOCK_LENGTH);
-
-    // Clone the key
-    let key = key.clone();
-
+/// AES encrypt using cipher block chaining (CBC) mode.
+///
+/// While this implementation does not necessarily consume `plaintext`,
+/// however after encrypting a plaintext it makes sense that the plaintext is no longer available
+pub fn encrypt(plaintext: ByteSlice, key: Block) -> ByteSlice {
     // Expand the key into 11 roundkeys once
     let roundkeys = Roundkey::from(key).collect::<Vec<_>>();
 
     // Initialization vector
-    let mut iv = Block::default();
+    let mut iv = Block::from(ByteArray::with_repeated_byte(0));
 
-    // Split the plaintext up into blocks of 16 bytes
-    let mut blocks = plaintext
-        .blocks(BLOCK_LENGTH)
-        .map(|bytes| Block::try_from(&bytes).unwrap())
-        .collect::<Vec<_>>();
+    let bytes = plaintext
+        // Split into statically sized chunks
+        .blocks()
+        // Encrypt each block
+        .map(|byte_array| {
+            let mut block = Block::from(byte_array);
 
-    // Encrypt each block
-    for block in blocks.iter_mut() {
-        // Apply IV from previous round
-        *block ^= &iv;
+            // Apply IV from previous round
+            block ^= &iv;
 
-        // Encrypt block
-        block.encrypt(&roundkeys);
+            block.encrypt(&roundkeys);
 
-        // Create a copy of the current block in order to use it for the next round
-        iv = block.clone();
-    }
+            // Create a copy of the current block in order to use it for the next round
+            iv = block.clone();
 
-    // Combine all blocks into a single vector of bytes
-    let bytes = blocks.into_iter().fold(Vec::new(), |mut acc, block| {
-        acc.append(&mut block.into());
-        acc
-    });
+            block
+        })
+        // Collect each byte of each block
+        .flat_map(|block| block.unpack().into_iter());
 
-    Bytes::from(bytes)
+    ByteSlice::from_iter(bytes)
 }

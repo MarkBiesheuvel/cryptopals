@@ -1,6 +1,6 @@
 use std::convert::From;
 
-use super::{sub_byte, Block};
+use super::{byte_operator::sub_byte, Block, BLOCK_LENGTH};
 
 // Round constants
 const ROUND_CONSTANT: [u8; 11] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54];
@@ -24,9 +24,8 @@ const ROUND_CONSTANT: [u8; 11] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54];
 /// #
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
-#[derive(Default)]
 pub struct Roundkey {
-    previous_key: Block,
+    previous_key: Option<Block>,
     round_number: usize,
 }
 
@@ -34,7 +33,7 @@ impl Roundkey {
     fn new(initial_key: Block) -> Roundkey {
         // Start at round 0 with the initial key
         Roundkey {
-            previous_key: initial_key,
+            previous_key: Option::Some(initial_key),
             round_number: 0,
         }
     }
@@ -44,8 +43,8 @@ impl<B> From<B> for Roundkey
 where
     B: Into<Block>,
 {
-    fn from(block: B) -> Self {
-        Roundkey::new(block.into())
+    fn from(value: B) -> Self {
+        Roundkey::new(value.into())
     }
 }
 
@@ -53,9 +52,6 @@ impl Iterator for Roundkey {
     type Item = Block;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // Store in local variable for shorter code
-        let prev = &self.previous_key;
-
         // Early returns
         match self.round_number {
             0 => {
@@ -63,7 +59,7 @@ impl Iterator for Roundkey {
                 self.round_number += 1;
 
                 // Return initial key
-                return Some(prev.clone());
+                return Some(self.previous_key.as_ref().unwrap().clone());
             }
             11 => {
                 // No more rounds
@@ -74,8 +70,11 @@ impl Iterator for Roundkey {
             }
         }
 
+        // Taking previous key from Option and leaving None
+        let prev = self.previous_key.take().unwrap();
+
         // Start with a blank slate
-        let mut next = Block::default();
+        let mut next = [0; BLOCK_LENGTH];
 
         // Round constant
         let constant = ROUND_CONSTANT[self.round_number];
@@ -104,14 +103,13 @@ impl Iterator for Roundkey {
         next[14] = prev[14] ^ next[10];
         next[15] = prev[15] ^ next[11];
 
-        // Create reference before moving
-        let roundkey = next.clone();
+        let key = Block::from(next);
 
         // Prepare for next round
         self.round_number += 1;
-        self.previous_key = next;
+        self.previous_key = Some(key.clone());
 
         // Return
-        Some(roundkey)
+        Some(key)
     }
 }

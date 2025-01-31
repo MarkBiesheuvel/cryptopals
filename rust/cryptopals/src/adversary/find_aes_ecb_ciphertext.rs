@@ -1,7 +1,7 @@
 use error_stack::{report, Result};
 
 use super::{average_hamming_distance, AdversaryError};
-use crate::{aes, Bytes, OrderedBox};
+use crate::{aes, byte::*, OrderedBox};
 
 /// Adversary which takes a list of candidates and returns the one which is most
 /// likely to be an AES ECB-mode encrypted ciphertext
@@ -12,7 +12,7 @@ use crate::{aes, Bytes, OrderedBox};
 /// compared to random data With ECB if blocks contain the same data, they will
 /// lead to the same result So we are looking for a cipher with a low average
 /// hamming distance across blocks
-pub fn find_aes_ecb_ciphertext(candidates: Vec<Bytes>) -> Result<Bytes, AdversaryError> {
+pub fn find_aes_ecb_ciphertext(candidates: Vec<ByteSlice<'_>>) -> Result<ByteSlice<'_>, AdversaryError> {
     let scores = candidates
         .into_iter()
         .map(|candidate| {

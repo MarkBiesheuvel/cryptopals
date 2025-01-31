@@ -8,7 +8,7 @@ use error_stack::Result;
 pub use random_block_mode::RandomBlockMode;
 pub use user_profile::UserProfile;
 
-use crate::Bytes;
+use crate::byte::*;
 
 mod ecb_fixed_postfix;
 mod error;
@@ -21,30 +21,29 @@ mod user_profile;
 ///
 /// ## Examples
 /// ```
-/// # use cryptopals::{Bytes, oracle::{Oracle, OracleError}};
-/// # use error_stack::Result;
-/// #
+/// use cryptopals::{byte::*, oracle::{Oracle, OracleError}};
+/// use error_stack::Result;
+///
 /// #[derive(Default)]
 /// struct SingleByteXor;
 ///
 /// // Implementing the Oracle trait with a simple XOR operation
 /// impl Oracle for SingleByteXor {
-///     fn encrypt(&self, plaintext: Bytes) -> Result<Bytes, OracleError> {
+///     fn encrypt(&self, plaintext: ByteSlice<'_>) -> Result<ByteSlice<'static>, OracleError> {
 ///         Ok(plaintext.single_byte_xor(42))
 ///     }
 /// }
 ///
 /// // Verify that the oracle works as expected
 /// let oracle = SingleByteXor::default();
-/// let plaintext = Bytes::from("cryptopals");
+/// let plaintext = ByteSlice::from("cryptopals");
 ///
 /// let ciphertext = oracle.encrypt(plaintext)?;
-/// let expected = Bytes::from("IXSZ^EZKFY");
+/// let expected = ByteSlice::from("IXSZ^EZKFY");
 /// assert_eq!(ciphertext, expected);
-/// #
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 pub trait Oracle: Default {
     /// Perform encrypt operation
-    fn encrypt(&self, plaintext: Bytes) -> Result<Bytes, OracleError>;
+    fn encrypt(&self, plaintext: ByteSlice<'_>) -> Result<ByteSlice<'static>, OracleError>;
 }

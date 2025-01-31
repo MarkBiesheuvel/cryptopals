@@ -1,8 +1,10 @@
+use std::rc::Rc;
+
 use error_stack::{ensure, Result};
 use itertools::Itertools;
 
 use super::AdversaryError;
-use crate::Bytes;
+use crate::byte::*;
 
 // The maximum number of blocks to sample and compare to each other to calculate
 // the average hamming distance.
@@ -10,14 +12,15 @@ const NUMBER_OF_BLOCKS: usize = 6;
 
 /// Not an adversary by itself, but used by both
 /// `attack_repeating_key_xor` and `find_aes_ecb_ciphertext`
-pub fn average_hamming_distance(bytes: &Bytes, block_size: usize) -> Result<f32, AdversaryError> {
-    // Get the first N blocks and store in a Vec
+pub fn average_hamming_distance(bytes: &ByteSlice, block_size: usize) -> Result<f32, AdversaryError> {
+    // Take the first N blocks, map them to a reference counter to avoid cloning
     let blocks = bytes
-        .blocks(block_size)
+        .chunks(block_size)
         .take(NUMBER_OF_BLOCKS)
+        .map(Rc::from)
         .collect::<Vec<_>>();
 
-    // Create all possible combinations as a Tuple
+    // Create all possible combinations
     let combinations = blocks.into_iter().tuple_combinations().collect::<Vec<_>>();
 
     // Count the actual number of combinations
@@ -41,11 +44,10 @@ pub fn average_hamming_distance(bytes: &Bytes, block_size: usize) -> Result<f32,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Bytes;
 
     #[test]
     fn full_amount_of_blocks() {
-        let value = Bytes::from("Hello, World");
+        let value = ByteSlice::from("Hello, World");
 
         let result = average_hamming_distance(&value, 2);
 
@@ -54,7 +56,7 @@ mod tests {
 
     #[test]
     fn barely_enough_blocks() {
-        let value = Bytes::from("Hello, World");
+        let value = ByteSlice::from("Hello, World");
 
         // Due to a change in the implementation, the function will even work if there
         // is a lower number of blocks
@@ -65,7 +67,7 @@ mod tests {
 
     #[test]
     fn not_enough_blocks() {
-        let value = Bytes::from("Hello, World");
+        let value = ByteSlice::from("Hello, World");
 
         // However, it will fail if there are 0 or 1 blocks
         let result = average_hamming_distance(&value, 16);

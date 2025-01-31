@@ -1,14 +1,14 @@
 use error_stack::{report, Result};
 
 use super::{average_hamming_distance, AdversaryError};
-use crate::{Bytes, OrderedBox};
+use crate::{byte::*, OrderedBox};
 
 const MIN_BLOCK_SIZE: usize = 2;
 const MAX_BLOCK_SIZE: usize = 40;
 
 /// Detect block size of a repeating XOR ciphertext by looking for the block
 /// size which leads to the lowest normalized hamming distance between blocks
-pub fn detect_block_size_repeating_key(ciphertext: &Bytes) -> Result<usize, AdversaryError> {
+pub fn detect_block_size_repeating_key(ciphertext: &ByteSlice) -> Result<usize, AdversaryError> {
     (MIN_BLOCK_SIZE..=MAX_BLOCK_SIZE)
         .filter_map(|block_size| {
             // Calculate average hamming distance between first few blocks
