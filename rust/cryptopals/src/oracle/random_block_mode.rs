@@ -16,7 +16,7 @@ use crate::{aes, byte::*};
 ///  - concatenate the prefix, plaintext, and postfix
 ///  - encrypt everything using the previously selected block mode
 pub struct RandomBlockMode {
-    key: aes::Block,
+    key: aes::Key,
     mode: aes::BlockMode,
     prefix: ByteSlice<'static>,
     postfix: ByteSlice<'static>,
@@ -35,7 +35,7 @@ impl Default for RandomBlockMode {
         let mut rng = rand::thread_rng();
 
         // Generate a random key
-        let key = aes::Block::with_random_values(&mut rng);
+        let key = aes::Key::default();
 
         // Generate a random bool in order to pick between the two block modes
         let mode = match rng.gen() {
@@ -68,8 +68,8 @@ impl Oracle for RandomBlockMode {
         // Encrypt using the selected mode
         // TODO: create Key struct, which auto expends round keys
         let ciphertext = match self.mode {
-            aes::BlockMode::Ecb => aes::ecb::encrypt(payload, self.key.clone()),
-            aes::BlockMode::Cbc => aes::cbc::encrypt(payload, self.key.clone()),
+            aes::BlockMode::Ecb => aes::ecb::encrypt(payload, &self.key),
+            aes::BlockMode::Cbc => aes::cbc::encrypt(payload, &self.key),
         };
 
         Ok(ciphertext)

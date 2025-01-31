@@ -14,7 +14,7 @@ const FIXED_POSTFIX: &str = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24
 ///  - concatenate the plaintext with a fixed postfix
 ///  - encrypt everything using AES ECB block cipher mode
 pub struct EcbFixedPostfix {
-    key: aes::Block,
+    key: aes::Key,
     postfix: ByteSlice<'static>,
 }
 
@@ -28,10 +28,8 @@ impl EcbFixedPostfix {
 
 impl Default for EcbFixedPostfix {
     fn default() -> Self {
-        let mut rng = rand::thread_rng();
-
         // Generate a random key
-        let key = aes::Block::with_random_values(&mut rng);
+        let key = aes::Key::default();
 
         // Initialize postfix from base64
         // TODO: move base64 decoding to proc_macro
@@ -49,7 +47,7 @@ impl Oracle for EcbFixedPostfix {
 
         // Encrypt using AES ECB block cipher mode
         // TODO: create Key struct, which auto expends round keys
-        let ciphertext = aes::ecb::encrypt(payload, self.key.clone());
+        let ciphertext = aes::ecb::encrypt(payload, &self.key);
 
         Ok(ciphertext)
     }

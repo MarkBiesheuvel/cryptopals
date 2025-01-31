@@ -4,7 +4,7 @@
 //! ```
 //! use cryptopals::{aes, byte::*};
 //!
-//! let key = aes::Block::from(*b"YELLOW SUBMARINE");
+//! let key = aes::Key::from(*b"YELLOW SUBMARINE");
 //! let plaintext = ByteSlice::from("https://cryptopals.com/");
 //!
 //! let expected = ByteSlice::from(&[
@@ -12,19 +12,16 @@
 //!     246, 36, 93, 32, 2, 180, 64, 12, 116, 236, 193, 5, 120, 27,
 //! ][..]);
 //!
-//! assert_eq!(aes::cbc::encrypt(plaintext, key), expected);
+//! assert_eq!(aes::cbc::encrypt(plaintext, &key), expected);
 //! ```
-use super::{Block, Roundkey};
+use super::{Block, Key};
 use crate::byte::*;
 
 /// AES encrypt using cipher block chaining (CBC) mode.
 ///
 /// While this implementation does not necessarily consume `plaintext`,
 /// however after encrypting a plaintext it makes sense that the plaintext is no longer available
-pub fn encrypt(plaintext: ByteSlice, key: Block) -> ByteSlice {
-    // Expand the key into 11 roundkeys once
-    let roundkeys = Roundkey::from(key).collect::<Vec<_>>();
-
+pub fn encrypt(plaintext: ByteSlice, key: &Key) -> ByteSlice<'static> {
     // Initialization vector
     let mut iv = Block::from(ByteArray::with_repeated_byte(0));
 
@@ -38,7 +35,7 @@ pub fn encrypt(plaintext: ByteSlice, key: Block) -> ByteSlice {
             // Apply IV from previous round
             block ^= &iv;
 
-            block.encrypt(&roundkeys);
+            block.encrypt(key);
 
             // Create a copy of the current block in order to use it for the next round
             iv = block.clone();

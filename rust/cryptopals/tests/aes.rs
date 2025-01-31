@@ -8,7 +8,7 @@ mod support;
 #[test]
 fn roundkey() -> TestResult {
     let key = aes::Block::from(*b"Thats my Kung Fu");
-    let roundkey = aes::Roundkey::from(key);
+    let key = aes::Key::from(key);
 
     let expected_roundkeys = [
         "54 68 61 74 73 20 6D 79 20 4B 75 6E 67 20 46 75",
@@ -33,8 +33,8 @@ fn roundkey() -> TestResult {
     });
 
     // Verify each roundkey against expected value
-    for (value, expected) in roundkey.into_iter().zip(expected_roundkeys) {
-        assert_eq!(value, expected);
+    for (value, expected) in key.iter().zip(expected_roundkeys) {
+        assert_eq!(value, &expected);
     }
 
     ok()
@@ -43,7 +43,7 @@ fn roundkey() -> TestResult {
 #[test]
 fn manual_rounds() -> TestResult {
     let key = aes::Block::from(*b"Thats my Kung Fu");
-    let mut roundkey = aes::Roundkey::from(key);
+    let key = aes::Key::from(key);
     let plaintext = aes::Block::from(*b"Two One Nine Two");
 
     // Expected state after each step
@@ -73,8 +73,10 @@ fn manual_rounds() -> TestResult {
     // Start with plaintext
     let mut state = plaintext;
 
+    let mut iterator = key.iter();
+
     // Round 0 - Apply roundkey
-    state ^= &roundkey.next().ok_or_else(err)?;
+    state ^= iterator.next().ok_or_else(err)?;
     assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 1 - Substitution bytes
@@ -90,7 +92,7 @@ fn manual_rounds() -> TestResult {
     assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 1 - Apply roundkey
-    state ^= &roundkey.next().ok_or_else(err)?;
+    state ^= iterator.next().ok_or_else(err)?;
     assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 2 - Substitution bytes
@@ -106,7 +108,7 @@ fn manual_rounds() -> TestResult {
     assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     // Round 2 - Apply roundkey
-    state ^= &roundkey.next().ok_or_else(err)?;
+    state ^= iterator.next().ok_or_else(err)?;
     assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
     ok()
@@ -114,11 +116,11 @@ fn manual_rounds() -> TestResult {
 
 #[test]
 fn start_to_finish() -> TestResult {
-    let key = aes::Block::from(*b"Thats my Kung Fu");
+    let key = aes::Key::from(*b"Thats my Kung Fu");
     let plaintext = ByteSlice::from("Two One Nine Two");
 
     // Perform encryption operation from start to finish
-    let ciphertext = aes::ecb::encrypt(plaintext, key);
+    let ciphertext = aes::ecb::encrypt(plaintext, &key);
 
     // Since PKCS#7 requires strings to be padded even if the match the block
     // length, the ciphertext will be 2 blocks instead of one. We're only interested

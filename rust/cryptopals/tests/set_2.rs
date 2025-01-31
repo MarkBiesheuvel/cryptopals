@@ -19,13 +19,13 @@ fn challenge_9() -> TestResult {
 fn challenge_10() -> TestResult {
     // Input
     let plaintext = funky_music()?;
-    let key = aes::Block::from(*b"YELLOW SUBMARINE");
+    let key = aes::Key::from(*b"YELLOW SUBMARINE");
 
     // Expected output
     let encoded_data = FileLineIterator::new("../../data/10.txt")?.concat();
     let ciphertext = ByteSlice::try_from(Base64::from(encoded_data))?;
 
-    assert_eq!(aes::cbc::encrypt(plaintext, key), ciphertext);
+    assert_eq!(aes::cbc::encrypt(plaintext, &key), ciphertext);
 
     ok()
 }

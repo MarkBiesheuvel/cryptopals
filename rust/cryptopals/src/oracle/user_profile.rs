@@ -15,17 +15,15 @@ const CHARACTER_EQUALS_SIGN: u8 = b'=';
 /// During creation it will:
 ///  - randomly generate an encryption key
 pub struct UserProfile {
-    key: aes::Block,
+    key: aes::Key,
     prefix: ByteSlice<'static>,
     latest_id: RefCell<usize>,
 }
 
 impl Default for UserProfile {
     fn default() -> Self {
-        let mut rng = rand::thread_rng();
-
         // Generate a random key
-        let key = aes::Block::with_random_values(&mut rng);
+        let key = aes::Key::default();
 
         // Prefix will always be the same, so we can already make a Bytes struct
         let prefix = ByteSlice::from("email=");
@@ -60,7 +58,7 @@ impl Oracle for UserProfile {
         let profile = &self.prefix + email + postfix;
 
         // Encrypt
-        let ciphertext = aes::ecb::encrypt(profile, self.key.clone());
+        let ciphertext = aes::ecb::encrypt(profile, &self.key);
 
         Ok(ciphertext)
     }

@@ -1,7 +1,10 @@
 use std::ops::BitXorAssign;
 use std::ops::{Index, IndexMut};
 
-use super::byte_operator::{g_mul, sub_byte};
+use super::{
+    byte_operator::{g_mul, sub_byte},
+    Key,
+};
 use crate::byte::*;
 
 /// Number of bytes in 128 bits (e.g. 16 bytes)
@@ -93,8 +96,8 @@ impl Block {
     ///
     /// Roundkeys need to already be calculated to avoid rerunning the Roundkey
     /// iterator for each block
-    pub fn encrypt(&mut self, roundkeys: &[Block]) {
-        for (round_number, round_key) in roundkeys.iter().enumerate() {
+    pub fn encrypt(&mut self, key: &Key) {
+        for (round_number, round_key) in key.iter().enumerate() {
             if 0 < round_number {
                 // Perform substitution bytes on every round after round 0
                 self.sub_bytes();

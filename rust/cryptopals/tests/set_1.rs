@@ -115,13 +115,13 @@ fn challenge_6() -> TestResult {
 fn challenge_7() -> TestResult {
     // Input
     let plaintext = funky_music()?;
-    let key = aes::Block::from(*b"YELLOW SUBMARINE");
+    let key = aes::Key::from(*b"YELLOW SUBMARINE");
 
     // Expected output
     let encoded_data = FileLineIterator::new("../../data/7.txt")?.concat();
     let ciphertext = ByteSlice::try_from(Base64::from(encoded_data))?;
 
-    assert_eq!(aes::ecb::encrypt(plaintext, key), ciphertext);
+    assert_eq!(aes::ecb::encrypt(plaintext, &key), ciphertext);
 
     ok()
 }
