@@ -115,7 +115,7 @@ impl<const N: usize> ByteSequence for ByteArray<N> {
         self.0.get(index)
     }
 
-    fn iter<'a>(&'a self) -> impl Iterator<Item = &'a u8> + 'a {
+    fn iter(&self) -> impl Iterator<Item = &u8> {
         self.0.iter()
     }
 

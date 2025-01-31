@@ -208,12 +208,13 @@ impl ByteSequence for ByteSlice<'_> {
         self.0.get(index)
     }
 
-    fn iter<'a>(&'a self) -> impl Iterator<Item = &'a u8> + 'a {
+    fn iter(&self) -> impl Iterator<Item = &u8> {
         self.0.iter()
     }
 
     fn into_iter(self) -> impl Iterator<Item = u8> + 'static {
         // Use Cow to make it owned
+        #[allow(clippy::unnecessary_to_owned)]
         self.0.into_owned().into_iter()
     }
 }

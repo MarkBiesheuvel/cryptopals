@@ -18,7 +18,7 @@ pub trait ByteSequence {
     fn get(&self, index: usize) -> Option<&u8>;
 
     /// Return iterator over borrowed bytes
-    fn iter<'a>(&'a self) -> impl Iterator<Item = &'a u8> + 'a;
+    fn iter(&self) -> impl Iterator<Item = &u8>;
 
     /// Return iterator over owned bytes
     fn into_iter(self) -> impl Iterator<Item = u8> + 'static;
