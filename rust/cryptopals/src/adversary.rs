@@ -10,6 +10,7 @@ pub use detect_block_size_repeating_key::detect_block_size_repeating_key;
 pub use error::AdversaryError;
 pub use find_aes_ecb_ciphertext::find_aes_ecb_ciphertext;
 pub use find_english_text::find_english_text;
+pub use scored_item::ScoredItem;
 
 mod attack_ecb_fixed_postfix;
 mod attack_repeating_key_xor;
@@ -20,3 +21,4 @@ mod detect_block_size_repeating_key;
 mod error;
 mod find_aes_ecb_ciphertext;
 mod find_english_text;
+mod scored_item;
