@@ -91,8 +91,6 @@ impl<const N: usize> ByteSequence for ByteArray<N> {
             *k = v;
         }
 
-        // TODO: automatically pad?
-
         ByteArray(bytes)
     }
 

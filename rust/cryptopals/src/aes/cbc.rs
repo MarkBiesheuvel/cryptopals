@@ -43,7 +43,7 @@ pub fn encrypt(plaintext: ByteSlice, key: &Key) -> ByteSlice<'static> {
             block
         })
         // Collect each byte of each block
-        .flat_map(|block| block.unpack().into_iter());
+        .flat_map(|block| block.into_iter());
 
     ByteSlice::from_iter(bytes)
 }

@@ -35,7 +35,7 @@ impl Default for RandomBlockMode {
         let mut rng = rand::thread_rng();
 
         // Generate a random key
-        let key = aes::Key::default();
+        let key = aes::Key::with_random_values(&mut rng);
 
         // Generate a random bool in order to pick between the two block modes
         let mode = match rng.gen() {
@@ -66,7 +66,6 @@ impl Oracle for RandomBlockMode {
         let payload = &self.prefix + plaintext + &self.postfix;
 
         // Encrypt using the selected mode
-        // TODO: create Key struct, which auto expends round keys
         let ciphertext = match self.mode {
             aes::BlockMode::Ecb => aes::ecb::encrypt(payload, &self.key),
             aes::BlockMode::Cbc => aes::cbc::encrypt(payload, &self.key),

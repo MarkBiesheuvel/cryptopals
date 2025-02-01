@@ -25,10 +25,9 @@ fn roundkey() -> TestResult {
     ]
     .into_iter()
     .map(|value| {
-        // TODO: find prettier way
         let value = Hexadecimal::from(value);
-        let value = ByteSlice::try_from(value).unwrap();
-        let value = ByteArray::try_from(value).unwrap();
+        let value = ByteSlice::try_from(value).expect("Expected hardcoded hexadecimal string to be valid");
+        let value = ByteArray::try_from(value).expect("Expected hardcoded byte slice to be correct length");
         aes::Block::from(value)
     });
 
@@ -60,10 +59,9 @@ fn manual_rounds() -> TestResult {
     ]
     .into_iter()
     .map(|value| {
-        // TODO: find prettier way
         let value = Hexadecimal::from(value);
-        let value = ByteSlice::try_from(value).unwrap();
-        let value = ByteArray::try_from(value).unwrap();
+        let value = ByteSlice::try_from(value).expect("Expected hardcoded hexadecimal string to be valid");
+        let value = ByteArray::try_from(value).expect("Expected hardcoded byte slice to be correct length");
         aes::Block::from(value)
     });
 

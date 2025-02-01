@@ -6,19 +6,26 @@ const NUMBER_OF_ROUNDS: usize = 11;
 // Round constants from Rijndael key schedule
 const ROUND_CONSTANTS: [u8; 11] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54];
 
-/// TODO: docs
+/// An AES 128-bit encryption key.
+///
+/// ## Examples
+/// ```
+/// use cryptopals::aes;
+///
+/// // Create random key
+/// let mut rng = rand::thread_rng();
+/// let random_key = aes::Key::with_random_values(&mut rng);
+///
+/// // Create manual key with same initial value
+/// let initial_value = random_key.iter().nth(0).unwrap();
+/// let manual_key = aes::Key::from(initial_value.clone());
+///
+/// // Each round key should be equal
+/// for (lhs, rhs) in random_key.iter().zip(manual_key.iter()) {
+///     assert_eq!(lhs, rhs);
+/// }
+/// ```
 pub struct Key(Vec<Block>);
-
-impl Default for Key {
-    /// Keys are initialized with random values
-    fn default() -> Key {
-        // Generate a random initial value
-        let mut rng = rand::thread_rng();
-        let initial_value = Block::with_random_values(&mut rng);
-
-        Key::new(initial_value)
-    }
-}
 
 impl<B> From<B> for Key
 where
@@ -30,8 +37,16 @@ where
 }
 
 impl Key {
-    /// TODO: docs
-    pub fn new(initial_value: Block) -> Key {
+    /// Create keys with random values
+    pub fn with_random_values(rng: &mut impl rand::Rng) -> Key {
+        // Generate a random initial value
+        let initial_value = Block::with_random_values(rng);
+
+        Key::new(initial_value)
+    }
+
+    /// Key is automatically expanded to round keys
+    fn new(initial_value: Block) -> Key {
         // Initialize with none of the rounds expanded
         let mut round_keys = Vec::with_capacity(NUMBER_OF_ROUNDS);
 
@@ -82,7 +97,7 @@ impl Key {
         Key(round_keys)
     }
 
-    /// TODO: docs
+    /// Iterator over round keys
     pub fn iter(&self) -> impl Iterator<Item = &Block> {
         self.0.iter()
     }

@@ -22,8 +22,10 @@ pub struct UserProfile {
 
 impl Default for UserProfile {
     fn default() -> Self {
+        let mut rng = rand::thread_rng();
+
         // Generate a random key
-        let key = aes::Key::default();
+        let key = aes::Key::with_random_values(&mut rng);
 
         // Prefix will always be the same, so we can already make a Bytes struct
         let prefix = ByteSlice::from("email=");

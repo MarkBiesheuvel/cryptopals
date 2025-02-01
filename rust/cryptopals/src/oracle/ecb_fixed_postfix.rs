@@ -28,13 +28,14 @@ impl EcbFixedPostfix {
 
 impl Default for EcbFixedPostfix {
     fn default() -> Self {
+        let mut rng = rand::thread_rng();
+
         // Generate a random key
-        let key = aes::Key::default();
+        let key = aes::Key::with_random_values(&mut rng);
 
         // Initialize postfix from base64
-        // TODO: move base64 decoding to proc_macro
-        let postfix =
-            ByteSlice::try_from(Base64::from(FIXED_POSTFIX)).expect("Expected hardcoded base64 string to be valid");
+        let postfix = Base64::from(FIXED_POSTFIX);
+        let postfix = ByteSlice::try_from(postfix).expect("Expected hardcoded base64 string to be valid");
 
         EcbFixedPostfix { key, postfix }
     }
@@ -46,7 +47,6 @@ impl Oracle for EcbFixedPostfix {
         let payload = plaintext + &self.postfix;
 
         // Encrypt using AES ECB block cipher mode
-        // TODO: create Key struct, which auto expends round keys
         let ciphertext = aes::ecb::encrypt(payload, &self.key);
 
         Ok(ciphertext)

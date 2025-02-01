@@ -11,6 +11,15 @@ use crate::byte::*;
 pub const BLOCK_LENGTH: usize = 16;
 
 /// A block of 16 bytes used in AES encryption
+///
+/// ## Examples
+/// ```
+/// use cryptopals::aes;
+///
+/// let block = aes::Block::from([42; aes::BLOCK_LENGTH]);
+///
+/// assert_eq!(block[11], 42);
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Block(ByteArray<BLOCK_LENGTH>);
 
@@ -18,16 +27,15 @@ impl<B> From<B> for Block
 where
     B: Into<ByteArray<16>>,
 {
-    // TODO: docs - can create from ByteArray or [u8; 16]
     fn from(value: B) -> Self {
         Block(value.into())
     }
 }
 
 impl Block {
-    /// TODO: documentation
-    pub fn unpack(self) -> ByteArray<BLOCK_LENGTH> {
-        self.0
+    /// Consume self and return iterator over bytes
+    pub fn into_iter(self) -> impl Iterator<Item = u8> + 'static {
+        self.0.into_iter()
     }
 
     /// Generate a `Block` with random values.

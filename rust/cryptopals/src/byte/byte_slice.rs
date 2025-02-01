@@ -94,7 +94,18 @@ impl<'a> ByteSlice<'a> {
         ByteSlice::from_iter(iter)
     }
 
-    /// TODO: docs
+    /// Add one single byte at the end
+    ///
+    /// ## Examples
+    /// ```
+    /// use cryptopals::byte::*;
+    ///
+    /// let mut value = ByteSlice::from("cryptopal");
+    /// assert_eq!(value.length(), 9);
+    ///
+    /// value.push(b's');
+    /// assert_eq!(value.length(), 10);
+    /// ```
     pub fn push(&mut self, value: u8) {
         self.0.to_mut().push(value);
     }
@@ -144,7 +155,8 @@ impl<'a> ByteSlice<'a> {
         self.0.chunks(chunk_size).map(ByteSlice::from)
     }
 
-    /// TODO: write docs
+    /// Return an iterator of static sized blocks of this `ByteSlice`.
+    /// The input will be padded first.
     pub fn blocks<const N: usize>(&self) -> impl Iterator<Item = ByteArray<N>> + 'static {
         // Pad with additional characters
         // This conveniently creates a static/owned variable
