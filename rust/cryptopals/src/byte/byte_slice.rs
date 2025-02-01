@@ -25,6 +25,24 @@ impl From<Vec<u8>> for ByteSlice<'static> {
     }
 }
 
+impl From<String> for ByteSlice<'static> {
+    /// Create a `ByteSlice` from an owned value
+    ///
+    /// ## Examples
+    /// ```
+    /// use cryptopals::byte::*;
+    ///
+    /// let user_name = "Mark";
+    /// let string_value = format!("Hello, {}!", user_name);
+    /// let value = ByteSlice::from(string_value);
+    ///
+    /// assert_eq!(value.get(8), Some(&97));
+    /// ```
+    fn from(value: String) -> Self {
+        ByteSlice::from(value.into_bytes())
+    }
+}
+
 impl<'a> From<&'a [u8]> for ByteSlice<'a> {
     /// Create a `ByteSlice` from a borrowed value
     ///

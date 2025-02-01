@@ -52,8 +52,7 @@ impl Oracle for UserProfile {
         let mut id = self.latest_id.borrow_mut();
 
         // Generate postfix and increment counter
-        let postfix = format!("&uid={}&role=user", id);
-        let postfix = ByteSlice::from(Vec::from(postfix));
+        let postfix = ByteSlice::from(format!("&uid={}&role=user", id));
         *id += 1;
 
         // Build a profile by embedding the email into a URL-encoded string
