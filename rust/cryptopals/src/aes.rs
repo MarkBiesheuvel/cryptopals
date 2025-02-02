@@ -5,12 +5,11 @@
 //! use cryptopals::{aes, byte::*};
 //!
 //! let key = aes::Key::from(*b"YELLOW SUBMARINE");
-//! let ecb_plaintext = ByteSlice::from("cryptopals");
-//! let cbc_plaintext = ByteSlice::from("cryptopals");
+//! let plaintext = ByteSlice::from("cryptopals");
 //!
 //! // Since the plaintext is less than 16 bytes (one AES block),
 //! // there is no difference between ECB and CBC mode
-//! assert_eq!(aes::ecb::encrypt(ecb_plaintext, &key), aes::cbc::encrypt(cbc_plaintext, &key));
+//! assert_eq!(aes::ecb::encrypt(plaintext.clone(), &key), aes::cbc::encrypt(plaintext.clone(), &key));
 //! ```
 pub use block::{Block, BLOCK_LENGTH};
 pub use key::Key;

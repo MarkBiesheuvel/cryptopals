@@ -15,4 +15,7 @@ pub enum CryptopalsError {
     /// The inputs are of unequal length
     #[error("The inputs are of unequal length")]
     UnequalLength,
+    /// The input does not have valid padding
+    #[error("The input does not have valid padding")]
+    InvalidPadding,
 }

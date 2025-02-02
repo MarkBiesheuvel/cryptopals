@@ -23,6 +23,7 @@ pub fn detect_aes_block_mode<O: Oracle>(oracle: &O) -> Result<aes::BlockMode, Ad
     // identical.
     let contains_any_identical_blocks = ciphertext
         .blocks::<{ aes::BLOCK_LENGTH }>()
+        .change_context(AdversaryError::UnexpectedCiphertextLength)?
         .tuple_windows()
         .any(|(block_1, block_2)| block_1 == block_2);
 

@@ -109,19 +109,18 @@ fn challenge_6() -> TestResult {
     ok()
 }
 
-// I realize I am doing challenge 7 the other way around (encrypt vs. decrypt)
-// However, for future challenges, it is more useful to implement encrypt
 #[test]
 fn challenge_7() -> TestResult {
     // Input
-    let plaintext = funky_music()?;
     let key = aes::Key::from(*b"YELLOW SUBMARINE");
+    let plaintext = funky_music()?;
 
-    // Expected output
-    let encoded_data = FileLineIterator::new("../../data/7.txt")?.concat();
-    let ciphertext = ByteSlice::try_from(Base64::from(encoded_data))?;
+    let ciphertext = FileLineIterator::new("../../data/7.txt")?.concat();
+    let ciphertext = ByteSlice::try_from(Base64::from(ciphertext))?;
 
-    assert_eq!(aes::ecb::encrypt(plaintext, &key), ciphertext);
+    // Verify both encrypt and decrypt
+    assert_eq!(aes::ecb::encrypt(plaintext.clone(), &key), ciphertext);
+    assert_eq!(aes::ecb::decrypt(ciphertext, &key)?, plaintext);
 
     ok()
 }
@@ -137,7 +136,7 @@ fn challenge_8() -> TestResult {
 
     // Expected output
     let expected = ByteSlice::from(
-        &[
+        [
             216, 128, 97, 151, 64, 168, 161, 155, 120, 64, 168, 163, 28, 129, 10, 61, 8, 100, 154, 247, 13, 192, 111,
             79, 213, 210, 214, 156, 116, 76, 210, 131, 226, 221, 5, 47, 107, 100, 29, 191, 157, 17, 176, 52, 133, 66,
             187, 87, 8, 100, 154, 247, 13, 192, 111, 79, 213, 210, 214, 156, 116, 76, 210, 131, 148, 117, 201, 223,
@@ -146,7 +145,8 @@ fn challenge_8() -> TestResult {
             100, 154, 247, 13, 192, 111, 79, 213, 210, 214, 156, 116, 76, 210, 131, 212, 3, 24, 12, 152, 200, 246, 219,
             31, 42, 63, 156, 64, 64, 222, 176, 171, 81, 178, 153, 51, 242, 193, 35, 197, 131, 134, 176, 111, 186, 24,
             106,
-        ][..],
+        ]
+        .as_ref(),
     );
 
     assert_eq!(adversary::find_aes_ecb_ciphertext(candidates)?, expected);

@@ -5,7 +5,7 @@ use std::vec::Vec;
 use error_stack::{bail, ensure, Report, Result};
 use itermore::IterArrayChunks;
 
-use crate::{byte::ByteSlice, CryptopalsError};
+use crate::{byte::*, CryptopalsError};
 
 /// Hexadecimal encoded string
 #[derive(Debug)]
@@ -58,6 +58,29 @@ impl TryFrom<Hexadecimal<'_>> for ByteSlice<'static> {
     }
 }
 
+impl From<&ByteSlice<'_>> for Hexadecimal<'static> {
+    fn from(value: &ByteSlice) -> Self {
+        let value = value
+            .iter()
+            .map(|number| {
+                let second_character = u8_to_char(number & 0b00001111).unwrap();
+                let first_character = u8_to_char(number >> 4).unwrap();
+                format!("{first_character}{second_character}")
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+
+        Hexadecimal::from(value)
+    }
+}
+
+impl<'a> Hexadecimal<'a> {
+    /// Retrieve the string from within
+    pub fn as_str(&'a self) -> &'a str {
+        &self.0
+    }
+}
+
 // Convert single hexadecimal char to a 4-bit number
 fn char_to_u8(character: char) -> Result<u8, CryptopalsError> {
     let number = match character {
@@ -83,6 +106,32 @@ fn char_to_u8(character: char) -> Result<u8, CryptopalsError> {
     };
 
     Ok(number)
+}
+
+// Convert single 4 bit number into hexadecimal char
+fn u8_to_char(number: u8) -> Result<char, CryptopalsError> {
+    let character = match number {
+        0 => '0',
+        1 => '1',
+        2 => '2',
+        3 => '3',
+        4 => '4',
+        5 => '5',
+        6 => '6',
+        7 => '7',
+        8 => '8',
+        9 => '9',
+        10 => 'A',
+        11 => 'B',
+        12 => 'C',
+        13 => 'D',
+        14 => 'E',
+        15 => 'F',
+        _ => {
+            bail!(CryptopalsError::InvalidHexadecimal);
+        }
+    };
+    Ok(character)
 }
 
 #[cfg(test)]

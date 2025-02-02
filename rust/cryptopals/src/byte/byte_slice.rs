@@ -1,11 +1,13 @@
 use super::{ByteArray, ByteSequence};
+use crate::{aes::BLOCK_LENGTH, encoding::Hexadecimal, CryptopalsError};
+use error_stack::{ensure, Result};
 use itermore::IterArrayChunks;
-use std::{borrow::Cow, ops::Add};
+use std::{borrow::Cow, fmt, ops::Add};
 
 /// A dynamically sized collection of bytes.
 ///
 /// It is both possible to create a `ByteSlice` from a borrowed or an owned value.
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Eq, Hash, PartialEq)]
 pub struct ByteSlice<'a>(Cow<'a, [u8]>);
 
 impl From<Vec<u8>> for ByteSlice<'static> {
@@ -95,6 +97,7 @@ impl<'a> ByteSlice<'a> {
     /// assert_eq!(result.get(length - 1), Some(&6));
     /// ```
     pub fn pad(&self, desired_block_size: usize) -> ByteSlice<'static> {
+        // TODO: should I make this an in-place operation?
         let current_length = self.length();
 
         // Calculate the difference in length
@@ -110,6 +113,28 @@ impl<'a> ByteSlice<'a> {
         });
 
         ByteSlice::from_iter(iter)
+    }
+
+    /// Unpad bytes
+    /// TODO: write example
+    pub fn unpad(&mut self) -> Result<(), CryptopalsError> {
+        let vec = self.0.to_mut();
+
+        // Pop at least one byte
+        let difference = vec.pop().ok_or(CryptopalsError::InvalidLength)?;
+
+        // Validate difference
+        ensure!(difference <= BLOCK_LENGTH as u8, CryptopalsError::InvalidPadding);
+
+        // Pop remaining bytes
+        for _ in 1..difference {
+            // If no more bytes, the input was too short
+            let byte = vec.pop().ok_or(CryptopalsError::InvalidLength)?;
+            // If the byte doesn't match, the padding was invalid
+            ensure!(byte == difference, CryptopalsError::InvalidPadding);
+        }
+
+        Ok(())
     }
 
     /// Add one single byte at the end
@@ -175,16 +200,16 @@ impl<'a> ByteSlice<'a> {
 
     /// Return an iterator of static sized blocks of this `ByteSlice`.
     /// The input will be padded first.
-    pub fn blocks<const N: usize>(&self) -> impl Iterator<Item = ByteArray<N>> + 'static {
-        // Pad with additional characters
-        // This conveniently creates a static/owned variable
-        let padded_input = self.pad(N);
-
-        // The input is now divisible by the block length
-        assert_eq!(padded_input.length() % N, 0);
+    pub fn blocks<const N: usize>(
+        self,
+    ) -> Result<impl Iterator<Item = ByteArray<N>> + 'static + use<'a, N>, CryptopalsError> {
+        // The input should be divisible by the block length
+        ensure!(self.length() % N == 0, CryptopalsError::InvalidLength);
 
         // Use the `itermore`` crate while `array_chunks` is unstable
-        IterArrayChunks::array_chunks::<N>(padded_input.into_iter()).map(ByteArray::<N>::from)
+        let iterator = self.into_iter().array_chunks().map(ByteArray::<N>::from);
+
+        Ok(iterator)
     }
 }
 
@@ -246,6 +271,16 @@ impl ByteSequence for ByteSlice<'_> {
         // Use Cow to make it owned
         #[allow(clippy::unnecessary_to_owned)]
         self.0.into_owned().into_iter()
+    }
+}
+
+impl fmt::Debug for ByteSlice<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let hexadecimal = Hexadecimal::from(self);
+
+        f.debug_tuple("ByteSlice")
+            .field(&hexadecimal.as_str())
+            .finish()
     }
 }
 
