@@ -2,7 +2,7 @@ use std::ops::BitXorAssign;
 use std::ops::{Index, IndexMut};
 
 use super::{
-    byte_operator::{g_mul, sub_byte},
+    byte_operator::{g_mul, inverse_sub_byte, sub_byte},
     Key,
 };
 use crate::byte::*;
@@ -45,7 +45,7 @@ impl Block {
         Block::from(ByteArray::with_random_values(rng))
     }
 
-    /// Apply Rijndael S-box to all bytes of the block
+    /// Apply forward Rijndael S-box to all bytes of the block
     pub fn sub_bytes(&mut self) {
         // Sub each byte
         for i in 0..BLOCK_LENGTH {
@@ -53,57 +53,88 @@ impl Block {
         }
     }
 
+    /// Apply inverse Rijndael S-box to all bytes of the block
+    pub fn inverse_sub_bytes(&mut self) {
+        // Sub each byte
+        for i in 0..BLOCK_LENGTH {
+            self[i] = inverse_sub_byte(self[i]);
+        }
+    }
+
     /// Cyclically shifts the bytes in each row by a certain offset
     pub fn shift_rows(&mut self) {
-        // Shift first row by 0
+        // Shift first row to left by 0
 
-        // Shift second row by 1
+        // Shift second row to left by 1
         (self[1], self[5], self[9], self[13]) = (self[5], self[9], self[13], self[1]);
 
-        // Shift third row by 2
+        // Shift third row to left by 2
         (self[2], self[6], self[10], self[14]) = (self[10], self[14], self[2], self[6]);
 
-        // Shift fourth row by 3
+        // Shift fourth row to left by 3
         (self[3], self[7], self[11], self[15]) = (self[15], self[3], self[7], self[11]);
+    }
+
+    /// Cyclically shifts the bytes in each row by a certain offset
+    pub fn inverse_shift_rows(&mut self) {
+        // Shift first row by 0
+
+        // Shift second row to right by 1
+        (self[1], self[5], self[9], self[13]) = (self[13], self[1], self[5], self[9]);
+
+        // Shift third row to right by 2
+        (self[2], self[6], self[10], self[14]) = (self[10], self[14], self[2], self[6]);
+
+        // Shift fourth row to right by 3
+        (self[3], self[7], self[11], self[15]) = (self[7], self[11], self[15], self[3]);
     }
 
     /// Matrix multiplication with fixed matrix
     pub fn mix_columns(&mut self) {
+        self.mix_columns_helper([2, 1, 1, 3])
+    }
+
+    /// Inverse matrix multiplication with fixed matrix
+    pub fn inverse_mix_columns(&mut self) {
+        self.mix_columns_helper([14, 9, 13, 11])
+    }
+
+    fn mix_columns_helper(&mut self, factors: [u8; 4]) {
+        //Rename variable, so everything fits on a single line
+        let f = factors;
+
         // Initialize new byte array
         let mut bytes = [0; BLOCK_LENGTH];
 
         // First column
-        bytes[0] = g_mul(self[0], 2) ^ g_mul(self[1], 3) ^ g_mul(self[2], 1) ^ g_mul(self[3], 1);
-        bytes[1] = g_mul(self[0], 1) ^ g_mul(self[1], 2) ^ g_mul(self[2], 3) ^ g_mul(self[3], 1);
-        bytes[2] = g_mul(self[0], 1) ^ g_mul(self[1], 1) ^ g_mul(self[2], 2) ^ g_mul(self[3], 3);
-        bytes[3] = g_mul(self[0], 3) ^ g_mul(self[1], 1) ^ g_mul(self[2], 1) ^ g_mul(self[3], 2);
+        bytes[0] = g_mul(self[0], f[0]) ^ g_mul(self[1], f[3]) ^ g_mul(self[2], f[2]) ^ g_mul(self[3], f[1]);
+        bytes[1] = g_mul(self[0], f[1]) ^ g_mul(self[1], f[0]) ^ g_mul(self[2], f[3]) ^ g_mul(self[3], f[2]);
+        bytes[2] = g_mul(self[0], f[2]) ^ g_mul(self[1], f[1]) ^ g_mul(self[2], f[0]) ^ g_mul(self[3], f[3]);
+        bytes[3] = g_mul(self[0], f[3]) ^ g_mul(self[1], f[2]) ^ g_mul(self[2], f[1]) ^ g_mul(self[3], f[0]);
 
         // Second column
-        bytes[4] = g_mul(self[4], 2) ^ g_mul(self[5], 3) ^ g_mul(self[6], 1) ^ g_mul(self[7], 1);
-        bytes[5] = g_mul(self[4], 1) ^ g_mul(self[5], 2) ^ g_mul(self[6], 3) ^ g_mul(self[7], 1);
-        bytes[6] = g_mul(self[4], 1) ^ g_mul(self[5], 1) ^ g_mul(self[6], 2) ^ g_mul(self[7], 3);
-        bytes[7] = g_mul(self[4], 3) ^ g_mul(self[5], 1) ^ g_mul(self[6], 1) ^ g_mul(self[7], 2);
+        bytes[4] = g_mul(self[4], f[0]) ^ g_mul(self[5], f[3]) ^ g_mul(self[6], f[2]) ^ g_mul(self[7], f[1]);
+        bytes[5] = g_mul(self[4], f[1]) ^ g_mul(self[5], f[0]) ^ g_mul(self[6], f[3]) ^ g_mul(self[7], f[2]);
+        bytes[6] = g_mul(self[4], f[2]) ^ g_mul(self[5], f[1]) ^ g_mul(self[6], f[0]) ^ g_mul(self[7], f[3]);
+        bytes[7] = g_mul(self[4], f[3]) ^ g_mul(self[5], f[2]) ^ g_mul(self[6], f[1]) ^ g_mul(self[7], f[0]);
 
         // Third column
-        bytes[8] = g_mul(self[8], 2) ^ g_mul(self[9], 3) ^ g_mul(self[10], 1) ^ g_mul(self[11], 1);
-        bytes[9] = g_mul(self[8], 1) ^ g_mul(self[9], 2) ^ g_mul(self[10], 3) ^ g_mul(self[11], 1);
-        bytes[10] = g_mul(self[8], 1) ^ g_mul(self[9], 1) ^ g_mul(self[10], 2) ^ g_mul(self[11], 3);
-        bytes[11] = g_mul(self[8], 3) ^ g_mul(self[9], 1) ^ g_mul(self[10], 1) ^ g_mul(self[11], 2);
+        bytes[8] = g_mul(self[8], f[0]) ^ g_mul(self[9], f[3]) ^ g_mul(self[10], f[2]) ^ g_mul(self[11], f[1]);
+        bytes[9] = g_mul(self[8], f[1]) ^ g_mul(self[9], f[0]) ^ g_mul(self[10], f[3]) ^ g_mul(self[11], f[2]);
+        bytes[10] = g_mul(self[8], f[2]) ^ g_mul(self[9], f[1]) ^ g_mul(self[10], f[0]) ^ g_mul(self[11], f[3]);
+        bytes[11] = g_mul(self[8], f[3]) ^ g_mul(self[9], f[2]) ^ g_mul(self[10], f[1]) ^ g_mul(self[11], f[0]);
 
         // Fourth column
-        bytes[12] = g_mul(self[12], 2) ^ g_mul(self[13], 3) ^ g_mul(self[14], 1) ^ g_mul(self[15], 1);
-        bytes[13] = g_mul(self[12], 1) ^ g_mul(self[13], 2) ^ g_mul(self[14], 3) ^ g_mul(self[15], 1);
-        bytes[14] = g_mul(self[12], 1) ^ g_mul(self[13], 1) ^ g_mul(self[14], 2) ^ g_mul(self[15], 3);
-        bytes[15] = g_mul(self[12], 3) ^ g_mul(self[13], 1) ^ g_mul(self[14], 1) ^ g_mul(self[15], 2);
+        bytes[12] = g_mul(self[12], f[0]) ^ g_mul(self[13], f[3]) ^ g_mul(self[14], f[2]) ^ g_mul(self[15], f[1]);
+        bytes[13] = g_mul(self[12], f[1]) ^ g_mul(self[13], f[0]) ^ g_mul(self[14], f[3]) ^ g_mul(self[15], f[2]);
+        bytes[14] = g_mul(self[12], f[2]) ^ g_mul(self[13], f[1]) ^ g_mul(self[14], f[0]) ^ g_mul(self[15], f[3]);
+        bytes[15] = g_mul(self[12], f[3]) ^ g_mul(self[13], f[2]) ^ g_mul(self[14], f[1]) ^ g_mul(self[15], f[0]);
 
         // Override self
         *self = Block::from(bytes)
     }
 
     /// Encrypt a single block
-    ///
-    /// Roundkeys need to already be calculated to avoid rerunning the Roundkey
-    /// iterator for each block
     pub fn encrypt(&mut self, key: &Key) {
         for (round_number, round_key) in key.iter().enumerate() {
             if 0 < round_number {
@@ -121,6 +152,31 @@ impl Block {
 
             // Apply round key on every round
             self.bitxor_assign(round_key)
+        }
+    }
+
+    /// Decrypt a single block
+    pub fn decrypt(&mut self, key: &Key) {
+        let mut round_number = 10;
+        for round_key in key.iter().rev() {
+            // Apply round key on every round
+            self.bitxor_assign(round_key);
+
+            if 0 < round_number {
+                if round_number < 10 {
+                    // Perform mix columns on rounds 1 through 9
+                    self.inverse_mix_columns();
+                }
+
+                // Perform shift rows on every round after round 0
+                self.inverse_shift_rows();
+
+                // Perform substitution bytes on every round after round 0
+                self.inverse_sub_bytes();
+            }
+
+            // Update round number
+            round_number -= 1;
         }
     }
 }

@@ -1,7 +1,7 @@
 use super::{byte_operator::sub_byte, Block, BLOCK_LENGTH};
 
-// AES uses 10 rounds for 128-bit keys, plus 1 for the initial key
-const NUMBER_OF_ROUNDS: usize = 11;
+/// AES uses 10 rounds for 128-bit keys, plus 1 for the initial key
+pub const NUMBER_OF_ROUNDS: usize = 11;
 
 // Round constants from Rijndael key schedule
 const ROUND_CONSTANTS: [u8; 11] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54];
@@ -54,10 +54,7 @@ impl Key {
         round_keys.push(initial_value);
 
         // Iterate over the number of rounds
-        for round_number in 1..NUMBER_OF_ROUNDS {
-            // Round constant
-            let constant = ROUND_CONSTANTS[round_number];
-
+        for (round_number, round_constant) in ROUND_CONSTANTS.iter().enumerate().skip(1) {
             // Get previous round key
             let prev = round_keys.get(round_number - 1).unwrap();
 
@@ -65,7 +62,7 @@ impl Key {
             let mut next = [0; BLOCK_LENGTH];
 
             // W[i] = W[i-4] XOR SubWord(RotWord(W[i-1]))
-            next[0] = prev[0] ^ sub_byte(prev[13]) ^ constant;
+            next[0] = prev[0] ^ sub_byte(prev[13]) ^ round_constant;
             next[1] = prev[1] ^ sub_byte(prev[14]);
             next[2] = prev[2] ^ sub_byte(prev[15]);
             next[3] = prev[3] ^ sub_byte(prev[12]);
@@ -97,8 +94,8 @@ impl Key {
         Key(round_keys)
     }
 
-    /// Iterator over round keys
-    pub fn iter(&self) -> impl Iterator<Item = &Block> {
+    /// Double ended iterator over round keys, so it's possible to iterate in reverse
+    pub fn iter(&self) -> impl DoubleEndedIterator<Item = &Block> {
         self.0.iter()
     }
 }

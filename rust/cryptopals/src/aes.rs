@@ -34,13 +34,19 @@ pub enum BlockMode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{byte::*, encoding::Hexadecimal};
     use std::error::Error;
-    use crate::{encoding::Hexadecimal, byte::*};
+
+    fn hex_to_block(value: &str) -> Block {
+        let value = Hexadecimal::from(value);
+        let value = ByteSlice::try_from(value).expect("Expected hardcoded hexadecimal string to be valid");
+        let value = ByteArray::try_from(value).expect("Expected hardcoded byte slice to be correct length");
+        Block::from(value)
+    }
 
     #[test]
     fn roundkey() -> Result<(), Box<dyn Error>> {
-        let key = Block::from(*b"Thats my Kung Fu");
-        let key = Key::from(key);
+        let key = Key::from(*b"Thats my Kung Fu");
 
         let expected_roundkeys = [
             "54 68 61 74 73 20 6D 79 20 4B 75 6E 67 20 46 75",
@@ -56,12 +62,7 @@ mod tests {
             "28 FD DE F8 6D A4 24 4A CC C0 A4 FE 3B 31 6F 26",
         ]
         .into_iter()
-        .map(|value| {
-            let value = Hexadecimal::from(value);
-            let value = ByteSlice::try_from(value).expect("Expected hardcoded hexadecimal string to be valid");
-            let value = ByteArray::try_from(value).expect("Expected hardcoded byte slice to be correct length");
-            Block::from(value)
-        });
+        .map(hex_to_block);
 
         // Verify each roundkey against expected value
         for (value, expected) in key.iter().zip(expected_roundkeys) {
@@ -73,8 +74,7 @@ mod tests {
 
     #[test]
     fn manual_rounds() -> Result<(), Box<dyn Error>> {
-        let key = Block::from(*b"Thats my Kung Fu");
-        let key = Key::from(key);
+        let key = Key::from(*b"Thats my Kung Fu");
         let plaintext = Block::from(*b"Two One Nine Two");
 
         // Expected state after each step
@@ -90,23 +90,17 @@ mod tests {
             "43 C6 A9 62 0E 57 C0 C8 09 08 EB FE 3D F8 7F 37",
         ]
         .into_iter()
-        .map(|value| {
-            let value = Hexadecimal::from(value);
-            let value = ByteSlice::try_from(value).expect("Expected hardcoded hexadecimal string to be valid");
-            let value = ByteArray::try_from(value).expect("Expected hardcoded byte slice to be correct length");
-            Block::from(value)
-        });
+        .map(hex_to_block);
 
         // Function to be used in Option::ok_or_else
         let err = || "unexpected end of iterator";
 
         // Start with plaintext
         let mut state = plaintext;
-
-        let mut iterator = key.iter();
+        let mut round_keys = key.iter();
 
         // Round 0 - Apply roundkey
-        state ^= iterator.next().ok_or_else(err)?;
+        state ^= round_keys.next().ok_or_else(err)?;
         assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
         // Round 1 - Substitution bytes
@@ -122,7 +116,7 @@ mod tests {
         assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
         // Round 1 - Apply roundkey
-        state ^= iterator.next().ok_or_else(err)?;
+        state ^= round_keys.next().ok_or_else(err)?;
         assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
         // Round 2 - Substitution bytes
@@ -138,7 +132,62 @@ mod tests {
         assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
         // Round 2 - Apply roundkey
-        state ^= iterator.next().ok_or_else(err)?;
+        state ^= round_keys.next().ok_or_else(err)?;
+        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+
+        Ok(())
+    }
+
+    #[test]
+    fn manual_rounds_reverse() -> Result<(), Box<dyn Error>> {
+        let key = Key::from(*b"Thats my Kung Fu");
+        let ciphertext = hex_to_block("29 C3 50 5F 57 14 20 F6 40 22 99 B3 1A 02 D7 3A");
+
+        let mut expected_states = [
+            "01 3E 8E A7 3A B0 04 BC 8C E2 3D 4D 21 33 B8 1C",
+            "01 33 3D BC 3A 3E B8 4D 8C B0 8E 1C 21 E2 04 A7",
+            "09 66 8B 78 A2 D1 9A 65 F0 FC E6 C4 7B 3B 30 89",
+            "B6 84 34 E8 E7 88 60 D7 51 98 66 70 8C CA FB 51",
+            "33 8B 76 20 51 66 7D 92 79 8F EB C2 0A 3F BE 67",
+            "33 3F EB 92 51 8B BE C2 79 66 76 67 0A 8F 7D 20",
+            "66 25 3C 74 70 CE 5A A8 AF D3 0F 0A A3 73 13 54",
+        ]
+        .into_iter()
+        .map(hex_to_block);
+
+        // Function to be used in Option::ok_or_else
+        let err = || "unexpected end of iterator";
+
+        // Start with plaintext
+        let mut state = ciphertext;
+        let mut round_keys = key.iter().rev();
+
+        // Round 10 - Apply roundkey
+        state ^= round_keys.next().ok_or_else(err)?;
+        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+
+        // Round 10 - Inverse shift rows
+        state.inverse_shift_rows();
+        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+
+        // Round 10 - Inverse substitution bytes
+        state.inverse_sub_bytes();
+        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+
+        // Round 9 - Apply roundkey
+        state ^= round_keys.next().ok_or_else(err)?;
+        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+
+        // Round 9 - Inverse mix columns
+        state.inverse_mix_columns();
+        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+
+        // Round 9 - Inverse shift rows
+        state.inverse_shift_rows();
+        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+
+        // Round 9 - Inverse substitution bytes
+        state.inverse_sub_bytes();
         assert_eq!(state, expected_states.next().ok_or_else(err)?);
 
         Ok(())
@@ -147,26 +196,19 @@ mod tests {
     #[test]
     fn start_to_finish() -> Result<(), Box<dyn Error>> {
         let key = Key::from(*b"Thats my Kung Fu");
-        let plaintext = ByteSlice::from("Two One Nine Two");
+        let plaintext = Block::from(*b"Two One Nine Two");
 
         // Perform encryption operation from start to finish
-        let ciphertext = ecb::encrypt(plaintext, &key);
-
-        // Since PKCS#7 requires strings to be padded even if the match the block
-        // length, the ciphertext will be 2 blocks instead of one. We're only interested
-        // in the first block.
-        let ciphertext = ciphertext
-            .chunks(BLOCK_LENGTH)
-            .next()
-            .ok_or("Empty ciphertext")?;
+        let mut block = plaintext.clone();
+        block.encrypt(&key);
 
         // Expected ciphertext
-        let expected = ByteSlice::try_from(Hexadecimal::from(
-            "29 C3 50 5F 57 14 20 F6 40 22 99 B3 1A 02 D7 3A",
-        ))?;
+        let expected = hex_to_block("29 C3 50 5F 57 14 20 F6 40 22 99 B3 1A 02 D7 3A");
+        assert_eq!(block, expected);
 
-        // Assertion
-        assert_eq!(ciphertext, expected);
+        // Perform encryption operation from start to finish
+        block.decrypt(&key);
+        assert_eq!(block, plaintext);
 
         Ok(())
     }
