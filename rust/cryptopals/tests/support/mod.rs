@@ -13,7 +13,7 @@ pub fn ok() -> TestResult {
     Ok::<(), Box<dyn Error>>(())
 }
 
-/// Returns the lyrics to Funky Music as a Bytes struct
+/// Returns the lyrics to Funky Music as a ByteSlice
 #[allow(dead_code)]
 pub fn funky_music() -> Result<ByteSlice<'static>, Box<dyn Error>> {
     // Load content from file
