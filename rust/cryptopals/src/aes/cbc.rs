@@ -16,6 +16,7 @@
 //! ```
 use super::{Block, Key, BLOCK_LENGTH};
 use crate::byte::*;
+use std::ops::BitXorAssign;
 
 /// AES encrypt using cipher block chaining (CBC) mode.
 ///
@@ -26,30 +27,46 @@ pub fn encrypt(plaintext: ByteSlice, key: &Key) -> ByteSlice<'static> {
     // This also creates an owned copy of plaintext instead of a reference
     let plaintext = plaintext.pad(BLOCK_LENGTH);
 
-    // Initialization vector
-    let mut iv = Block::from(ByteArray::with_repeated_byte(0));
-
-    let bytes = plaintext
+    let mut blocks = plaintext
         // Split into statically sized chunks
         .blocks()
-        // TODO: propagate error?
-        .unwrap()
-        // Encrypt each block
-        .map(|byte_array| {
-            let mut block = Block::from(byte_array);
+        // This should never error
+        .expect("plaintext should be padded to correct length")
+        // Convert to block
+        .map(Block::from)
+        // Collect
+        .collect::<Vec<_>>();
 
-            // Apply IV from previous round
-            block ^= &iv;
+    // Modify each block in place.
+    for index in 0..blocks.len() {
+        // Use the split_at_mut function to both get a mutable reference to current block
+        // and immutable reference to previous block.
+        let (left, right) = blocks.split_at_mut(index);
 
-            block.encrypt(key);
+        // Initialization vector ...
+        let iv = match index {
+            // ... from all zeroes
+            0 => &Block::from(ByteArray::with_repeated_byte(0)),
+            // ... from previous round
+            _ => left
+                .get(index - 1)
+                .expect("index - 1 should be within bounds"),
+        };
 
-            // Create a copy of the current block in order to use it for the next round
-            iv = block.clone();
+        // Get mutable reference to current block
+        let block = right
+            .get_mut(index)
+            .expect("index - 1 should be within bounds");
 
-            block
-        })
-        // Collect each byte of each block
-        .flat_map(|block| block.into_iter());
+        // Apply IV
+        block.bitxor_assign(iv);
+
+        // Encrypt
+        block.encrypt(key);
+    }
+
+    // Collect each byte of each block
+    let bytes = blocks.into_iter().flat_map(Block::into_iter);
 
     ByteSlice::from_iter(bytes)
 }

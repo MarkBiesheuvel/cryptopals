@@ -30,16 +30,17 @@ pub fn encrypt(plaintext: ByteSlice, key: &Key) -> ByteSlice<'static> {
     let bytes = plaintext
         // Split into statically sized chunks
         .blocks()
-        // TODO: propagate error?
-        .unwrap()
+        // This should never error
+        .expect("plaintext should be padded to correct length")
+        // Convert to block
+        .map(Block::from)
         // Encrypt each block
-        .map(|byte_array| {
-            let mut block = Block::from(byte_array);
+        .map(|mut block| {
             block.encrypt(key);
             block
         })
         // Collect each byte of each block
-        .flat_map(|block| block.into_iter());
+        .flat_map(Block::into_iter);
 
     ByteSlice::from_iter(bytes)
 }
