@@ -5,27 +5,29 @@ mod support;
 
 #[test]
 fn challenge_9() -> TestResult {
-    let input = ByteSlice::from("YELLOW SUBMARINE");
+    let mut input = ByteSlice::from("YELLOW SUBMARINE");
     let expected = ByteSlice::from("YELLOW SUBMARINE\x04\x04\x04\x04");
 
-    assert_eq!(input.pad(20), expected);
+    // Pad in-place
+    input.pad(20);
+
+    assert_eq!(input, expected);
 
     ok()
 }
 
-// I realize I am doing challenge 10 the other way around (encrypt vs. decrypt)
-// However, for future challenges, it is more useful to implement encrypt
 #[test]
 fn challenge_10() -> TestResult {
     // Input
-    let plaintext = funky_music()?;
     let key = aes::Key::from(*b"YELLOW SUBMARINE");
+    let plaintext = funky_music()?;
 
-    // Expected output
-    let encoded_data = FileLineIterator::new("../../data/10.txt")?.concat();
-    let ciphertext = ByteSlice::try_from(Base64::from(encoded_data))?;
+    let ciphertext = FileLineIterator::new("../../data/10.txt")?.concat();
+    let ciphertext = ByteSlice::try_from(Base64::from(ciphertext))?;
 
-    assert_eq!(aes::cbc::encrypt(plaintext, &key), ciphertext);
+    // Verify both encrypt and decrypt
+    assert_eq!(aes::cbc::encrypt(plaintext.clone(), &key), ciphertext);
+    assert_eq!(aes::cbc::decrypt(ciphertext, &key)?, plaintext);
 
     ok()
 }

@@ -19,13 +19,9 @@ use crate::{byte::*, CryptopalsError};
 use error_stack::Result;
 
 /// AES encrypt using electronic codebook (ECB) mode
-///
-/// While this implementation does not necessarily consume `plaintext`,
-/// however after encrypting a plaintext it makes sense that the plaintext is no longer available
-pub fn encrypt(plaintext: ByteSlice, key: &Key) -> ByteSlice<'static> {
+pub fn encrypt(mut plaintext: ByteSlice, key: &Key) -> ByteSlice<'static> {
     // Pad with additional characters
-    // This also creates an owned copy of plaintext instead of a reference
-    let plaintext = plaintext.pad(BLOCK_LENGTH);
+    plaintext.pad(BLOCK_LENGTH);
 
     let bytes = plaintext
         // Split into statically sized chunks
@@ -50,9 +46,10 @@ pub fn decrypt(ciphertext: ByteSlice, key: &Key) -> Result<ByteSlice<'static>, C
     let bytes = ciphertext
         // Split into statically sized chunks
         .blocks()?
-        // Encrypt each block
-        .map(|byte_array| {
-            let mut block = Block::from(byte_array);
+        // Convert to block
+        .map(Block::from)
+        // Decrypt each block
+        .map(|mut block| {
             block.decrypt(key);
             block
         })

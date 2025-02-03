@@ -87,17 +87,16 @@ impl<'a> ByteSlice<'a> {
     /// ```
     /// use cryptopals::byte::*;
     ///
-    /// let value = ByteSlice::from("cryptopals");
+    /// let mut value = ByteSlice::from("cryptopals");
     /// let block_size = 16;
     ///
-    /// let result = value.pad(block_size);
-    /// let length = result.length();
+    /// value.pad(block_size);
+    /// let length = value.length();
     ///
     /// assert_eq!(length % block_size, 0);
-    /// assert_eq!(result.get(length - 1), Some(&6));
+    /// assert_eq!(value.get(length - 1), Some(&6));
     /// ```
-    pub fn pad(&self, desired_block_size: usize) -> ByteSlice<'static> {
-        // TODO: should I make this an in-place operation?
+    pub fn pad(&mut self, desired_block_size: usize) -> () {
         let current_length = self.length();
 
         // Calculate the difference in length
@@ -106,13 +105,13 @@ impl<'a> ByteSlice<'a> {
         // Calculate the desired length
         let desired_length = current_length + difference;
 
-        // Copy the bytes from `self` and append the `difference`
-        let iter = (0..desired_length).map(|i| match self.get(i) {
-            Some(value) => *value,
-            None => difference as u8,
-        });
+        // Convert to u8
+        let byte = difference as u8;
 
-        ByteSlice::from_iter(iter)
+        // Add characters
+        for _ in current_length..desired_length {
+            self.push(byte);
+        }
     }
 
     /// Unpad bytes
