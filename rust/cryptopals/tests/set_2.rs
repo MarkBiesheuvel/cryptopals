@@ -81,5 +81,32 @@ fn challenge_13() -> TestResult {
     let result = oracle.encrypt(email);
     assert!(result.is_err());
 
+    // TODO: implement decryption
+    // TODO: implement adversary
+
+    ok()
+}
+
+#[test]
+fn challenge_15() -> TestResult {
+    // Verify valid padding
+    let mut valid_padding = ByteSlice::from("ICE ICE BABY\x04\x04\x04\x04");
+    let expected = ByteSlice::from("ICE ICE BABY");
+    let result = valid_padding.unpad();
+
+    assert!(result.is_ok());
+    assert_eq!(valid_padding, expected);
+
+    // Invalid pad value
+    let mut invalid_padding = ByteSlice::from("ICE ICE BABY\x17");
+    let result = invalid_padding.unpad();
+
+    assert!(result.is_err());
+
+    // Unequal padding
+    let mut unequal_padding = ByteSlice::from("ICE ICE BABY\x01\x02\x03\x04");
+    let result = unequal_padding.unpad();
+
+    assert!(result.is_err());
     ok()
 }
