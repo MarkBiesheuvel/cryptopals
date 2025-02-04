@@ -1,10 +1,10 @@
-use cryptopals::{adversary, aes, byte::*, encoding::Base64, oracle, oracle::Oracle};
+use cryptopals::{adversary, aes, byte::*, oracle, oracle::Oracle};
 // Test support
-use support::{funky_music, ok, FileLineIterator, TestResult};
+use support::{from_base64, funky_music, TestFile};
 mod support;
 
 #[test]
-fn challenge_9() -> TestResult {
+fn challenge_9() {
     let mut input = ByteSlice::from("YELLOW SUBMARINE");
     let expected = ByteSlice::from("YELLOW SUBMARINE\x04\x04\x04\x04");
 
@@ -12,63 +12,54 @@ fn challenge_9() -> TestResult {
     input.pad(20);
 
     assert_eq!(input, expected);
-
-    ok()
 }
 
 #[test]
-fn challenge_10() -> TestResult {
+fn challenge_10() {
     // Input
     let key = aes::Key::from(*b"YELLOW SUBMARINE");
-    let plaintext = funky_music()?;
+    let plaintext = funky_music();
 
-    let ciphertext = FileLineIterator::new("../../data/10.txt")?.concat();
-    let ciphertext = ByteSlice::try_from(Base64::from(ciphertext))?;
+    let ciphertext = from_base64(TestFile::new("../../data/10.txt").to_string());
 
     // Verify both encrypt and decrypt
     assert_eq!(aes::cbc::encrypt(plaintext.clone(), &key), ciphertext);
-    assert_eq!(aes::cbc::decrypt(ciphertext, &key)?, plaintext);
-
-    ok()
+    assert_eq!(aes::cbc::decrypt(ciphertext, &key).unwrap(), plaintext);
 }
 
 #[test]
-fn challenge_11() -> TestResult {
+fn challenge_11() {
     // Re-run the test multiple times, since the oracle involves randomness
     for _ in 0..16 {
         let oracle = oracle::RandomBlockMode::default();
 
         // Let the adversary attack the oracle
-        let detected_mode = adversary::detect_aes_block_mode(&oracle)?;
+        let detected_mode = adversary::detect_aes_block_mode(&oracle).expect("adversary should be successful");
 
         assert_eq!(&detected_mode, oracle.block_mode());
     }
-
-    ok()
 }
 
 #[test]
-fn challenge_12() -> TestResult {
+fn challenge_12() {
     let oracle = oracle::EcbFixedPostfix::default();
 
     // It is known that the oracle uses ECB, but verify anyway.
-    let detected_mode = adversary::detect_aes_block_mode(&oracle)?;
+    let detected_mode = adversary::detect_aes_block_mode(&oracle).expect("adversary should be successful");
     assert_eq!(&detected_mode, &aes::BlockMode::Ecb);
 
     // Let the adversary attack the oracle
-    let fixed_postfix = adversary::attack_ecb_fixed_postfix(&oracle)?;
+    let fixed_postfix = adversary::attack_ecb_fixed_postfix(&oracle).expect("adversary should be successful");
 
     assert_eq!(&fixed_postfix, oracle.postfix());
-
-    ok()
 }
 
 #[test]
-fn challenge_13() -> TestResult {
+fn challenge_13() {
     let oracle = oracle::UserProfile::default();
 
     // It is known that the oracle uses ECB, but verify anyway.
-    let detected_mode = adversary::detect_aes_block_mode(&oracle)?;
+    let detected_mode = adversary::detect_aes_block_mode(&oracle).expect("adversary should be successful");
     assert_eq!(&detected_mode, &aes::BlockMode::Ecb);
 
     // Valid email address should work
@@ -83,12 +74,10 @@ fn challenge_13() -> TestResult {
 
     // TODO: implement decryption
     // TODO: implement adversary
-
-    ok()
 }
 
 #[test]
-fn challenge_15() -> TestResult {
+fn challenge_15() {
     // Verify valid padding
     let mut valid_padding = ByteSlice::from("ICE ICE BABY\x04\x04\x04\x04");
     let expected = ByteSlice::from("ICE ICE BABY");
@@ -108,5 +97,4 @@ fn challenge_15() -> TestResult {
     let result = unequal_padding.unpad();
 
     assert!(result.is_err());
-    ok()
 }

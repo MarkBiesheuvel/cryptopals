@@ -1,27 +1,34 @@
-use std::error::Error;
+#![allow(dead_code)]
 
-use cryptopals::{byte::*, encoding::Hexadecimal};
-pub use file_line_iterator::FileLineIterator;
+use cryptopals::{
+    byte::*,
+    encoding::{Base64, Hexadecimal},
+};
+pub use test_file::TestFile;
 
-mod file_line_iterator;
+mod test_file;
 
-/// Type alias for return type of test
-pub type TestResult = Result<(), Box<dyn Error>>;
-
-/// Returns Ok with the correct type
-pub fn ok() -> TestResult {
-    Ok::<(), Box<dyn Error>>(())
+// Helper function to create `ByteSlice` from hexadecimal encoded string
+pub fn from_hexadecimal<S>(value: S) -> ByteSlice<'static>
+where
+    S: AsRef<str>,
+{
+    ByteSlice::try_from(Hexadecimal::from(value.as_ref())).expect("test case should contain valid hexadecimal")
 }
 
-/// Returns the lyrics to Funky Music as a ByteSlice
-#[allow(dead_code)]
-pub fn funky_music() -> Result<ByteSlice<'static>, Box<dyn Error>> {
+// Helper function to create `ByteSlice` from base64 encoded string
+pub fn from_base64<S>(value: S) -> ByteSlice<'static>
+where
+    S: AsRef<str>,
+{
+    ByteSlice::try_from(Base64::from(value.as_ref())).expect("test case should contain valid base64")
+}
+
+// Returns the lyrics to Funky Music as a ByteSlice
+pub fn funky_music() -> ByteSlice<'static> {
     // Load content from file
-    let encoded_data = FileLineIterator::new("../../data/n2Ubq9XII8c.txt")?.concat();
+    let data = TestFile::new("../../data/n2Ubq9XII8c.txt").to_string();
 
     // Parse as hexadecimal
-    let bytes = ByteSlice::try_from(Hexadecimal::from(encoded_data))?;
-
-    // Return result
-    Ok(bytes)
+    ByteSlice::try_from(Hexadecimal::from(data)).expect("test file should contain valid hexadecimal")
 }
