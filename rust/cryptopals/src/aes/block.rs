@@ -136,7 +136,7 @@ impl Block {
 
     /// Encrypt a single block
     pub fn encrypt(&mut self, key: &Key) {
-        for (round_number, round_key) in key.iter().enumerate() {
+        for (round_number, round_key) in key.rounds() {
             if 0 < round_number {
                 // Perform substitution bytes on every round after round 0
                 self.sub_bytes();
@@ -157,8 +157,7 @@ impl Block {
 
     /// Decrypt a single block
     pub fn decrypt(&mut self, key: &Key) {
-        let mut round_number = 10;
-        for round_key in key.iter().rev() {
+        for (round_number, round_key) in key.rounds().rev() {
             // Apply round key on every round
             self.bitxor_assign(round_key);
 
@@ -174,9 +173,6 @@ impl Block {
                 // Perform substitution bytes on every round after round 0
                 self.inverse_sub_bytes();
             }
-
-            // Update round number
-            round_number -= 1;
         }
     }
 }

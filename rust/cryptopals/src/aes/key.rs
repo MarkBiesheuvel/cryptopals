@@ -17,11 +17,11 @@ const ROUND_CONSTANTS: [u8; 11] = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54];
 /// let random_key = aes::Key::with_random_values(&mut rng);
 ///
 /// // Create manual key with same initial value
-/// let initial_value = random_key.iter().nth(0).unwrap();
+/// let (_, initial_value) = random_key.rounds().nth(0).unwrap();
 /// let manual_key = aes::Key::from(initial_value.clone());
 ///
 /// // Each round key should be equal
-/// for (lhs, rhs) in random_key.iter().zip(manual_key.iter()) {
+/// for (lhs, rhs) in random_key.rounds().zip(manual_key.rounds()) {
 ///     assert_eq!(lhs, rhs);
 /// }
 /// ```
@@ -95,7 +95,9 @@ impl Key {
     }
 
     /// Double ended iterator over round keys, so it's possible to iterate in reverse
-    pub fn iter(&self) -> impl DoubleEndedIterator<Item = &Block> {
-        self.0.iter()
+    /// TODO: consider returning a type `Round` which contains the round number and round key
+    /// instead of the tuple (usize, &Block)
+    pub fn rounds(&self) -> impl DoubleEndedIterator<Item = (usize, &Block)> {
+        self.0.iter().enumerate()
     }
 }

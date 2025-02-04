@@ -34,7 +34,6 @@ pub enum BlockMode {
 mod tests {
     use super::*;
     use crate::{byte::*, encoding::Hexadecimal};
-    use std::error::Error;
 
     fn hex_to_block(value: &str) -> Block {
         let value = Hexadecimal::from(value);
@@ -44,7 +43,7 @@ mod tests {
     }
 
     #[test]
-    fn roundkey() -> Result<(), Box<dyn Error>> {
+    fn roundkey() {
         let key = Key::from(*b"Thats my Kung Fu");
 
         let expected_roundkeys = [
@@ -64,15 +63,13 @@ mod tests {
         .map(hex_to_block);
 
         // Verify each roundkey against expected value
-        for (value, expected) in key.iter().zip(expected_roundkeys) {
-            assert_eq!(value, &expected);
+        for ((_round_number, round_key), expected) in key.rounds().zip(expected_roundkeys) {
+            assert_eq!(round_key, &expected);
         }
-
-        Ok(())
     }
 
     #[test]
-    fn manual_rounds() -> Result<(), Box<dyn Error>> {
+    fn manual_rounds() {
         let key = Key::from(*b"Thats my Kung Fu");
         let plaintext = Block::from(*b"Two One Nine Two");
 
@@ -91,54 +88,49 @@ mod tests {
         .into_iter()
         .map(hex_to_block);
 
-        // Function to be used in Option::ok_or_else
-        let err = || "unexpected end of iterator";
-
         // Start with plaintext
         let mut state = plaintext;
-        let mut round_keys = key.iter();
+        let mut rounds = key.rounds();
 
         // Round 0 - Apply roundkey
-        state ^= round_keys.next().ok_or_else(err)?;
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        state ^= rounds.next().unwrap().1;
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 1 - Substitution bytes
         state.sub_bytes();
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 1 - Shift rows
         state.shift_rows();
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 1 - Mix columns
         state.mix_columns();
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 1 - Apply roundkey
-        state ^= round_keys.next().ok_or_else(err)?;
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        state ^= rounds.next().unwrap().1;
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 2 - Substitution bytes
         state.sub_bytes();
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 2 - Shift rows
         state.shift_rows();
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 2 - Mix columns
         state.mix_columns();
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 2 - Apply roundkey
-        state ^= round_keys.next().ok_or_else(err)?;
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
-
-        Ok(())
+        state ^= rounds.next().unwrap().1;
+        assert_eq!(state, expected_states.next().unwrap());
     }
 
     #[test]
-    fn manual_rounds_reverse() -> Result<(), Box<dyn Error>> {
+    fn manual_rounds_reverse() {
         let key = Key::from(*b"Thats my Kung Fu");
         let ciphertext = hex_to_block("29 C3 50 5F 57 14 20 F6 40 22 99 B3 1A 02 D7 3A");
 
@@ -154,46 +146,41 @@ mod tests {
         .into_iter()
         .map(hex_to_block);
 
-        // Function to be used in Option::ok_or_else
-        let err = || "unexpected end of iterator";
-
         // Start with plaintext
         let mut state = ciphertext;
-        let mut round_keys = key.iter().rev();
+        let mut rounds = key.rounds().rev();
 
         // Round 10 - Apply roundkey
-        state ^= round_keys.next().ok_or_else(err)?;
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        state ^= rounds.next().unwrap().1;
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 10 - Inverse shift rows
         state.inverse_shift_rows();
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 10 - Inverse substitution bytes
         state.inverse_sub_bytes();
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 9 - Apply roundkey
-        state ^= round_keys.next().ok_or_else(err)?;
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        state ^= rounds.next().unwrap().1;
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 9 - Inverse mix columns
         state.inverse_mix_columns();
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 9 - Inverse shift rows
         state.inverse_shift_rows();
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
+        assert_eq!(state, expected_states.next().unwrap());
 
         // Round 9 - Inverse substitution bytes
         state.inverse_sub_bytes();
-        assert_eq!(state, expected_states.next().ok_or_else(err)?);
-
-        Ok(())
+        assert_eq!(state, expected_states.next().unwrap());
     }
 
     #[test]
-    fn start_to_finish() -> Result<(), Box<dyn Error>> {
+    fn start_to_finish() {
         let key = Key::from(*b"Thats my Kung Fu");
         let plaintext = Block::from(*b"Two One Nine Two");
 
@@ -208,7 +195,5 @@ mod tests {
         // Perform encryption operation from start to finish
         block.decrypt(&key);
         assert_eq!(block, plaintext);
-
-        Ok(())
     }
 }
