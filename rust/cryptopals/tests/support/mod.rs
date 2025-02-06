@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use byte_encoding::decode_hexadecimal;
-use cryptopals::{byte::*, encoding::Base64};
+use byte_encoding::{decode_base64, decode_hexadecimal};
+use cryptopals::byte::*;
 pub use test_file::TestFile;
 
 mod test_file;
@@ -20,7 +20,8 @@ pub fn from_base64<S>(value: S) -> ByteSlice<'static>
 where
     S: AsRef<str>,
 {
-    ByteSlice::try_from(Base64::from(value.as_ref())).expect("test case should contain valid base64")
+    let bytes = decode_base64(value).expect("test case should contain valid base64");
+    ByteSlice::from(bytes)
 }
 
 // Returns the lyrics to Funky Music as a ByteSlice

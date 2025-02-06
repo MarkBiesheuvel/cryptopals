@@ -10,12 +10,12 @@ Here is an example of how the `cryptopals` library can be used to (weakly) encry
 
 ```rust
 use std::error::Error;
-use cryptopals::{byte::*, encoding::Base64};
+use cryptopals::{byte::*, base64};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let key = 42;
-    let plaintext = ByteSlice::from("cryptopals");
-    let ciphertext = ByteSlice::try_from(Base64::from("SVhTWl5FWktGWQ=="))?;
+    let plaintext = ByteArray::from(*b"cryptopals");
+    let ciphertext = ByteArray::from(base64!("SVhTWl5FWktGWQ=="));
 
     assert_eq!(plaintext.single_byte_xor(key), ciphertext);
 

@@ -1,9 +1,7 @@
 use error_stack::Result;
-
+use byte_encoding_macro::base64;
 use super::{Oracle, OracleError};
-use crate::{aes, byte::*, encoding::Base64};
-
-const FIXED_POSTFIX: &str = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK";
+use crate::{aes, byte::*};
 
 /// An oracle which will encrypt a plaintext appended with a fixed string.
 ///
@@ -34,8 +32,7 @@ impl Default for EcbFixedPostfix {
         let key = aes::Key::with_random_values(&mut rng);
 
         // Initialize postfix from base64
-        let postfix = Base64::from(FIXED_POSTFIX);
-        let postfix = ByteSlice::try_from(postfix).expect("Expected hardcoded base64 string to be valid");
+        let postfix = ByteSlice::from(base64!("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK").as_ref());
 
         EcbFixedPostfix { key, postfix }
     }

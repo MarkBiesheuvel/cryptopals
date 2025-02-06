@@ -2,11 +2,12 @@
 #![warn(missing_docs)]
 #![allow(unstable_name_collisions)]
 
+pub use byte_encoding_macro::{base64, hex};
+
 pub use error::CryptopalsError;
 
 pub mod adversary;
 pub mod aes;
 pub mod byte;
-pub mod encoding;
 mod error;
 pub mod oracle;

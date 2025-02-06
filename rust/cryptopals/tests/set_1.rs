@@ -1,4 +1,4 @@
-use byte_encoding_macro::hex;
+use byte_encoding_macro::{base64, hex};
 use cryptopals::{adversary, aes, byte::*};
 // Test support
 use support::{from_base64, from_hexadecimal, funky_music, TestFile};
@@ -7,14 +7,11 @@ mod support;
 #[test]
 fn challenge_1() {
     // value in hexadecimal and base64 respectively
-    let value_1 = ByteSlice::from(
-        hex!("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d")
-            .as_ref(),
-    );
-    let value_2 = from_base64("SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t");
+    let a = hex!("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d");
+    let b = base64!("SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t");
 
     // Both values should be equal
-    assert_eq!(value_1, value_2);
+    assert_eq!(a, b);
 }
 
 #[test]
