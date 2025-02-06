@@ -9,3 +9,9 @@ rand = "0.8"
 thiserror = "1.0"
 error-stack = "0.3"
 itermore = { version = "0.7", features = ["array_chunks"] }
+
+[dependencies.byte_encoding]
+path = "../byte_encoding"
+
+[dependencies.byte_encoding_macro]
+path = "../byte_encoding_macro"

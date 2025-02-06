@@ -1,0 +1,15 @@
+[package]
+name = "byte_encoding_macro"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+syn = "2.0"
+quote = "1.0"
+proc-macro2 = "1.0"
+
+[dependencies.byte_encoding]
+path = "../byte_encoding"
+
+[lib]
+proc-macro = true

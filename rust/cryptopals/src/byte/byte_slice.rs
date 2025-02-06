@@ -1,5 +1,6 @@
 use super::{ByteArray, ByteSequence};
-use crate::{aes::BLOCK_LENGTH, encoding::Hexadecimal, CryptopalsError};
+use crate::{aes::BLOCK_LENGTH, CryptopalsError};
+use byte_encoding::encode_hexadecimal;
 use error_stack::{ensure, Result};
 use itermore::IterArrayChunks;
 use std::{borrow::Cow, fmt, ops::Add};
@@ -275,11 +276,9 @@ impl ByteSequence for ByteSlice<'_> {
 
 impl fmt::Debug for ByteSlice<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let hexadecimal = Hexadecimal::from(self);
+        let hexadecimal = encode_hexadecimal(&self.0);
 
-        f.debug_tuple("ByteSlice")
-            .field(&hexadecimal.as_str())
-            .finish()
+        f.debug_tuple("ByteSlice").field(&hexadecimal).finish()
     }
 }
 

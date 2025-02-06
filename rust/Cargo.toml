@@ -1,5 +1,7 @@
 [workspace]
 members = [
+    "byte_encoding",
+    "byte_encoding_macro",
     "cryptopals",
 ]
 resolver = "2"

@@ -1,3 +1,4 @@
+use byte_encoding_macro::hex;
 use cryptopals::{adversary, aes, byte::*};
 // Test support
 use support::{from_base64, from_hexadecimal, funky_music, TestFile};
@@ -6,8 +7,9 @@ mod support;
 #[test]
 fn challenge_1() {
     // value in hexadecimal and base64 respectively
-    let value_1 = from_hexadecimal(
-        "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d",
+    let value_1 = ByteSlice::from(
+        hex!("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d")
+            .as_ref(),
     );
     let value_2 = from_base64("SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t");
 
@@ -18,14 +20,9 @@ fn challenge_1() {
 #[test]
 fn challenge_2() {
     // Convert as hexadecimal
-    let input_1 = from_hexadecimal("1c0111001f010100061a024b53535009181c");
-    let input_2 = from_hexadecimal("686974207468652062756c6c277320657965");
-    let expected = from_hexadecimal("746865206b696420646f6e277420706c6179");
-
-    // Convert to statically sized byte sequences
-    let input_1 = ByteArray::<18>::try_from(input_1).expect("test case should be correct length");
-    let input_2 = ByteArray::<18>::try_from(input_2).expect("test case should be correct length");
-    let expected = ByteArray::<18>::try_from(expected).expect("test case should be correct length");
+    let input_1 = ByteArray::from(hex!("1c0111001f010100061a024b53535009181c"));
+    let input_2 = ByteArray::from(hex!("686974207468652062756c6c277320657965"));
+    let expected = ByteArray::from(hex!("746865206b696420646f6e277420706c6179"));
 
     // Fixed XOR should lead to expected value
     assert_eq!(input_1 ^ input_2, expected);
@@ -34,7 +31,8 @@ fn challenge_2() {
 #[test]
 fn challenge_3() {
     // Ciphertext as hexadecimal
-    let ciphertext = from_hexadecimal("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736");
+    let ciphertext =
+        ByteSlice::from(hex!("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736").as_ref());
 
     // Expected plaintext
     let expected = ByteSlice::from("Cooking MC's like a pound of bacon");
@@ -74,7 +72,7 @@ fn challenge_5() {
     let plaintext = ByteSlice::from("Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal");
 
     // Expected output
-    let ciphertext = from_hexadecimal("0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f");
+    let ciphertext = ByteSlice::from(hex!("0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f").as_ref());
 
     assert_eq!(plaintext.repeated_key_xor(&key), ciphertext);
 }
