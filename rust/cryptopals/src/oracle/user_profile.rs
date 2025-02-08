@@ -1,13 +1,15 @@
 use std::cell::RefCell;
 
-use error_stack::{ensure, Result};
+use error_stack::{bail, ensure, IntoReport, Result, ResultExt};
 
 use super::{Oracle, OracleError};
 use crate::{aes, byte::*};
 
 // Special characters for URL-encoding
-const CHARACTER_AMPERSAND: u8 = b'&';
-const CHARACTER_EQUALS_SIGN: u8 = b'=';
+const CHARACTER_AMPERSAND: char = '&';
+const CHARACTER_EQUALS_SIGN: char = '=';
+const BYTE_AMPERSAND: u8 = CHARACTER_AMPERSAND as u8;
+const BYTE_EQUALS_SIGN: u8 = CHARACTER_EQUALS_SIGN as u8;
 
 /// An oracle which takes a plaintext email address and creates an encrypted
 /// token for it.
@@ -18,6 +20,23 @@ pub struct UserProfileOracle {
     key: aes::Key,
     prefix: ByteSlice<'static>,
     latest_id: RefCell<usize>,
+}
+
+/// Role of a user profile
+#[derive(Debug, PartialEq)]
+pub enum UserRole {
+    /// A regular user with no special permissions
+    User,
+    /// An admin user with additional permissions
+    Admin,
+}
+
+/// A valid user. The result of decrypting the ciphertext of the Oracle
+#[derive(Debug)]
+pub struct UserProfile {
+    email: String,
+    id: usize,
+    role: UserRole,
 }
 
 impl Default for UserProfileOracle {
@@ -45,8 +64,11 @@ impl Default for UserProfileOracle {
 impl Oracle for UserProfileOracle {
     fn encrypt(&self, email: ByteSlice<'_>) -> Result<ByteSlice<'static>, OracleError> {
         // Input validation
-        ensure!(!email.contains(&CHARACTER_AMPERSAND), OracleError::DisallowedCharacterInEmail('&'));
-        ensure!(!email.contains(&CHARACTER_EQUALS_SIGN), OracleError::DisallowedCharacterInEmail('='));
+        ensure!(!email.contains(&BYTE_AMPERSAND), OracleError::DisallowedCharacterInEmail(CHARACTER_AMPERSAND));
+        ensure!(
+            !email.contains(&BYTE_EQUALS_SIGN),
+            OracleError::DisallowedCharacterInEmail(CHARACTER_EQUALS_SIGN)
+        );
 
         // Mutably borrow from an immutable RefCell
         let mut id = self.latest_id.borrow_mut();
@@ -62,5 +84,84 @@ impl Oracle for UserProfileOracle {
         let ciphertext = aes::ecb::encrypt(profile, &self.key);
 
         Ok(ciphertext)
+    }
+}
+
+impl UserProfileOracle {
+    /// Decrypt a ciphertext that was encrypted by this oracle.
+    /// The resulting plaintext will be parsed and returned as UserProfile
+    pub fn decrypt(&self, ciphertext: ByteSlice<'_>) -> Result<UserProfile, OracleError> {
+        // Decrypt using ECB mode and same key
+        let plaintext = aes::ecb::decrypt(ciphertext, &self.key).change_context(OracleError::InvalidCiphertext)?;
+
+        // Convert from bytes to string
+        let plaintext = plaintext.to_string();
+
+        // Uninitialized value
+        let mut id = None;
+        let mut email = None;
+        let mut role = None;
+
+        // Loop over each variable assignment and capture it's value
+        for assignment in plaintext.split(CHARACTER_AMPERSAND) {
+            let (key, value) = assignment
+                .split_once(CHARACTER_EQUALS_SIGN)
+                .ok_or_else(|| OracleError::InvalidKeyValueString)?;
+
+            match key {
+                "uid" => {
+                    // Parse and store ID
+                    let value = value
+                        .parse::<usize>()
+                        .into_report()
+                        .change_context(OracleError::InvalidId)?;
+
+                    id = Some(value);
+                }
+                "email" => {
+                    // Take ownership and tore email
+                    let value = value.to_owned();
+                    email = Some(value);
+                }
+                "role" => {
+                    // Parse and store role
+                    let value = match value {
+                        "user" => UserRole::User,
+                        "admin" => UserRole::Admin,
+                        _unknown_role => {
+                            bail!(OracleError::InvalidRole);
+                        }
+                    };
+
+                    role = Some(value);
+                }
+                _unknown_field => {
+                    bail!(OracleError::UnexpectedField);
+                }
+            }
+        }
+
+        let id = id.ok_or_else(|| OracleError::MissingField("uid"))?;
+        let email = email.ok_or_else(|| OracleError::MissingField("email"))?;
+        let role = role.ok_or_else(|| OracleError::MissingField("email"))?;
+
+        Ok(UserProfile { id, email, role })
+    }
+}
+
+impl UserProfile {
+    /// ID of user
+    pub fn id(&self) -> usize {
+        self.id
+    }
+
+    // Email address of user
+    pub fn email(&self) -> &str {
+        &self.email
+    }
+
+    // Whether a user is admin
+    pub fn is_admin(&self) -> bool {
+        self.role == UserRole::Admin
     }
 }

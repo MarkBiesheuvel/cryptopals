@@ -282,6 +282,13 @@ impl fmt::Debug for ByteSlice<'_> {
     }
 }
 
+impl fmt::Display for ByteSlice<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = String::from_utf8_lossy(&self.0);
+        f.write_str(&value)
+    }
+}
+
 impl<'a> AsRef<ByteSlice<'a>> for ByteSlice<'a> {
     fn as_ref(&self) -> &ByteSlice<'a> {
         self

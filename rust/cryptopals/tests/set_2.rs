@@ -67,12 +67,16 @@ fn challenge_13() {
     let result = oracle.encrypt(email);
     assert!(result.is_ok());
 
+    // Should be able to decrypt ciphertext
+    let ciphertext = result.unwrap();
+    let user_profile = oracle.decrypt(ciphertext).unwrap();
+    assert_eq!(user_profile.is_admin(), false);
+
     // Invalid email should give an error
     let email = ByteSlice::from("foo@bar.com&role=admin");
     let result = oracle.encrypt(email);
     assert!(result.is_err());
 
-    // TODO: implement decryption
     // TODO: implement adversary
 }
 
