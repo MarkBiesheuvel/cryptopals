@@ -1,9 +1,7 @@
-use std::collections::HashMap;
-
-use error_stack::{ensure, Result, ResultExt};
-
-use super::AdversaryError;
+use super::{find_ecb_postfix_length, AdversaryError};
 use crate::{aes, byte::*, oracle::Oracle};
+use error_stack::{Result, ResultExt};
+use std::collections::HashMap;
 
 const DEFAULT_CHARACTER: u8 = b'U';
 
@@ -14,19 +12,6 @@ const PRINTABLE_CHARACTERS: [u8; 97] = [
     87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
     112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125,
 ];
-
-fn ciphertext_length<O: Oracle>(oracle: &O, plaintext_length: usize) -> Result<usize, AdversaryError> {
-    // Build a plaintext of desired length
-    let plaintext = ByteSlice::with_repeated_byte_and_length(plaintext_length, DEFAULT_CHARACTER);
-
-    // Try to encrypt it using the oracle
-    let ciphertext = oracle
-        .encrypt(plaintext)
-        .change_context(AdversaryError::InvalidInputOracle)?;
-
-    // Return the ciphertext length
-    Ok(ciphertext.length())
-}
 
 fn get_nth_block_of_ciphertext<O: Oracle>(
     oracle: &O,
@@ -53,35 +38,8 @@ fn get_nth_block_of_ciphertext<O: Oracle>(
 
 /// Attack the the postfix of an Oracle encrypting with ECB mode
 pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<ByteSlice<'static>, AdversaryError> {
-    // Initialize all variables before entering the while loop
-    let mut plaintext_length = 0;
-    let mut current_ciphertext_length = ciphertext_length(oracle, plaintext_length)?;
-    let mut previous_ciphertext_length;
-
-    loop {
-        // Recalculate the values for new plaintext length
-        previous_ciphertext_length = current_ciphertext_length;
-        current_ciphertext_length = ciphertext_length(oracle, plaintext_length)?;
-
-        if previous_ciphertext_length != current_ciphertext_length {
-            break;
-        }
-
-        // Increase the length of the plaintext
-        plaintext_length += 1;
-    }
-
-    // The block length is equal to the difference in ciphertext length
-    // Since we only added one character, the padding extended the length by one
-    // block
-    let block_length = current_ciphertext_length - previous_ciphertext_length;
-    ensure!(block_length == aes::BLOCK_LENGTH, AdversaryError::UnexpectedBlockLength(block_length));
-
-    // Calculate the length of the postfix string that was appended to the plaintext
-    // The current plaintext length plus postfix length fit exactly in the block
-    // size and therefore needed another block of padding. Use the previous
-    // ciphertext length to determine how many blocks that was.
-    let postfix_length = previous_ciphertext_length - plaintext_length;
+    let block_length = aes::BLOCK_LENGTH;
+    let postfix_length = find_ecb_postfix_length(oracle)?;
 
     // Starting with no known characters
     let mut known_characters = ByteSlice::from(Vec::new());

@@ -9,7 +9,9 @@ pub use detect_aes_block_mode::detect_aes_block_mode;
 pub use detect_block_size_repeating_key::detect_block_size_repeating_key;
 pub use error::AdversaryError;
 pub use find_aes_ecb_ciphertext::find_aes_ecb_ciphertext;
+pub use find_ecb_postfix_length::find_ecb_postfix_length;
 pub use find_english_text::find_english_text;
+pub use forge_admin_profile::forge_admin_profile;
 pub use scored_item::ScoredItem;
 
 mod attack_ecb_fixed_postfix;
@@ -20,5 +22,7 @@ mod detect_aes_block_mode;
 mod detect_block_size_repeating_key;
 mod error;
 mod find_aes_ecb_ciphertext;
+mod find_ecb_postfix_length;
 mod find_english_text;
+mod forge_admin_profile;
 mod scored_item;
