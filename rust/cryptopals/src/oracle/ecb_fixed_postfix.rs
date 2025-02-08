@@ -1,7 +1,9 @@
-use error_stack::Result;
-use byte_encoding_macro::base64;
 use super::{Oracle, OracleError};
 use crate::{aes, byte::*};
+use byte_encoding_macro::base64;
+use error_stack::Result;
+
+const POSTFIX: [u8; 138] = base64!("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK");
 
 /// An oracle which will encrypt a plaintext appended with a fixed string.
 ///
@@ -11,12 +13,12 @@ use crate::{aes, byte::*};
 /// During encryption it will:
 ///  - concatenate the plaintext with a fixed postfix
 ///  - encrypt everything using AES ECB block cipher mode
-pub struct EcbFixedPostfix {
+pub struct EcbFixedPostfixOracle {
     key: aes::Key,
     postfix: ByteSlice<'static>,
 }
 
-impl EcbFixedPostfix {
+impl EcbFixedPostfixOracle {
     /// Return the base64 encoded postfix, so it can be verified by the test
     /// case.
     pub fn postfix(&self) -> &ByteSlice<'static> {
@@ -24,7 +26,7 @@ impl EcbFixedPostfix {
     }
 }
 
-impl Default for EcbFixedPostfix {
+impl Default for EcbFixedPostfixOracle {
     fn default() -> Self {
         let mut rng = rand::thread_rng();
 
@@ -32,13 +34,13 @@ impl Default for EcbFixedPostfix {
         let key = aes::Key::with_random_values(&mut rng);
 
         // Initialize postfix from base64
-        let postfix = ByteSlice::from(base64!("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK").as_ref());
+        let postfix = ByteSlice::from(POSTFIX.as_ref());
 
-        EcbFixedPostfix { key, postfix }
+        EcbFixedPostfixOracle { key, postfix }
     }
 }
 
-impl Oracle for EcbFixedPostfix {
+impl Oracle for EcbFixedPostfixOracle {
     fn encrypt(&self, plaintext: ByteSlice<'_>) -> Result<ByteSlice<'static>, OracleError> {
         // Build a payload by adding the postfix to the plaintext
         let payload = plaintext + &self.postfix;

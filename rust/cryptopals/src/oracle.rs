@@ -2,11 +2,11 @@
 //!
 //! Each Oracle has unique characteristics which can be exploited by an
 //! adversary.
-pub use ecb_fixed_postfix::EcbFixedPostfix;
+pub use ecb_fixed_postfix::EcbFixedPostfixOracle;
 pub use error::OracleError;
 use error_stack::Result;
-pub use random_block_mode::RandomBlockMode;
-pub use user_profile::UserProfile;
+pub use random_block_mode::RandomBlockModeOracle;
+pub use user_profile::UserProfileOracle;
 
 use crate::byte::*;
 
@@ -25,17 +25,17 @@ mod user_profile;
 /// use error_stack::Result;
 ///
 /// #[derive(Default)]
-/// struct SingleByteXor;
+/// struct SingleByteXorOracle;
 ///
 /// // Implementing the Oracle trait with a simple XOR operation
-/// impl Oracle for SingleByteXor {
+/// impl Oracle for SingleByteXorOracle {
 ///     fn encrypt(&self, plaintext: ByteSlice<'_>) -> Result<ByteSlice<'static>, OracleError> {
 ///         Ok(plaintext.single_byte_xor(42))
 ///     }
 /// }
 ///
 /// // Verify that the oracle works as expected
-/// let oracle = SingleByteXor::default();
+/// let oracle = SingleByteXorOracle::default();
 /// let plaintext = ByteSlice::from("cryptopals");
 ///
 /// let ciphertext = oracle.encrypt(plaintext)?;

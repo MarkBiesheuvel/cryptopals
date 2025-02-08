@@ -31,7 +31,7 @@ fn challenge_10() {
 fn challenge_11() {
     // Re-run the test multiple times, since the oracle involves randomness
     for _ in 0..16 {
-        let oracle = oracle::RandomBlockMode::default();
+        let oracle = oracle::RandomBlockModeOracle::default();
 
         // Let the adversary attack the oracle
         let detected_mode = adversary::detect_aes_block_mode(&oracle).expect("adversary should be successful");
@@ -42,7 +42,7 @@ fn challenge_11() {
 
 #[test]
 fn challenge_12() {
-    let oracle = oracle::EcbFixedPostfix::default();
+    let oracle = oracle::EcbFixedPostfixOracle::default();
 
     // It is known that the oracle uses ECB, but verify anyway.
     let detected_mode = adversary::detect_aes_block_mode(&oracle).expect("adversary should be successful");
@@ -56,7 +56,7 @@ fn challenge_12() {
 
 #[test]
 fn challenge_13() {
-    let oracle = oracle::UserProfile::default();
+    let oracle = oracle::UserProfileOracle::default();
 
     // It is known that the oracle uses ECB, but verify anyway.
     let detected_mode = adversary::detect_aes_block_mode(&oracle).expect("adversary should be successful");

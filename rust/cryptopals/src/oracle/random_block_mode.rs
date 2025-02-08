@@ -15,14 +15,14 @@ use crate::{aes, byte::*};
 /// During encryption it will:
 ///  - concatenate the prefix, plaintext, and postfix
 ///  - encrypt everything using the previously selected block mode
-pub struct RandomBlockMode {
+pub struct RandomBlockModeOracle {
     key: aes::Key,
     mode: aes::BlockMode,
     prefix: ByteSlice<'static>,
     postfix: ByteSlice<'static>,
 }
 
-impl RandomBlockMode {
+impl RandomBlockModeOracle {
     /// Return the randomly selected block mode, so it can be verified by the
     /// test case.
     pub fn block_mode(&self) -> &aes::BlockMode {
@@ -30,7 +30,7 @@ impl RandomBlockMode {
     }
 }
 
-impl Default for RandomBlockMode {
+impl Default for RandomBlockModeOracle {
     fn default() -> Self {
         let mut rng = rand::thread_rng();
 
@@ -51,7 +51,7 @@ impl Default for RandomBlockMode {
         let prefix = ByteSlice::with_random_values_and_length(prefix_length, &mut rng);
         let postfix = ByteSlice::with_random_values_and_length(postfix_length, &mut rng);
 
-        RandomBlockMode {
+        RandomBlockModeOracle {
             key,
             mode,
             prefix,
@@ -60,7 +60,7 @@ impl Default for RandomBlockMode {
     }
 }
 
-impl Oracle for RandomBlockMode {
+impl Oracle for RandomBlockModeOracle {
     fn encrypt(&self, plaintext: ByteSlice<'_>) -> Result<ByteSlice<'static>, OracleError> {
         // Build a payload by adding the prefix and postfix to the plaintext
         let payload = &self.prefix + plaintext + &self.postfix;

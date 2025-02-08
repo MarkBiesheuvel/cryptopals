@@ -14,13 +14,13 @@ const CHARACTER_EQUALS_SIGN: u8 = b'=';
 ///
 /// During creation it will:
 ///  - randomly generate an encryption key
-pub struct UserProfile {
+pub struct UserProfileOracle {
     key: aes::Key,
     prefix: ByteSlice<'static>,
     latest_id: RefCell<usize>,
 }
 
-impl Default for UserProfile {
+impl Default for UserProfileOracle {
     fn default() -> Self {
         let mut rng = rand::thread_rng();
 
@@ -34,7 +34,7 @@ impl Default for UserProfile {
         // likely impact the padding of the ciphertext
         let latest_id = RefCell::new(1_000);
 
-        UserProfile {
+        UserProfileOracle {
             key,
             prefix,
             latest_id,
@@ -42,7 +42,7 @@ impl Default for UserProfile {
     }
 }
 
-impl Oracle for UserProfile {
+impl Oracle for UserProfileOracle {
     fn encrypt(&self, email: ByteSlice<'_>) -> Result<ByteSlice<'static>, OracleError> {
         // Input validation
         ensure!(!email.contains(&CHARACTER_AMPERSAND), OracleError::DisallowedCharacterInEmail('&'));
