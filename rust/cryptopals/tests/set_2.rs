@@ -1,4 +1,8 @@
-use cryptopals::{adversary, aes, byte::*, oracle, oracle::Oracle};
+use cryptopals::{
+    adversary, aes,
+    byte::*,
+    oracle::{self, EcbFixedPostfixOracle, Oracle},
+};
 // Test support
 use support::{from_base64, funky_music, TestFile};
 mod support;
@@ -81,6 +85,20 @@ fn challenge_13() {
     let ciphertext = adversary::forge_admin_profile(&oracle);
     let user_profile = oracle.decrypt(ciphertext).unwrap();
     assert_eq!(user_profile.is_admin(), true);
+}
+
+#[test]
+fn challenge_14() {
+    let oracle = EcbFixedPostfixOracle::with_random_prefix();
+
+    // It is known that the oracle uses ECB, but verify anyway.
+    let detected_mode = adversary::detect_aes_block_mode(&oracle).expect("adversary should be successful");
+    assert_eq!(&detected_mode, &aes::BlockMode::Ecb);
+
+    // Let the adversary attack the oracle
+    let fixed_postfix = adversary::attack_ecb_fixed_postfix(&oracle).expect("adversary should be successful");
+
+    assert_eq!(&fixed_postfix, oracle.postfix());
 }
 
 #[test]
