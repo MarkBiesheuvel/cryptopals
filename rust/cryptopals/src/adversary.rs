@@ -14,6 +14,7 @@ pub use find_ecb_postfix_length::find_ecb_postfix_length;
 pub use find_english_text::find_english_text;
 pub use forge_admin_profile::forge_admin_profile;
 use get_ciphertext_length::get_ciphertext_length;
+use get_duplicated_block_index::get_duplicated_block_index;
 pub use scored_item::ScoredItem;
 
 mod attack_ecb_fixed_postfix;
@@ -29,6 +30,7 @@ mod find_ecb_postfix_length;
 mod find_english_text;
 mod forge_admin_profile;
 mod get_ciphertext_length;
+mod get_duplicated_block_index;
 mod scored_item;
 
 // An arbitrary character to use when building a plaintext of a given length.

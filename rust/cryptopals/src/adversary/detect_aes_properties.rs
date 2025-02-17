@@ -1,7 +1,6 @@
-use error_stack::{ensure, Result, ResultExt};
-
-use super::{get_ciphertext_length, AdversaryError, DEFAULT_BYTE};
-use crate::{aes::BLOCK_LENGTH, byte::*, oracle::Oracle};
+use super::{get_ciphertext_length, get_duplicated_block_index, AdversaryError};
+use crate::{aes::BLOCK_LENGTH, oracle::Oracle};
+use error_stack::{ensure, Result};
 
 /// Characteristics of an Oracle using AES ECB block mode
 pub struct AesEcbProperties {
@@ -13,37 +12,6 @@ pub struct AesEcbProperties {
     pub alignment_offset: usize,
 }
 
-// Find the block index within the ciphertext of the first consecutive duplicated blocks.
-fn find_duplicated_block_index<O: Oracle>(
-    oracle: &O,
-    plaintext_length: usize,
-) -> Result<Option<usize>, AdversaryError> {
-    // Construct a plaintext
-    let plaintext = ByteSlice::with_repeated_byte_and_length(plaintext_length, DEFAULT_BYTE);
-
-    // Let the oracle encrypt our plaintext
-    let ciphertext = oracle
-        .encrypt(plaintext)
-        .change_context(AdversaryError::InvalidInputOracle)?;
-
-    let blocks = ciphertext
-        .blocks::<BLOCK_LENGTH>()
-        .expect("ciphertext should be correct length")
-        .collect::<Vec<_>>();
-
-    for index in 0..blocks.len() - 1 {
-        let current_block = &blocks[index];
-        let next_block = &blocks[index + 1];
-
-        if current_block == next_block {
-            return Ok(Some(index));
-        }
-    }
-
-    // No duplicated blocks found
-    Ok(None)
-}
-
 /// Detect various properties of an oracle which encrypts using AES
 pub fn detect_aes_properties<O: Oracle>(oracle: &O) -> Result<AesEcbProperties, AdversaryError> {
     // The properties we want to detect
@@ -53,8 +21,7 @@ pub fn detect_aes_properties<O: Oracle>(oracle: &O) -> Result<AesEcbProperties, 
 
     // Try plaintext input of different lengths to find the first plaintext which causes duplicated blocks
     for plaintext_length in 2 * BLOCK_LENGTH..3 * BLOCK_LENGTH {
-        if let Some(duplicated_block_index) = find_duplicated_block_index(oracle, plaintext_length)? {
-
+        if let Some(duplicated_block_index) = get_duplicated_block_index(oracle, plaintext_length)? {
             // TODO: write comment
             let offset = plaintext_length - 2 * BLOCK_LENGTH;
             alignment_offset = Some(offset);

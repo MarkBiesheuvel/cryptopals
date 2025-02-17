@@ -47,7 +47,7 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<ByteSlice<'stat
     let mut known_characters = ByteSlice::from(Vec::new());
 
     // Brute force each character of the fixed postfix one by one
-    for byte_index in prefix_length..(prefix_length+postfix_length) {
+    for byte_index in prefix_length..(prefix_length + postfix_length) {
         // Calculate the block number within the plaintext/cipher which will contain the
         // character we are looking for
         let block_index = (prefix_length + byte_index) / block_length;
