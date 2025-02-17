@@ -4,11 +4,13 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-itertools = "0.12"
 rand = "0.8"
 thiserror = "1.0"
 error-stack = "0.3"
-itermore = { version = "0.7", features = ["array_chunks"] }
+
+[dependencies.itermore]
+version = "0.7"
+features = ["array_chunks", "array_combinations"]
 
 [dependencies.byte_encoding]
 path = "../byte_encoding"

@@ -1,10 +1,8 @@
-use std::rc::Rc;
-
-use error_stack::{ensure, Result};
-use itertools::Itertools;
-
 use super::AdversaryError;
 use crate::byte::*;
+use error_stack::{ensure, Result};
+use itermore::IterArrayCombinations;
+use std::rc::Rc;
 
 // The maximum number of blocks to sample and compare to each other to calculate
 // the average hamming distance.
@@ -21,7 +19,7 @@ pub fn average_hamming_distance(bytes: &ByteSlice, block_size: usize) -> Result<
         .collect::<Vec<_>>();
 
     // Create all possible combinations
-    let combinations = blocks.into_iter().tuple_combinations().collect::<Vec<_>>();
+    let combinations = blocks.into_iter().array_combinations().collect::<Vec<_>>();
 
     // Count the actual number of combinations
     let number_of_combinations = combinations.len();
@@ -34,7 +32,7 @@ pub fn average_hamming_distance(bytes: &ByteSlice, block_size: usize) -> Result<
     let total_distance = combinations
         .into_iter()
         // Calculate hamming distance for each combination
-        .map(|(block_1, block_2)| block_1.hamming_distance(&block_2).unwrap())
+        .map(|[block_1, block_2]| block_1.hamming_distance(&block_2).unwrap())
         // Sum over all combination
         .sum::<usize>();
 
