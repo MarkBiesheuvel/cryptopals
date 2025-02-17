@@ -24,4 +24,10 @@ pub enum AdversaryError {
     /// The oracle uses an unexpected block length
     #[error("The oracle uses an unexpected block length of {0}.")]
     UnexpectedBlockLength(usize),
+    /// The oracle does not use AES ECB block mode.
+    #[error("The oracle does not use AES ECB block mode.")]
+    OracleDoesNotUseEcb,
+    /// The oracle always returns the same ciphertext length.
+    #[error("The oracle always returns the same ciphertext length.")]
+    OracleAlwaysReturnsSameCiphertextLength,
 }

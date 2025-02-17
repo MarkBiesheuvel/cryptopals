@@ -1,33 +1,18 @@
-use super::AdversaryError;
-use crate::{aes, byte::*, oracle::Oracle};
-use error_stack::{ensure, Result, ResultExt};
-
-const DEFAULT_CHARACTER: u8 = b'U';
-
-fn ciphertext_length<O: Oracle>(oracle: &O, plaintext_length: usize) -> Result<usize, AdversaryError> {
-    // Build a plaintext of desired length
-    let plaintext = ByteSlice::with_repeated_byte_and_length(plaintext_length, DEFAULT_CHARACTER);
-
-    // Try to encrypt it using the oracle
-    let ciphertext = oracle
-        .encrypt(plaintext)
-        .change_context(AdversaryError::InvalidInputOracle)?;
-
-    // Return the ciphertext length
-    Ok(ciphertext.length())
-}
+use super::{get_ciphertext_length, AdversaryError};
+use crate::{aes, oracle::Oracle};
+use error_stack::{ensure, Result};
 
 /// Find the length of the postfix of an Oracle encrypting with ECB mode
 pub fn find_ecb_postfix_length<O: Oracle>(oracle: &O) -> Result<usize, AdversaryError> {
     // Initialize all variables before entering the while loop
     let mut plaintext_length = 0;
-    let mut current_ciphertext_length = ciphertext_length(oracle, plaintext_length)?;
+    let mut current_ciphertext_length = get_ciphertext_length(oracle, plaintext_length)?;
     let mut previous_ciphertext_length;
 
     loop {
         // Recalculate the values for new plaintext length
         previous_ciphertext_length = current_ciphertext_length;
-        current_ciphertext_length = ciphertext_length(oracle, plaintext_length)?;
+        current_ciphertext_length = get_ciphertext_length(oracle, plaintext_length)?;
 
         if previous_ciphertext_length != current_ciphertext_length {
             break;
