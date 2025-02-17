@@ -3,6 +3,7 @@ use crate::{aes::BLOCK_LENGTH, oracle::Oracle};
 use error_stack::{ensure, Result};
 
 /// Characteristics of an Oracle using AES ECB block mode
+#[derive(Debug)]
 pub struct AesEcbProperties {
     /// The number of bytes that are prepended to the plaintext before encrypting
     pub prefix_length: usize,
@@ -28,7 +29,7 @@ pub fn detect_aes_properties<O: Oracle>(oracle: &O) -> Result<AesEcbProperties, 
 
             // The first duplicated block is guaranteed to include our plaintext input.
             // Subtract the alignment offset to find the precise start point of our plaintext, and thus the length of the prefix.
-            prefix_length = Some(dbg!(duplicated_block_index * BLOCK_LENGTH - offset));
+            prefix_length = Some(duplicated_block_index * BLOCK_LENGTH - offset);
 
             // We found what we were looking for, no need to continue
             break;

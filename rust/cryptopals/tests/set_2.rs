@@ -73,7 +73,9 @@ fn challenge_13() {
 
     // Should be able to decrypt ciphertext
     let ciphertext = result.expect("oracle should be able to encrypt");
-    let user_profile = oracle.decrypt(ciphertext).unwrap();
+    let user_profile = oracle
+        .decrypt(ciphertext)
+        .expect("oracle should be able to decrypt");
     assert_eq!(user_profile.is_admin(), false);
 
     // Invalid email should give an error
@@ -82,8 +84,10 @@ fn challenge_13() {
     assert!(result.is_err());
 
     // Let the adversary forge a ciphertext which gives admin access
-    let ciphertext = adversary::forge_admin_profile(&oracle);
-    let user_profile = oracle.decrypt(ciphertext).unwrap();
+    let ciphertext = adversary::forge_admin_profile(&oracle).expect("adversary should be successful");
+    let user_profile = oracle
+        .decrypt(ciphertext)
+        .expect("oracle should be able to decrypt");
     assert_eq!(user_profile.is_admin(), true);
 }
 

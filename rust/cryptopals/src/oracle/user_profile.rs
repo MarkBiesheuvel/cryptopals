@@ -95,7 +95,7 @@ impl UserProfileOracle {
         let plaintext = aes::ecb::decrypt(ciphertext, &self.key).change_context(OracleError::InvalidCiphertext)?;
 
         // Convert from bytes to string
-        let plaintext = plaintext.to_string();
+        let plaintext = dbg!(plaintext.to_string());
 
         // Uninitialized value
         let mut id = None;

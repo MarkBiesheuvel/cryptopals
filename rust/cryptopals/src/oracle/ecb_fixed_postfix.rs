@@ -37,10 +37,10 @@ impl EcbFixedPostfixOracle {
         let mut rng = rand::thread_rng();
 
         // Use given length are randomly generate one
-        let prefix_length = dbg!(match prefix_length_option {
+        let prefix_length = match prefix_length_option {
             Some(length) => length,
             None => rng.gen_range(1..32),
-        });
+        };
 
         let prefix = ByteSlice::with_random_values_and_length(prefix_length, &mut rng);
 
