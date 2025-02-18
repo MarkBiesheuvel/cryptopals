@@ -14,7 +14,7 @@ pub use find_english_text::find_english_text;
 pub use forge_admin_profile::forge_admin_profile;
 use get_ciphertext_length::get_ciphertext_length;
 use get_duplicated_block_index::get_duplicated_block_index;
-pub use scored_item::ScoredItem;
+use scored_item::ScoredItem;
 
 mod attack_ecb_fixed_postfix;
 mod attack_repeating_key_xor;

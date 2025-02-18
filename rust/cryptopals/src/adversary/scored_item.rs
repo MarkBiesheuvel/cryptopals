@@ -1,29 +1,9 @@
 use std::cmp::{Ordering, PartialEq, PartialOrd};
 
-/// A combination of a `Box<T>` with a number value, such that different
-/// instances can be compared and ordered.
-///
-/// Currently only numeric values of type `f32` or `u8` are supported.
-///
-/// ## Examples
-/// ```
-/// # use cryptopals::adversary::ScoredItem;
-/// #
-/// // List of strings in alphabetical order
-/// let mut list = Vec::from([
-///     ScoredItem::new(0.99, "one"),
-///     ScoredItem::new(3.14, "pi"),
-///     ScoredItem::new(6.28, "tau"),
-///     ScoredItem::new(2.72, "e"),
-///     ScoredItem::new(0.00, "zero"),
-/// ]);
-///
-/// // Sort into numeric order
-/// list.sort();
-///
-/// // Verify last element
-/// assert_eq!(list.pop().map(ScoredItem::item), Some("tau"));
-/// ```
+// A combination of a `Box<T>` with a number value, such that different
+// instances can be compared and ordered.
+//
+// Currently numeric values of type `f32` or `u8` are supported.
 pub struct ScoredItem<T> {
     score: f32,
     item: Box<T>,
@@ -77,5 +57,28 @@ where
 {
     fn eq(&self, other: &Self) -> bool {
         self.cmp(other).is_eq()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn example() {
+        // List of strings in alphabetical order
+        let mut list = Vec::from([
+            ScoredItem::new(0.99, "one"),
+            ScoredItem::new(3.14, "pi"),
+            ScoredItem::new(6.28, "tau"),
+            ScoredItem::new(2.72, "e"),
+            ScoredItem::new(0.00, "zero"),
+        ]);
+
+        // Sort into numeric order
+        list.sort();
+
+        // Verify last element
+        assert_eq!(list.pop().map(ScoredItem::item), Some("tau"));
     }
 }

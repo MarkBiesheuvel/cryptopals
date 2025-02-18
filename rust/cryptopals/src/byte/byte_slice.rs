@@ -97,7 +97,7 @@ impl<'a> ByteSlice<'a> {
     /// assert_eq!(length % block_size, 0);
     /// assert_eq!(value.get(length - 1), Some(&6));
     /// ```
-    pub fn pad(&mut self, desired_block_size: usize) -> () {
+    pub fn pad(&mut self, desired_block_size: usize) {
         let current_length = self.length();
 
         // Calculate the difference in length

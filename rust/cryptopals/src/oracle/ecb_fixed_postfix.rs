@@ -32,7 +32,6 @@ impl EcbFixedPostfixOracle {
         EcbFixedPostfixOracle::new(None)
     }
 
-    ///
     fn new(prefix_length_option: Option<usize>) -> Self {
         let mut rng = rand::thread_rng();
 

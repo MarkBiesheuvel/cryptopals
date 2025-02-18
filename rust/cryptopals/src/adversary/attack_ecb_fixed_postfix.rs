@@ -1,5 +1,5 @@
 use super::{detect_aes_properties, AdversaryError, AesEcbProperties, DEFAULT_BYTE};
-use crate::{aes, byte::*, oracle::Oracle};
+use crate::{aes::BLOCK_LENGTH, byte::*, oracle::Oracle};
 use error_stack::{Result, ResultExt};
 use std::collections::HashMap;
 
@@ -36,7 +36,6 @@ fn get_nth_block_of_ciphertext<O: Oracle>(
 
 /// Attack the the postfix of an Oracle encrypting with ECB mode
 pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<ByteSlice<'static>, AdversaryError> {
-    let block_length = aes::BLOCK_LENGTH;
     let AesEcbProperties {
         postfix_length,
         prefix_length,
@@ -50,11 +49,11 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<ByteSlice<'stat
     for byte_index in prefix_length..(prefix_length + postfix_length) {
         // Calculate the block number within the plaintext/cipher which will contain the
         // character we are looking for
-        let block_index = (prefix_length + byte_index) / block_length;
+        let block_index = (prefix_length + byte_index) / BLOCK_LENGTH;
 
         // Prefix all plaintexts with a specific number of bytes to align the
         // character we are looking for in the last position of a block in the ciphertext
-        let alignment_offset = (block_index + 1) * block_length - byte_index - 1;
+        let alignment_offset = (block_index + 1) * BLOCK_LENGTH - byte_index - 1;
         let alignment_text = ByteSlice::with_repeated_byte_and_length(alignment_offset, DEFAULT_BYTE);
 
         // Build a map of encrypted blocks where the corresponding plaintext block was
@@ -69,7 +68,7 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<ByteSlice<'stat
 
                 // Store the block of the ciphertext containing the different bytes values in
                 // the last position
-                let block = get_nth_block_of_ciphertext(oracle, plaintext, block_length, block_index)?;
+                let block = get_nth_block_of_ciphertext(oracle, plaintext, BLOCK_LENGTH, block_index)?;
 
                 Ok((block, byte_value))
             })
@@ -85,7 +84,7 @@ pub fn attack_ecb_fixed_postfix<O: Oracle>(oracle: &O) -> Result<ByteSlice<'stat
         //
         // pppp [pkkB] kkuu u
         // pppp [pkku] uu
-        let block = get_nth_block_of_ciphertext(oracle, alignment_text, block_length, block_index)?;
+        let block = get_nth_block_of_ciphertext(oracle, alignment_text, BLOCK_LENGTH, block_index)?;
 
         // Add the discovered character to the list of known characters so it can be
         // used in the next step

@@ -1,11 +1,10 @@
-use std::ops::BitXorAssign;
-use std::ops::{Index, IndexMut};
-
 use super::{
     byte_operator::{g_mul, inverse_sub_byte, sub_byte},
     Key,
 };
 use crate::byte::*;
+use std::ops::BitXorAssign;
+use std::ops::{Index, IndexMut};
 
 /// Number of bytes in 128 bits (e.g. 16 bytes)
 pub const BLOCK_LENGTH: usize = 16;
@@ -34,6 +33,7 @@ where
 
 impl Block {
     /// Consume self and return iterator over bytes
+    #[allow(clippy::should_implement_trait)]
     pub fn into_iter(self) -> impl Iterator<Item = u8> + 'static {
         self.0.into_iter()
     }

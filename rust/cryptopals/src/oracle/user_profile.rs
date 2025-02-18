@@ -1,9 +1,7 @@
-use std::cell::RefCell;
-
-use error_stack::{bail, ensure, IntoReport, Result, ResultExt};
-
 use super::{Oracle, OracleError};
 use crate::{aes, byte::*};
+use error_stack::{bail, ensure, IntoReport, Result, ResultExt};
+use std::cell::RefCell;
 
 // Special characters for URL-encoding
 const CHARACTER_AMPERSAND: char = '&';
@@ -106,7 +104,7 @@ impl UserProfileOracle {
         for assignment in plaintext.split(CHARACTER_AMPERSAND) {
             let (key, value) = assignment
                 .split_once(CHARACTER_EQUALS_SIGN)
-                .ok_or_else(|| OracleError::InvalidKeyValueString)?;
+                .ok_or(OracleError::InvalidKeyValueString)?;
 
             match key {
                 "uid" => {
@@ -141,9 +139,9 @@ impl UserProfileOracle {
             }
         }
 
-        let id = id.ok_or_else(|| OracleError::MissingField("uid"))?;
-        let email = email.ok_or_else(|| OracleError::MissingField("email"))?;
-        let role = role.ok_or_else(|| OracleError::MissingField("email"))?;
+        let id = id.ok_or(OracleError::MissingField("uid"))?;
+        let email = email.ok_or(OracleError::MissingField("email"))?;
+        let role = role.ok_or(OracleError::MissingField("role"))?;
 
         Ok(UserProfile { id, email, role })
     }
