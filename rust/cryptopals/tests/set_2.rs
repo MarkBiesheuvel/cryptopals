@@ -127,3 +127,17 @@ fn challenge_15() {
 
     assert!(result.is_err());
 }
+
+#[test]
+fn challenge_16() {
+    let oracle = oracle::UserDataOracle::default();
+
+    // It is known that the oracle uses ECB, but verify anyway.
+    let detected_mode = adversary::detect_aes_block_mode(&oracle).expect("adversary should be successful");
+    assert_eq!(&detected_mode, &aes::BlockMode::Cbc);
+
+    // Invalid user data should give error
+    let plaintext = ByteSlice::from(";admin=true;");
+    let result = oracle.encrypt(plaintext);
+    assert!(result.is_err());
+}

@@ -62,11 +62,8 @@ impl Default for UserProfileOracle {
 impl Oracle for UserProfileOracle {
     fn encrypt(&self, email: ByteSlice<'_>) -> Result<ByteSlice<'static>, OracleError> {
         // Input validation
-        ensure!(!email.contains(&BYTE_AMPERSAND), OracleError::DisallowedCharacterInEmail(CHARACTER_AMPERSAND));
-        ensure!(
-            !email.contains(&BYTE_EQUALS_SIGN),
-            OracleError::DisallowedCharacterInEmail(CHARACTER_EQUALS_SIGN)
-        );
+        ensure!(!email.contains(&BYTE_AMPERSAND), OracleError::DisallowedCharacter(CHARACTER_AMPERSAND));
+        ensure!(!email.contains(&BYTE_EQUALS_SIGN), OracleError::DisallowedCharacter(CHARACTER_EQUALS_SIGN));
 
         // Mutably borrow from an immutable RefCell
         let mut id = self.latest_id.borrow_mut();

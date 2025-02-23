@@ -6,6 +6,7 @@ pub use ecb_fixed_postfix::EcbFixedPostfixOracle;
 pub use error::OracleError;
 use error_stack::Result;
 pub use random_block_mode::RandomBlockModeOracle;
+pub use user_data::UserDataOracle;
 pub use user_profile::UserProfileOracle;
 
 use crate::byte::*;
@@ -13,6 +14,7 @@ use crate::byte::*;
 mod ecb_fixed_postfix;
 mod error;
 mod random_block_mode;
+mod user_data;
 mod user_profile;
 
 /// Trait that should be implemented by all oracles.
