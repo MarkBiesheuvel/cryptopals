@@ -41,26 +41,24 @@ pub fn detect_aes_properties<O: Oracle>(oracle: &O) -> Result<AesEcbProperties, 
     let alignment_offset = alignment_offset.ok_or(AdversaryError::OracleDoesNotUseEcb)?;
 
     // Keeping track of the length of different ciphertexts and initialize first round
-    let mut previous_ciphertext_length;
-    let mut current_ciphertext_length = get_ciphertext_length(oracle, 0)?;
+    let base_ciphertext_length = get_ciphertext_length(oracle, 0)?;
 
     // Try plaintext input of different lengths to find the first plaintext which increases the ciphertext by one block
     for plaintext_length in 1..=BLOCK_LENGTH {
         // Update length data
-        previous_ciphertext_length = current_ciphertext_length;
-        current_ciphertext_length = get_ciphertext_length(oracle, plaintext_length)?;
+        let current_ciphertext_length = get_ciphertext_length(oracle, plaintext_length)?;
 
         // If the length changed since last time, exit the loop
-        if previous_ciphertext_length < current_ciphertext_length {
+        if base_ciphertext_length < current_ciphertext_length {
             // The block length is equal to the difference in ciphertext length
             // Since we only added one character, the padding extended the length by one block
-            let block_length = current_ciphertext_length - previous_ciphertext_length;
+            let block_length = current_ciphertext_length - base_ciphertext_length;
             ensure!(block_length == BLOCK_LENGTH, AdversaryError::UnexpectedBlockLength(block_length));
 
             // Calculate the number of additional bytes that were added to the plaintext.
             // The current plaintext length plus additional bytes fit exactly in the block length and needed another block of padding.
             // Use the previous ciphertext length to determine how many blocks that was.
-            let additional_bytes_length = previous_ciphertext_length - plaintext_length;
+            let additional_bytes_length = base_ciphertext_length - plaintext_length;
 
             // The additional bytes are either prefixed or postfixed, so can calculate one from the other
             postfix_length = Some(additional_bytes_length - prefix_length);

@@ -161,7 +161,7 @@ impl<const N: usize> BitXor for ByteArray<N> {
 
     fn bitxor(self, rhs: Self) -> Self::Output {
         // Xor each byte of lhs and rhs
-        let iter = self.iter().zip(rhs.iter()).map(|(lhs, rhs)| lhs ^ rhs);
+        let iter = self.into_iter().zip(rhs.into_iter()).map(|(lhs, rhs)| lhs ^ rhs);
 
         ByteArray::from_iter(iter)
     }
